@@ -1,0 +1,113 @@
+.privacyContainer {
+    min-height: 100vh;
+    width: 100%;
+    background-color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #444444;
+}
+
+.navbar {
+    width: 100%;
+    padding: 1rem 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f2f2f2;
+    position: sticky;
+    top: 0;
+    background-color: #ffffff;
+    z-index: 100;
+}
+
+.logoArea {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logoCircle {
+    width: 35px;
+    height: 35px;
+    background-color: #f97316;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
+.appName {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a365d;
+}
+
+.backLink {
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.backLink:hover {
+    text-decoration: underline;
+}
+
+.mainContent {
+    width: 100%;
+    padding: 1rem 10% 1rem 10%;
+    box-sizing: border-box;
+}
+
+.mainTitle {
+    font-size: 3.8rem;
+    font-weight: 800;
+    color: #2b4c8c;
+    margin-bottom: 3.5rem;
+    letter-spacing: -1px;
+}
+
+.section {
+    margin-bottom: 3rem;
+    line-height: 1.8;
+    font-size: 1.15rem;
+}
+
+.sectionTitle {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #2b4c8c;
+    margin-bottom: 1.2rem;
+    margin-top: 2.5rem;
+}
+
+.contentBlock {
+    margin-bottom: 1.5rem;
+}
+
+.boldHeader {
+    font-weight: 700;
+    color: #333;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.emailHighlight {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.footer {
+    width: 100%;
+    padding: 4rem 15%;
+    border-top: 1px solid #eeeeee;
+    color: #9ca3af;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+    background-color: #fafafa;
+}

@@ -1,0 +1,248 @@
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { Api } from '../../lib/api';
+import { type UserRole } from '../../features/slices/authSlice';
+import { checkPermission } from '../../utils/utils';
+import { queryClient } from '../../lib/queryClient';
+import { useAuthData } from '../../hooks/useAuthData';
+import { AUTH_CHECK_ROLES } from '../../constants/constants';
+// import { Api } from '../lib/api';
+
+interface LoginParams {
+  identifier: string; // Can be email or phoneNo
+  password: string;
+}
+
+interface LoginResponse {
+  ok: boolean;
+  message: string;
+  token: string;
+  user: any; // Replace 'any' with your actual User interface
+}
+
+const loginUser = async ({ identifier, password }: LoginParams): Promise<LoginResponse> => {
+  try {
+    const { data } = await Api.post<LoginResponse>('/api/user/login', { identifier, password });
+
+    if (data.ok) {
+      return data;
+    } else {
+      // Handle cases where ok is false but the backend returns a 200 status
+      throw new Error(data.message || 'Login failed');
+    }
+  } catch (error: any) {
+    // Extract actual error message from Axios response if available
+    const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+    throw new Error(errorMessage, { cause: error });
+  }
+};
+
+export const useLoginUser = () => {
+  return useMutation({
+    mutationFn: loginUser,
+  });
+};
+
+
+export const useLogoutUser = () => {
+  return useMutation({
+    mutationFn: async () => {
+      try {
+        const { data } = await Api.post('/api/user/logout');
+        return data;
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'Logout failed';
+        throw new Error(errorMessage, { cause: error });
+      }
+    }
+  });
+};
+
+
+
+
+// --- Types ---
+interface BaseResponse {
+  ok: boolean;
+  message: string;
+}
+
+interface UpdateUserParams {
+  id: string;
+  data: {
+    email?: string;
+    phoneNo?: string;
+    userName?: string;
+  };
+}
+
+// interface UserData {
+//   _id: string;
+//   userName: string;
+//   email: string;
+//   phoneNo: string;
+//   role: string;
+//   schoolId: string;
+// }
+
+// interface GetUserResponse extends BaseResponse {
+//   user: UserData;
+// }
+
+
+const ALLOWED_ROLES: UserRole[] = AUTH_CHECK_ROLES
+
+// --- 1. Plain Function for useAuthCheck ---
+export const fetchAuthSession = async (currentRole: UserRole) => {
+  try {
+    // Optional: Pre-verify locally if role exists in Redux
+    if (currentRole) {
+      checkPermission(currentRole, ALLOWED_ROLES);
+    }
+
+    const { data } = await Api.get('/api/user/isauthenticated');
+    return data;
+  } catch (error: any) {
+    throw error.response?.data?.message || error.message || "something went wrong";
+  }
+};
+
+// --- 2. TanStack Hook (for general use) ---
+export const useUserIsAuthenticated = () => {
+
+  const { currentRole } = useAuthData();
+
+  return useQuery({
+    queryKey: ['checkAuth'],
+    queryFn: async () => {
+      try {
+        // Pre-check permission before waking up the network
+        checkPermission(currentRole, ALLOWED_ROLES);
+
+        const { data } = await Api.get('/api/user/isauthenticated');
+        if (data.ok) return data.data;
+        throw new Error(data.message || 'Not authenticated');
+      } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Session expired', { cause: error });
+      }
+    },
+    retry: false,
+    enabled: !!currentRole, // Only runs if we have a role
+  });
+};
+
+// --- Hook 1: Update User (Mutation) ---
+export const useUpdateUser = () => {
+  const { currentRole } = useAuthData();
+  return useMutation({
+    mutationFn: async ({ id, data: updateData }: UpdateUserParams) => {
+      try {
+        checkPermission(currentRole, [
+          "correspondent", "teacher", "principal", "parent", "accountant", "administrator", "viceprincipal"
+        ]);
+
+        const { data } = await Api.put<BaseResponse>(`/api/user/update/${id}`, updateData);
+
+        if (data.ok) {
+          return data;
+        } else {
+          throw new Error(data.message || 'Update failed');
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage, { cause: error });
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['user', variables.id] });
+    },
+  });
+};
+
+// --- Hook 2: Get Single User (Query) ---
+export const useGetSingleUser = (userId: string | undefined) => {
+  const { currentRole } = useAuthData();
+  return useQuery({
+    queryKey: ['user', userId],
+    queryFn: async () => {
+      try {
+        console.log("calling   1111")
+
+        checkPermission(currentRole, [
+          "correspondent", "teacher", "principal", "administrator", "viceprincipal", "parent", "accountant"
+        ]);
+
+        console.log("calling  222")
+        const { data } = await Api.get(`/api/user/${userId}`);
+
+        console.log("data", data)
+
+        if (data.ok) {
+          return data.data;
+        } else {
+          throw new Error(data.message || 'Failed to fetch user');
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage, { cause: error });
+      }
+    },
+    enabled: !!userId,
+  });
+};
+
+
+// --- Hook 6: Get all User (Query) ---
+export const useGetAllUsers = ({role, schoolId}: {role:string, schoolId:string}) => {
+  const { currentRole } = useAuthData();
+  return useQuery({
+    queryKey: ['all-user', schoolId, role],
+    queryFn: async () => {
+      try {
+
+        checkPermission(currentRole, [
+          "correspondent", "teacher", "principal", "administrator", "viceprincipal", "parent", "accountant"
+        ]);
+
+        const { data } = await Api.get(`/api/user/${role}/${schoolId}`);
+
+        console.log("data", data)
+
+        if (data.ok) {
+          return data.data;
+        } else {
+          throw new Error(data.message || 'Failed to fetch user');
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage, { cause: error });
+      }
+    },
+    enabled: !!role && !!schoolId,
+  });
+};
+
+// --- Hook 3: Assign Role (Mutation - High Security) ---
+export const useAssignRole = () => {
+  const { currentRole } = useAuthData();
+  return useMutation({
+    mutationFn: async ({ userId, newRole }: { userId: string, newRole: UserRole }) => {
+      try {
+        checkPermission(currentRole, ["correspondent", "administrator"]);
+
+        const { data } = await Api.put<BaseResponse>(`/api/user/assignrole/${userId}`, { role: newRole });
+
+        if (data.ok) {
+          return data;
+        } else {
+          throw new Error(data.message || 'Role assignment failed');
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage, { cause: error });
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['user', variables.userId] });
+    },
+  });
+};

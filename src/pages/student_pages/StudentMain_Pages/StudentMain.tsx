@@ -1,0 +1,594 @@
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { type RootState } from '../../../features/store/store';
+
+
+// UI Components
+import { Button } from '../../../shared/ui/Button';
+import { Input, Label } from '../../../shared/ui/Input';
+import { SideModal } from '../../../shared/ui/SideModal';
+import { TableContainer, THead, Th, TBody, Tr, Td } from '../../../shared/ui/TableLayout';
+import { SearchSelect, type SelectOption } from '../../../shared/ui/SearchSelect';
+// import useDebounce from '../../hooks/useDebounce'; // Adjust path
+import {
+    useGetAllStudents,
+    useDeleteStudent,
+    useCreateStudent,
+    useUpdateStudent
+} from '../../../api_services/student_api/studentMainApi';
+import { useGetClasses } from '../../../api_services/schoolConfig_api/classApi';
+import { useGetSections } from '../../../api_services/schoolConfig_api/sectionApi'; // Adjust path as needed
+import useDebounce from '../../../hooks/useDebounce';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+
+
+export default function StudentMain() {
+    // --- Global State ---
+    const { schoolId } = useSelector((state: RootState) => state.auth);
+    const navigate = useNavigate()
+    const location = useLocation()
+
+
+
+    // --- Search & Filter State ---
+    const [searchInput, setSearchInput] = useState('');
+    const debouncedSearch = useDebounce(searchInput, 500); // 500ms delay
+
+    // --- Local Filter State (Left Panel) ---
+    const [filters, setFilters] = useState({
+        search: '',
+        classId: '',
+        sectionId: '',
+        page: 1,
+        limit: 10,
+    });
+
+    // // Reset to page 1 whenever the debounced search changes
+    // useEffect(() => {
+    //     setFilters(prev => ({ ...prev, page: 1 }));
+    // }, [debouncedSearch]);
+
+    // --- Modal & Form State ---
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [formData, setFormData] = useState({
+        studentName: '',
+        gender: 'Male',
+        dob: '',
+        whatsappNumber: '',
+        newOld: 'New',
+    });
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+    // --- API Hooks ---
+    const { data: classesData } = useGetClasses(schoolId!);
+    // 2. Fetch Sections based on selected classId
+    const { data: sectionsData, isLoading: isSectionsLoading } = useGetSections({
+        schoolId: schoolId!,
+        classId: filters.classId
+    });
+
+    // const { data, isLoading, isError, refetch } = useGetAllStudents({
+    //     schoolId: schoolId!,
+    //     ...filters,
+    //     search: debouncedSearch, // Pass the debounced value here
+    // });
+
+    const {
+        data,
+        isLoading,
+        isError,
+        refetch,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage
+    } = useGetAllStudents({
+        schoolId: schoolId!,
+        ...filters,
+        limit: 30,
+        search: debouncedSearch,
+    });
+
+    const createStudentMutation = useCreateStudent();
+    const updateStudentMutation = useUpdateStudent();
+    const deleteStudentMutation = useDeleteStudent();
+
+    // --- Data Processing ---
+    // const students = Array.isArray(data) ? data : data?.data || [];
+    // const students = data?.pages?.flatMap((page: any) => page?.docs || page?.data || page) || [];
+    const students = data?.pages?.flat() || [];
+
+    // Map classes for SearchSelect
+    const classOptions: SelectOption[] = classesData?.map((cls: any) => ({
+        label: cls.name,
+        value: cls._id
+    })) || [];
+
+    // Map dynamically fetched sections based on the backend model
+    const sectionOptions: SelectOption[] = sectionsData?.map((sec: any) => ({
+        label: sec.name, // Will display "A", "B", etc. based on your model
+        value: sec._id
+    })) || [];
+
+    const genderOptions: SelectOption[] = [
+        { label: 'Male', value: 'Male' },
+        { label: 'Female', value: 'Female' },
+    ];
+
+    // Handle Infinite Scroll
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+        // If user scrolls within 50px of the bottom, fetch next page
+        if (scrollHeight - scrollTop <= clientHeight + 50) {
+            if (hasNextPage && !isFetchingNextPage) {
+                fetchNextPage();
+            }
+        }
+    };
+
+    // --- Handlers ---
+    // const handleFilterTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     const { id, value } = e.target;
+    //     setFilters(prev => ({ ...prev, [id]: value, page: 1 }));
+    // };
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchInput(e.target.value);
+    };
+
+    const handleClassFilterChange = (option: SelectOption) => {
+        setFilters(prev => ({ ...prev, classId: String(option.value), page: 1 }));
+    };
+
+    const handleSectionFilterChange = (option: SelectOption) => {
+        setFilters(prev => ({ ...prev, sectionId: String(option.value), page: 1 }));
+    };
+
+    const clearFilters = () => {
+        setFilters({ search: '', classId: '', sectionId: '', page: 1, limit: 10 });
+    };
+
+    const openCreateForm = () => {
+        setFormData({ studentName: '', gender: 'Male', dob: '', whatsappNumber: '', newOld: 'New' });
+        setSelectedFile(null);
+        setEditingId(null);
+        setIsFormOpen(true);
+    };
+
+    const openEditForm = (student: any) => {
+        setFormData({
+            studentName: student.studentName,
+            gender: student.gender,
+            dob: student.dob ? new Date(student.dob).toISOString().split('T')[0] : '',
+            whatsappNumber: student.whatsappNumber,
+            newOld: student.newOld || 'New',
+        });
+        setSelectedFile(null);
+        setEditingId(student._id);
+        setIsFormOpen(true);
+    };
+
+    const closeForm = () => {
+        setIsFormOpen(false);
+        setEditingId(null);
+    };
+
+    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({ ...prev, [id]: value }));
+    };
+
+    const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Specifically target the newOld property in formData
+    setFormData(prev => ({ 
+        ...prev, 
+        newOld: e.target.value 
+    }));
+};
+
+    const handleGenderChange = (option: SelectOption) => {
+        setFormData(prev => ({ ...prev, gender: String(option.value) }));
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setSelectedFile(e.target.files[0]);
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        const payload = new FormData();
+        payload.append('schoolId', schoolId!);
+        payload.append('studentName', formData.studentName);
+        payload.append('gender', formData.gender);
+        payload.append('dob', formData.dob);
+        payload.append('whatsappNumber', formData.whatsappNumber);
+        payload.append('newOld', formData.newOld);
+        if (selectedFile) {
+            payload.append('file', selectedFile);
+        }
+
+        try {
+            if (editingId) {
+                await updateStudentMutation.mutateAsync({ id: editingId, formData: payload });
+            } else {
+                await createStudentMutation.mutateAsync(payload);
+            }
+            refetch();
+            closeForm();
+        } catch (error) {
+            console.error("Failed to save student", error);
+        }
+    };
+
+    const handleDelete = async (id: string, name: string) => {
+        if (window.confirm(`Are you sure you want to delete student "${name}"?`)) {
+            try {
+                await deleteStudentMutation.mutateAsync(id);
+                refetch();
+            } catch (error) {
+                console.error("Failed to delete student", error);
+            }
+        }
+    };
+
+    // --- Render Guards ---
+    // if (isLoading) {
+    //     return (
+    //         <div className="w-full h-full flex flex-col items-center justify-center bg-background rounded-xl">
+    //             <i className="fas fa-circle-notch fa-spin text-primary text-3xl mb-4"></i>
+    //             <p className="text-muted text-sm font-medium">Loading student directory...</p>
+    //         </div>
+    //     );
+    // }
+
+    // if (isError) {
+    //     return (
+    //         <div className="w-full p-6 text-center bg-danger/10 border border-danger/20 rounded-xl">
+    //             <p className="text-danger font-medium">Failed to load students. Please try again later.</p>
+    //         </div>
+    //     );
+    // }
+
+
+
+    const isChild = location.pathname.includes("profile")
+    if (isChild) {
+        return <Outlet />
+    }
+
+
+    return (
+        <div className="w-full h-full flex flex-col p-2 space-y-4 overflow-hidden">
+
+            {/* --- Header Section --- */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
+                <div>
+                    <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+                        <i className="fas fa-user-graduate text-primary"></i>
+                        Student Directory
+                    </h1>
+                    <p className="text-sm text-muted mt-1">Manage and filter all registered students across the school.</p>
+                </div>
+                <Button onClick={openCreateForm} leftIcon="fas fa-plus" variant="primary">
+                    Register Student
+                </Button>
+            </div>
+
+            {/* --- Main Content Layout (Responsive 30% Filters / 70% Table) --- */}
+            <div className="flex flex-col lg:flex-row gap-4 h-[calc(100%-80px)]">
+
+                {/* LEFT PANEL: Filters (Full width on mobile, 30% on Desktop) */}
+                <div className="w-full lg:w-[20%] bg-surface border border-border rounded-xl p-5 flex flex-col gap-5 overflow-y-auto shrink-0 shadow-sm">
+                    <h3 className="font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
+                        <i className="fas fa-filter text-muted"></i>
+                        Filters
+                    </h3>
+
+                    <div className="space-y-4">
+                        <Input
+                            id="search"
+                            label="Search Name / Roll No"
+                            placeholder="Search students..."
+                            leftIcon="fas fa-search"
+                            value={searchInput}
+                            onChange={handleSearchChange}
+                        />
+
+                        <SearchSelect
+                            label="Class"
+                            options={classOptions}
+                            value={filters.classId}
+                            onChange={handleClassFilterChange}
+                            placeholder="Select Class..."
+                        />
+
+                        {/* <SearchSelect 
+                            label="Section"
+                            options={sectionOptions}
+                            value={filters.sectionId}
+                            onChange={handleSectionFilterChange}
+                            placeholder="Select Section..."
+                        /> */}
+
+                        <div className="relative">
+                            <SearchSelect
+                                label="Section"
+                                options={sectionOptions}
+                                value={filters.sectionId}
+                                onChange={handleSectionFilterChange}
+                                placeholder={isSectionsLoading ? "Loading sections..." : "Select Section..."}
+                            />
+                            {/* Optional small UX indicator if loading */}
+                            {isSectionsLoading && <i className="fas fa-spinner fa-spin absolute right-3 top-[38px] text-muted text-sm"></i>}
+                        </div>
+                    </div>
+
+                    {/* Clear Filters Button pins to bottom */}
+                    <div className="mt-auto pt-4 border-t border-border">
+                        <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={clearFilters}
+                        >
+                            Clear Filters
+                        </Button>
+                    </div>
+                </div>
+
+                {/* RIGHT PANEL: Data Table (70%) */}
+                <div className="flex-1 bg-surface border border-border rounded-xl shadow-sm flex flex-col overflow-hidden">
+
+                    <TableContainer className="h-full overflow-y-auto" onScroll={handleScroll}>
+                        <THead className="sticky top-0 z-10 bg-background after:absolute after:bottom-0 after:left-0 after:right-0">
+                            <tr>
+                                <Th className="w-16 text-center">S.No</Th>
+                                <Th>Student Profile</Th>
+                                <Th>Father's Name</Th>
+                                <Th>DOB</Th>
+                                <Th>Current Section</Th>
+                                <Th>Status</Th>
+                                <Th className="text-right">Actions</Th>
+                            </tr>
+                        </THead>
+                        <TBody>
+                            {/* --- INLINE LOADING STATE --- */}
+                            {isLoading ? (
+                                <tr>
+                                    <td colSpan={6} className="py-16 text-center">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <i className="fas fa-circle-notch fa-spin text-primary text-3xl mb-4"></i>
+                                            <p className="text-muted text-sm font-medium">Loading student directory...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : isError ? (
+                                /* --- INLINE ERROR STATE --- */
+                                <tr>
+                                    <td colSpan={6} className="py-16 text-center">
+                                        <div className="bg-danger/10 border border-danger/20 rounded-xl p-6 mx-auto max-w-md">
+                                            <p className="text-danger font-medium">Failed to load students. Please try again later.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : students.length > 0 ? (
+                                <>
+                                    {/* 1. Map through all the students first */}
+                                    {students.map((student: any, index: number) => {
+                                        const sectionName = sectionOptions.find(sec => sec.value === student.currentSectionId)?.label || 'Not Assigned';
+
+                                        return (
+                                            <Tr key={student._id} className="group hover:bg-background/50 transition-colors">
+                                                <Td className="text-center font-medium text-muted">
+                                                    {index + 1}
+                                                </Td>
+
+                                                {/* 1. SR-ID & Student Name & Image */}
+                                                <Td>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-primary-soft text-primary flex items-center justify-center font-bold text-sm shrink-0 border border-primary/20 overflow-hidden">
+                                                            {student.studentImage?.url ? (
+                                                                <img src={student.studentImage.url} alt="profile" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                student.studentName?.charAt(0).toUpperCase() || 'S'
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-semibold text-foreground">{student.studentName}</p>
+                                                            <p className="text-xs text-muted">{student.srId || 'No SR-ID'}</p>
+                                                        </div>
+                                                    </div>
+                                                </Td>
+
+                                                {/* 2. Father's Name */}
+                                                <Td>
+                                                    <p className="text-sm text-foreground">
+                                                        {student.mandatory?.fatherName || 'N/A'}
+                                                    </p>
+                                                </Td>
+
+                                                {/* 3. DOB */}
+                                                <Td>
+                                                    <p className="text-sm text-foreground">
+                                                        {student.mandatory?.dob ? new Date(student.mandatory.dob).toLocaleDateString() : 'N/A'}
+                                                    </p>
+                                                </Td>
+
+                                                {/* 4. Current Section */}
+                                                <Td>
+                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface text-muted border border-border">
+                                                        {sectionName}
+                                                    </span>
+                                                </Td>
+
+                                                {/* 5. Status (Active/Inactive) */}
+                                                <Td>
+                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${student.isActive ? 'bg-success/10 text-success border-success/20' : 'bg-surface text-muted border-border'}`}>
+                                                        <i className={`fas fa-circle text-[8px] ${student.isActive ? 'text-success' : 'text-muted'}`}></i>
+                                                        {student.isActive ? 'Active' : 'Inactive'}
+                                                    </span>
+                                                </Td>
+
+                                                {/* Actions */}
+                                                <Td className="text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+
+                                                        <Button variant="ghost" size="icon" onClick={() => navigate(`profile/${student._id}`)} title="View Student">
+                                                            <i className="fas fa-eye"></i>
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => openEditForm(student)} title="Edit Student">
+                                                            <i className="fas fa-edit"></i>
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="hover:text-danger hover:bg-danger/10 text-danger"
+                                                            onClick={() => handleDelete(student._id, student.studentName)}
+                                                            isLoading={deleteStudentMutation.isPending}
+                                                            title="Delete Student"
+                                                        >
+                                                            <i className="fas fa-trash"></i>
+                                                        </Button>
+                                                    </div>
+                                                </Td>
+                                            </Tr>
+                                        );
+                                    })}
+
+                                    {/* 2. The Loading Indicator goes OUTSIDE the .map() loop, at the very bottom! */}
+                                    {isFetchingNextPage && (
+                                        <tr>
+                                            <td colSpan={7} className="py-6 text-center">
+                                                <i className="fas fa-circle-notch fa-spin text-primary text-xl"></i>
+                                                <p className="text-xs text-muted mt-2">Loading more students...</p>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </>
+                            ) : (
+                                /* --- EMPTY STATE --- */
+                                /* --- EMPTY STATE --- */
+                                <tr>
+                                    <td colSpan={7} className="py-16 text-center">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <div className="w-16 h-16 rounded-full bg-background border border-border flex items-center justify-center mb-4 text-muted text-2xl shadow-sm">
+                                                <i className="fas fa-users-slash"></i>
+                                            </div>
+                                            <h3 className="text-lg font-medium text-foreground mb-2">No Students Found</h3>
+                                            <p className="text-muted text-sm max-w-md">
+                                                Adjust your filters or register a new student to see data here.
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+
+                        </TBody>
+                    </TableContainer>
+                </div>
+            </div>
+
+            {/* --- SideModal for Create/Edit Form --- */}
+            <SideModal
+                isOpen={isFormOpen}
+                onClose={closeForm}
+                title={editingId ? 'Edit Student Profile' : 'Register New Student'}
+            >
+                <form onSubmit={handleSubmit} className="flex flex-col h-full space-y-6">
+                    <div className="space-y-4">
+                        <div className="flex flex-col gap-1.5">
+                            <Label>Profile Picture</Label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                className="w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-soft file:text-primary hover:file:bg-primary-soft/80 cursor-pointer"
+                            />
+                        </div>
+
+                        <Input
+                            id="studentName"
+                            label="Full Name"
+                            placeholder="Enter student's name"
+                            value={formData.studentName}
+                            onChange={handleFormChange}
+                            required
+                        />
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <SearchSelect
+                                label="Gender"
+                                options={genderOptions}
+                                value={formData.gender}
+                                onChange={handleGenderChange}
+                                placeholder="Select Gender"
+                            />
+
+                            <Input
+                                id="dob"
+                                type="date"
+                                label="Date of Birth"
+                                value={formData.dob}
+                                onChange={handleFormChange}
+                                required
+                            />
+                        </div>
+
+                        <Input
+                            id="whatsappNumber"
+                            type="tel"
+                            label="WhatsApp Number"
+                            placeholder="+91 9876543210"
+                            value={formData.whatsappNumber}
+                            onChange={handleFormChange}
+                            required
+                        />
+
+                        <div className="flex flex-col gap-1.5 pt-2">
+                            <Label>Admission Type</Label>
+                            <div className="flex gap-4">
+                                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="newOld"
+                                        value="new"
+                                        checked={formData.newOld === 'new'}
+                                        onChange={handleRadioChange}
+                                        className="accent-primary"
+                                    />
+                                    New Admission
+                                </label>
+                                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="newOld"
+                                        value="old"
+                                        checked={formData.newOld === 'old'}
+                                        onChange={handleRadioChange}
+                                        className="accent-primary"
+                                    />
+                                    Old/Continuing
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-auto pt-6 flex justify-end gap-3 border-t border-border">
+                        <Button type="button" variant="outline" onClick={closeForm}>
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            isLoading={createStudentMutation.isPending || updateStudentMutation.isPending}
+                        >
+                            {editingId ? 'Update Student' : 'Register Student'}
+                        </Button>
+                    </div>
+                </form>
+            </SideModal>
+        </div>
+    );
+}

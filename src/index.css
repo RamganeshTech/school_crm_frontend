@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@import "tailwindcss";
+@config "./tailwind.config.ts"; */
+
+
+
+html,
+body,
+#root {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+html {
+  scroll-behavior: smooth !important;
+}
+
+
+
+:root {
+  /* --bg-background: #f8fafc; */
+  --bg-background: #ffffffc8;
+  /* --bg-mainBg: #fffffa; */
+  --bg-mainBg: #fffff9;
+  --bg-surface: #ffffff;
+
+  --bg-header: #cad5e2;
+  --bg-sub-header: #f1f5f9;
+
+  --text-foreground: #1a1a1a;
+  --text-muted: #6b6b6b;
+  --text-inverse: #ffffff;
+
+
+
+  --border-default: #dbdbdb;
+
+  /* --brand-primary: #4b77c4;
+  --brand-hover: #385b98;
+  --brand-soft: #edf1fb; */
+  /* San Marino 500 */
+  /* San Marino 800 */
+  /* San Marino 50 */
+
+  /* --- Professional Ash/Gray Theme --- */
+  --brand-primary: #4b5563; /* Medium Ash/Charcoal Gray (replaces standard blue) */
+  --brand-hover: #374151;   /* Darker Deep Gray for hover states */
+  --brand-soft: #f3f4f6;    /* Very soft, light gray for chip backgrounds/highlights */
+
+  --status-success: #10b981;
+  --status-danger: #ef4444;
+  --status-warning: #f59e0b;
+
+
+  /*  START EXISTING COLORS  */
+  --thead-bg-color: #e1e6eb;
+  --thead-bg-color-secondary: #F8FAFC;
+
+  --tbody-bg-color: lightgreen;
+  --thead-border-color: #EBF5FF;
+  --tbody-border-color: #F1F5F9;
+
+  --icons-bg-color: #EFF0F6;
+  --icons-outline-color: #6E7191;
+  --normal-text-color: #1D1D1D;
+  --active-icons-bg: #2C9F70;
+
+  --heading-color: #22815a;
+  --btn-bg-color: #F4C57E;
+  --fee-expired-bg-color: #FF3535;
+  --highlight-text-color: #94A3B8;
+
+  --input-border: #E2E8F0;
+  --input-placeholder: #E2E8F0;
+
+  --subheading-color: #64748B;
+
+  --background-div-color: #F6F5FA;
+  /*  END OF  EXISTING COLORS  */
+
+}
+
+.dark {
+  --bg-background: #0b182d;
+  --bg-mainBg: #0b182d;
+  --bg-surface: #132441;
+
+  --text-foreground: #f1f1f1;
+  --text-muted: #9d9d9d;
+  --text-inverse: #ffffff;
+
+  --border-default: #3f3f3f;
+
+  --brand-primary: #4b77c4;
+  --brand-hover: #628dde;
+  --brand-soft: #172a4a;
+}
+
+/* This is the KEY fix for Tailwind v4 */
+@theme inline {
+  --color-background: var(--bg-background);
+  --color-mainBg: var(--bg-mainBg);
+  --color-surface: var(--bg-surface);
+
+  --color-header: var(--bg-header);
+  --color-sub-header: var(--bg-sub-header);
+
+
+  --color-foreground: var(--text-foreground);
+  --color-muted: var(--text-muted);
+  --color-inverse: var(--text-inverse);
+  --color-border: var(--border-default);
+  --color-primary: var(--brand-primary);
+  --color-border-default: var(--border-default);
+  --color-primary-hover: var(--brand-hover);
+  --color-primary-soft: var(--brand-soft);
+  --color-success: var(--status-success);
+  --color-danger: var(--status-danger);
+  --color-warning: var(--status-warning);
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* ADD THIS BLOCK */
+
+@font-face {
+  font-family: 'RupeeFix';
+  /* Arial renders the ₹ beautifully and is available on all devices */
+  src: local('Arial'), local('Helvetica'), local('sans-serif');
+  /* U+20B9 is the exact Unicode hex value for the ₹ symbol */
+  unicode-range: U+20B9; 
+}

@@ -1,0 +1,110 @@
+.deletionContainer {
+    min-height: 100vh;
+    width: 100%;
+    background-color: #f3f4f6; /* Light gray background to make the white card pop */
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar {
+    width: 100%;
+    padding: 1rem 10%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.logoArea {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.appName {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a365d;
+}
+
+.backLink {
+    color: #2b4c8c;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+}
+
+.mainContent {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 3rem 1rem;
+}
+
+/* The Main Paper/Card */
+.deletionCard {
+    background: white;
+    width: 100%;
+    max-width: 800px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    padding: 3rem;
+    box-sizing: border-box;
+}
+
+.headerText {
+    color: #1e3a8a;
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.sectionHeading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #2b4c8c;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 2.5rem 0 1rem 0;
+}
+
+.stepRow {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    padding: 1rem;
+    border-radius: 12px;
+    transition: background-color 0.2s;
+}
+
+.stepRow:hover {
+    background-color: #f8fafc;
+}
+
+.stepNumber {
+    width: 32px;
+    height: 32px;
+    background-color: #2b4c8c;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.footer {
+    padding: 2rem;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
