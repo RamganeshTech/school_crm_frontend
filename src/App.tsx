@@ -48,6 +48,8 @@ import AnnouncementMain from './pages/annoucement/AnnouncementMain';
 import AnnouncementConfig from './pages/annoucement/AnnouncementConfig';
 import ClubMain from './pages/clubs/clubs_main/ClubMain';
 import ClubSingle from './pages/clubs/clubs_main/ClubSingle';
+import FeeStructureMain from './pages/feeStructure/FeeStructureMain';
+import FeeStructureSingle from './pages/feeStructure/FeeStructureSingle';
 
 // const AccountantPermission = React.lazy(() => import('./Pages/Admin/Reports/AccountantPermission/AccountantPermission'));
 // const Accountant = React.lazy(() => import('./Pages/Accountant/Accountant'));
@@ -165,6 +167,10 @@ function App() {
               <Route path="announcement" element={<AnnouncementMain />} >
                 <Route path="single/:id" element={<AnnouncementConfig />} />
                 <Route path="create" element={<AnnouncementConfig />} />
+              </Route>
+
+              <Route path="fee-structure" element={<FeeStructureMain />} >
+                <Route path="single/:classId" element={<FeeStructureSingle />} />
               </Route>
 
             </Route>

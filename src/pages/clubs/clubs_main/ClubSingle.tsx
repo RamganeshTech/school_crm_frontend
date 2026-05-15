@@ -450,7 +450,7 @@ export default function ClubSingle() {
     const [selectedSectionId, setSelectedSectionId] = useState<string>('');
 
     // Fetch Classes
-    const { data: classesData, isLoading: isClassesLoading } = useGetAllClassesWithSections({ schoolId: schoolId! });
+    const { data: classesData,  } = useGetAllClassesWithSections({ schoolId: schoolId! });
     
     // Class/Section Logic
     const classOptions = useMemo(() => {

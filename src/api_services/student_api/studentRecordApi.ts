@@ -113,10 +113,79 @@ export const useGetAllStudentRecords = (params: GetAllStudentRecordsParams) => {
   });
 };
 
+
+
+export const useGetAllStudentRecordsV1 = (params: GetAllStudentRecordsParams) => {
+  const { currentRole } = useAuthData();
+
+  return useInfiniteQuery({
+    queryKey: ['studentRecords', 'list', params],
+    initialPageParam: 1,
+    queryFn: async ({ pageParam = 1 }) => {
+      try {
+        checkPermission(currentRole, [
+          "correspondent", "accountant", "principal", "administrator", "viceprincipal", "teacher", "parent"
+        ]);
+
+        const { data } = await Api.get<any>('/api/studentrecord/v1/getall', { 
+            params: { ...params, page: pageParam, limit: params.limit || 10 } 
+        });
+
+        if (data.ok) {
+          // Return the full object so we have access to data.data AND data.pagination
+          return data; 
+        } else {
+          throw new Error(data.message || 'Failed to fetch student records');
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage);
+      }
+    },
+    getNextPageParam: (lastPage) => {
+      // Use your backend's explicit pagination object!
+      const { page, totalPages } = lastPage.pagination;
+      if (page < totalPages) {
+        return page + 1;
+      }
+      return undefined; // No more pages
+    },
+    enabled: true, 
+  });
+};
+
 // ==========================================
 // 2. GET SINGLE RECORD BY ID
 // ==========================================
-export const useGetStudentRecordById = (schoolId: string | undefined, studentId: string | undefined) => {
+// export const useGetStudentRecordById = (schoolId: string | undefined, studentId: string | undefined) => {
+//   const { currentRole } = useAuthData();
+
+//   return useQuery({
+//     queryKey: ['studentRecords', 'detail', schoolId, studentId],
+//     queryFn: async () => {
+//       try {
+//         checkPermission(currentRole, [
+//           "administrator", "correspondent", "principal", "viceprincipal", "accountant", "teacher", "parent"
+//         ]);
+
+//         const { data } = await Api.get<ApiResponse>(`/api/studentrecord/getrecord/${schoolId}/${studentId}`);
+
+//         if (data.ok) {
+//           return data.data;
+//         } else {
+//           throw new Error(data.message || 'Failed to fetch student record details');
+//         }
+//       } catch (error: any) {
+//         const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+//         throw new Error(errorMessage);
+//       }
+//     },
+//     enabled: !!schoolId && !!studentId,
+//   });
+// };
+
+
+export const useGetStudentRecordByIdV1 = (schoolId: string | undefined, studentId: string | undefined) => {
   const { currentRole } = useAuthData();
 
   return useQuery({
@@ -127,7 +196,7 @@ export const useGetStudentRecordById = (schoolId: string | undefined, studentId:
           "administrator", "correspondent", "principal", "viceprincipal", "accountant", "teacher", "parent"
         ]);
 
-        const { data } = await Api.get<ApiResponse>(`/api/studentrecord/getrecord/${schoolId}/${studentId}`);
+        const { data } = await Api.get<ApiResponse>(`/api/studentrecord/v1/getrecord/${schoolId}/${studentId}`);
 
         if (data.ok) {
           return data.data;

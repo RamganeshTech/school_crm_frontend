@@ -65,6 +65,7 @@ export const principalMenu: MenuItem[] = [
     { name: 'Audit', path: "/dashboard/audit", icon: 'fas fa-noteclip' },
     { name: 'Announcement', path: "/dashboard/announcement", icon: 'fas fa-bullhorn' },
     { name: 'Clubs', path: "/dashboard/club", icon: 'fas fa-layer-group' },
+    { name: 'Fee Structure', path: "/dashboard/fee-structure", icon: 'fas fa-coins' },
 
 ];
 

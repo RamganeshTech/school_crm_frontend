@@ -16,11 +16,13 @@ import {
     useDeleteStudentRecord,
     useToggleStudentRecordStatus,
     useApplyConcession,
-    useUpdateConcessionDetails
+    useUpdateConcessionDetails,
+    useGetAllStudentRecordsV1
 } from '../../../api_services/student_api/studentRecordApi';
 import { useGetSchoolById } from '../../../api_services/schoolConfig_api/schoolapi';
 import { getAcademicYears } from '../../../utils/utils';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useGetAllStudents } from '../../../api_services/student_api/studentMainApi';
 
 
 export default function StudentRecordMain() {
@@ -67,6 +69,22 @@ export default function StudentRecordMain() {
         Object.entries(filters).filter(([_, v]) => v !== '')
     );
 
+    // const {
+    //     data,
+    //     isLoading,
+    //     isError,
+    //     refetch,
+    //     fetchNextPage,
+    //     hasNextPage,
+    //     isFetchingNextPage
+    // } = useGetAllStudentRecords({
+    //     schoolId: schoolId!,
+    //     ...activeFilters,
+    //     limit: 40,
+    //     academicYear: filters?.academicYear,
+    //     search: debouncedSearch,
+    // });
+
     const {
         data,
         isLoading,
@@ -75,13 +93,23 @@ export default function StudentRecordMain() {
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage
-    } = useGetAllStudentRecords({
+    } = useGetAllStudentRecordsV1({
         schoolId: schoolId!,
         ...activeFilters,
         limit: 40,
         academicYear: filters?.academicYear,
         search: debouncedSearch,
     });
+
+    // const {
+    //     data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage
+    // } = useGetAllStudents({
+    //     schoolId: schoolId!,
+    //     classId: filters.classId,       // Mapping your filter state to the hook
+    //     sectionId: filters.sectionId,   // Mapping your filter state to the hook
+    //     limit: 40,
+    //     search: debouncedSearch,
+    // });
 
     const toggleStatusMutation = useToggleStudentRecordStatus();
     const deleteRecordMutation = useDeleteStudentRecord();
@@ -410,12 +438,12 @@ export default function StudentRecordMain() {
                                                     <Button variant="outline"
                                                         size="sm"
                                                         // onClick={() => openManageModal(record)}
-                                                        // onClick={() => navigate(`single/${record._id}`)}
-                                                        onClick={() => {
-                                                            // Check if studentId is populated as an object, or if it's just a string
-                                                            const targetStudentId = typeof record.studentId === 'object' ? record.studentId._id : record.studentId;
-                                                            navigate(`single/${targetStudentId}`);
-                                                        }}
+                                                        onClick={() => navigate(`single/${record._id}`)}
+                                                        // onClick={() => {
+                                                        //     // Check if studentId is populated as an object, or if it's just a string
+                                                        //     const targetStudentId = typeof record.studentId === 'object' ? record.studentId._id : record.studentId;
+                                                        //     navigate(`single/${targetStudentId}`);
+                                                        // }}
 
                                                     >
                                                         {/* Manage */}
