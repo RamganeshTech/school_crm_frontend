@@ -56,7 +56,6 @@ export const useGetClasses = (schoolId: string | undefined) => {
     queryFn: async () => {
       try {
         checkPermission(currentRole, [
-
           "correspondent", "teacher", "principal", "administrator", "viceprincipal", "accountant"
         ]);
 

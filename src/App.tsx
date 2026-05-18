@@ -50,6 +50,15 @@ import ClubMain from './pages/clubs/clubs_main/ClubMain';
 import ClubSingle from './pages/clubs/clubs_main/ClubSingle';
 import FeeStructureMain from './pages/feeStructure/FeeStructureMain';
 import FeeStructureSingle from './pages/feeStructure/FeeStructureSingle';
+import ProtectedRoute from './shared/components/ProtectedRoute';
+import { AUTH_CHECK_ROLES, STAFF_ONLY } from './constants/constants';
+import ParentProfileSelection from './pages/parentPages/parentProfileSelection/ParentProfileSelection';
+import AttendanceSingleStudent from './pages/attendance/AttendanceSingleStudent';
+import MarkReportMain from './pages/markReports/MarkReportMain';
+import MarkReportConfig from './pages/markReports/MarkReportConfig';
+import AnnouncementParentMain from './pages/annoucement/AnnouncementParentMain';
+import { SocketProvider } from './lib/SocketContext';
+import FinanceDashboardMain from './pages/reports/FinanceDashboardMain';
 
 // const AccountantPermission = React.lazy(() => import('./Pages/Admin/Reports/AccountantPermission/AccountantPermission'));
 // const Accountant = React.lazy(() => import('./Pages/Accountant/Accountant'));
@@ -98,6 +107,7 @@ import FeeStructureSingle from './pages/feeStructure/FeeStructureSingle';
 //   }
 // }
 
+
 function App() {
 
   const { isLoading } = useAuthCheck();
@@ -119,64 +129,168 @@ function App() {
   return (
     <>
       <Router>
-        <Suspense fallback={<p>loading...</p>}>
-          {/* <ErrorBoundary> */}
-          {/* <ToastProvider> */}
-          <Routes >
-            {/* <Route index element={<LoginSelection />} /> */}
+        <SocketProvider>
+          <Suspense fallback={<p>loading...</p>}>
+            {/* <ErrorBoundary> */}
+            {/* <ToastProvider> */}
+            <Routes >
+              {/* <Route index element={<LoginSelection />} /> */}
 
-            <Route index path="/login" element={<Login />} />
-            <Route path="/profile" element={<UserProfile />} />
+              <Route index path="/login" element={<Login />} />
+              <Route path="/profile" element={<UserProfile />} />
 
 
 
-            <Route path='/dashboard' element={<DashboardChildrens />}>
-              <Route index path="profile" element={<UserProfile />} />
-              <Route path="class" element={<ClassConfiguration />} />
-              <Route path="section" element={<SectionConfiguration />} />
-              <Route path="school" element={<SchoolConfiguration />} />
-              <Route path="school-list" element={<SchoolListMain />} />
-              <Route path="timetable" element={<TimeTableMain />} />
-              <Route path="expense" element={<ExpenseMain />} >
-                <Route path="single/:id" element={<ExpenseSingle />} />
-              </Route>
-              <Route path="homework" element={<HomeworkMain />} />
-              <Route path="homework-submission" element={<HomeworkSubmissionMain />} />
-              <Route path="student" element={<StudentMain />} >
-                <Route path="profile/:id" element={<StudentSingle />} />
 
-              </Route>
-              <Route path="attendance" element={<AttendanceMain />} />
-              <Route path="teacher-assignment" element={<TeacherAssignmentMain />} >
+              <Route path='/dashboard' element={<DashboardChildrens />}>
+                <Route index element={<FinanceDashboardMain />} />
 
-                <Route path="single/:id" element={<TeacherAssignmentSingle />} />
-
-              </Route>
-              <Route path="student-record" element={<StudentRecordMain />} >
-                <Route path="single/:studentId" element={<StudentRecordSingle />} >
-                  <Route path="fee-transaction" element={<FeeTransactionMain />} />
+                <Route path="profile" element={<UserProfile />} />
+                <Route path="class" element={<ClassConfiguration />} />
+                <Route path="section" element={<SectionConfiguration />} />
+                <Route path="school" element={<SchoolConfiguration />} />
+                <Route path="school-list" element={<SchoolListMain />} />
+                <Route path="timetable" element={<TimeTableMain />} />
+                <Route path="expense" element={<ExpenseMain />} >
+                  <Route path="single/:id" element={<ExpenseSingle />} />
                 </Route>
-              </Route>
-              <Route path="finance" element={<FinanceLedgerMain />} />
-              <Route path="delete-archive" element={<DeleteArchiveMain />} />
-              <Route path="audit" element={<AuditMain />} />
-              <Route path="club" element={<ClubMain />} >
-                <Route path="single/:id" element={<ClubSingle />} />
+                <Route path="homework" element={<HomeworkMain />} />
+                <Route path="homework-submission" element={<HomeworkSubmissionMain />} />
+                <Route path="markreport" element={<MarkReportMain />} >
+                  <Route path="single/:id" element={<MarkReportConfig />} />
+                  <Route path="create" element={<MarkReportConfig />} />
+                </Route>
+
+                <Route path="profile-selection" element={<ParentProfileSelection />} >
+                  <Route path="student/main-profile/:id" element={<StudentSingle />} />
+                  <Route path="student/record-profile/:studentId" element={<StudentRecordSingle />} >
+                    <Route path="fee-transaction" element={<FeeTransactionMain />} />
+                  </Route>
+                  <Route path="student/attendace/:id" element={<AttendanceSingleStudent />} />
+
+                  {/* <Route path="student/announcement" element={<AnnouncementMain />} >
+                  <Route path="single/:id" element={<AnnouncementConfig />} />
+                  <Route path="create" element={<AnnouncementConfig />} />
+                </Route> */}
+
+                  <Route path="student/announcement" element={<AnnouncementParentMain />} />
+
+                  <Route path="student/club" element={<ClubMain />} >
+                    <Route path="single/:id" element={<ClubSingle />} />
+                  </Route>
+
+                </Route>
+
+                <Route path="student" element={<StudentMain />} >
+                  <Route path="profile/:id" element={<StudentSingle />} />
+
+                </Route>
+                <Route path="attendance" element={<AttendanceMain />} />
+                <Route path="teacher-assignment" element={<TeacherAssignmentMain />} >
+
+                  <Route path="single/:id" element={<TeacherAssignmentSingle />} />
+
+                </Route>
+                <Route path="student-record" element={<StudentRecordMain />} >
+                  <Route path="single/:studentId" element={<StudentRecordSingle />} >
+                    <Route path="fee-transaction" element={<FeeTransactionMain />} />
+                  </Route>
+                </Route>
+
+                <Route path="club" element={<ClubMain />} >
+                  <Route path="single/:id" element={<ClubSingle />} />
+                </Route>
+
+                <Route path="announcement" element={<AnnouncementMain />} >
+                  <Route path="single/:id" element={<AnnouncementConfig />} />
+                  <Route path="create" element={<AnnouncementConfig />} />
+                </Route>
+
+
+                <Route path="fee-structure" element={<FeeStructureMain />} >
+                  <Route path="single/:classId" element={<FeeStructureSingle />} />
+                </Route>
+
+
+                <Route path="finance" element={<FinanceLedgerMain />} />
+                <Route path="delete-archive" element={<DeleteArchiveMain />} />
+                <Route path="audit" element={<AuditMain />} />
+
+
+
 
               </Route>
-              <Route path="announcement" element={<AnnouncementMain />} >
-                <Route path="single/:id" element={<AnnouncementConfig />} />
-                <Route path="create" element={<AnnouncementConfig />} />
-              </Route>
-
-              <Route path="fee-structure" element={<FeeStructureMain />} >
-                <Route path="single/:classId" element={<FeeStructureSingle />} />
-              </Route>
-
-            </Route>
 
 
-            {/* <Route path='/accountantlogin' element={<AdminLogin />} />
+              {/* <Route path='/dashboard' element={<DashboardChildrens />}>
+                        
+                       
+                        <Route element={<ProtectedRoute allowedRoles={AUTH_CHECK_ROLES} />}>
+                            <Route index path="profile" element={<UserProfile />} />
+                            <Route path="homework-submission" element={<HomeworkSubmissionMain />} />
+                            
+                            
+                            <Route path="student" element={<StudentMain />}>
+                                <Route path="profile/:id" element={<StudentSingle />} />
+                            </Route>
+
+                            
+                            <Route path="student-record" element={<StudentRecordMain />}>
+                                <Route path="single/:studentId" element={<StudentRecordSingle />}>
+                                    <Route path="fee-transaction" element={<FeeTransactionMain />} />
+                                </Route>
+                            </Route>
+                        </Route>
+
+                       
+                        <Route element={<ProtectedRoute allowedRoles={STAFF_ONLY} />}>
+                            
+                            <Route path="class" element={<ClassConfiguration />} />
+                            <Route path="section" element={<SectionConfiguration />} />
+                            <Route path="school" element={<SchoolConfiguration />} />
+                            <Route path="school-list" element={<SchoolListMain />} />
+                            
+                            
+                            <Route path="timetable" element={<TimeTableMain />} />
+                            <Route path="homework" element={<HomeworkMain />} />
+                            <Route path="attendance" element={<AttendanceMain />} />
+                            
+                            
+                            <Route path="expense" element={<ExpenseMain />}>
+                                <Route path="single/:id" element={<ExpenseSingle />} />
+                            </Route>
+
+                            
+                            <Route path="teacher-assignment" element={<TeacherAssignmentMain />}>
+                                <Route path="single/:id" element={<TeacherAssignmentSingle />} />
+                            </Route>
+
+                            
+                            <Route path="finance" element={<FinanceLedgerMain />} />
+                            <Route path="fee-structure" element={<FeeStructureMain />}>
+                                <Route path="single/:classId" element={<FeeStructureSingle />} />
+                            </Route>
+
+                            
+                            <Route path="delete-archive" element={<DeleteArchiveMain />} />
+                            <Route path="audit" element={<AuditMain />} />
+
+                            
+                            <Route path="club" element={<ClubMain />}>
+                                <Route path="single/:id" element={<ClubSingle />} />
+                            </Route>
+
+                            
+                            <Route path="announcement" element={<AnnouncementMain />}>
+                                <Route path="single/:id" element={<AnnouncementConfig />} />
+                                <Route path="create" element={<AnnouncementConfig />} />
+                            </Route>
+                        </Route>
+
+                    </Route> */}
+
+
+              {/* <Route path='/accountantlogin' element={<AdminLogin />} />
               <Route path='/adminlogin' element={<AdminLogin />} />
 
 
@@ -198,17 +312,18 @@ function App() {
  */}
 
 
-            <Route path='/privacy-policy' element={<PrivacyPolicy />} />
-            <Route path='/account-deletion' element={<AccountDeletion />} />
-            <Route path='*' element={<NotFound />} />
+              <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+              <Route path='/account-deletion' element={<AccountDeletion />} />
+              <Route path='*' element={<NotFound />} />
 
-          </Routes>
+            </Routes>
 
-          <ToastContainer />
+            <ToastContainer />
 
-          {/* </ToastProvider> */}
-          {/* </ErrorBoundary> */}
-        </Suspense >
+            {/* </ToastProvider> */}
+            {/* </ErrorBoundary> */}
+          </Suspense >
+        </SocketProvider>
       </Router>
     </>
   )

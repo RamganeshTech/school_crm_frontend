@@ -44,6 +44,7 @@ export interface GetClassHistoryParams {
 
 export interface GetStudentHistoryParams {
   studentId?: string;
+  academicYear?: string;
   month?: number | string;
   year?: number | string;
 }
@@ -155,7 +156,7 @@ export const useGetStudentAttendanceHistory = (params: GetStudentHistoryParams) 
   const { currentRole } = useAuthData();
 
   return useQuery({
-    queryKey: ['attendance', 'studentHistory', params.studentId, params.month, params.year],
+    queryKey: ['attendance', 'studentHistory', params.studentId, params.month, params.year, params.academicYear],
     queryFn: async () => {
       try {
         checkPermission(currentRole, [

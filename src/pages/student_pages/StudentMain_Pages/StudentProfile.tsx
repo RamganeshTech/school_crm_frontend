@@ -113,7 +113,7 @@
 //     // --- State ---
 //     const [activeTab, setActiveTab] = useState<'mandatory' | 'academic' | 'health'>('mandatory');
 //     const [isEditing, setIsEditing] = useState(false);
-    
+
 //     // Form State
 //     const [editForm, setEditForm] = useState<any>({});
 //     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -156,7 +156,7 @@
 //         try {
 //             const formData = new FormData();
 //             formData.append('studentName', editForm.studentName);
-            
+
 //             // Append Mandatory Fields (Backend depends on format, using nested object notation standard)
 //             Object.keys(editForm.mandatory || {}).forEach(key => {
 //                 if (editForm.mandatory[key] !== undefined && editForm.mandatory[key] !== null) {
@@ -193,7 +193,7 @@
 
 //     // A helper to seamlessly switch between View text and Edit Input
 //     const EditableField = ({ label, category, field, type = 'text', isSensitive = false, icon = '' }: EditableFieldProps) => {
-        
+
 //         // 3. Safely cast to a Record so TypeScript allows dynamic string indexing
 //         const safeStudent = student as Record<string, any>;
 //         const safeEditForm = editForm as Record<string, any>;
@@ -227,7 +227,7 @@
 //     return (
 //         // Flex-col with h-full ensures the container manages its own height
 //         <div className="w-full h-full flex flex-col max-w-7xl mx-auto bg-surface border border-border rounded-xl overflow-hidden shadow-sm">
-            
+
 //             {/* --- COMPACT TOP BANNER --- */}
 //             <div className="shrink-0 p-4 border-b border-border flex flex-col md:flex-row items-center justify-between gap-4 bg-background/50">
 //                 <div className="flex items-center gap-4">
@@ -301,14 +301,14 @@
 
 //             {/* --- SCROLLABLE CONTENT AREA --- */}
 //             <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-surface">
-                
+
 //                 {/* --- TAB 1: MANDATORY --- */}
 //                 {activeTab === 'mandatory' && (
 //                     <div className="space-y-8 animate-in fade-in duration-200">
 //                         <div>
 //                             <h3 className="text-sm font-bold text-foreground mb-4 pb-1 border-b border-border/50">Demographics</h3>
 //                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
-                                
+
 //                                 {/* Custom Gender Radio Buttons in Edit Mode */}
 //                                 {isEditing ? (
 //                                     <div className="flex flex-col gap-1.5">
@@ -327,7 +327,7 @@
 //                                 )}
 
 //                                 <EditableField label="Date of Birth" category="mandatory" field="dob" type="date" />
-                                
+
 //                                 {/* Custom Blood Group Select in Edit Mode */}
 //                                 {isEditing ? (
 //                                     <div className="flex flex-col gap-1.5">
@@ -410,6 +410,7 @@ import { useGetStudentById, useUpdateStudent } from '../../../api_services/stude
 import { Input, Label } from '../../../shared/ui/Input';
 import { Button } from '../../../shared/ui/Button';
 import { SearchSelect } from '../../../shared/ui/SearchSelect';
+import { useAuthData } from '../../../hooks/useAuthData';
 
 // ==========================================
 // 1. EXACT TYPES (Mapped from Backend Schema)
@@ -516,11 +517,11 @@ interface EditableFieldProps {
     onChange: (category: 'basic' | 'mandatory' | 'nonMandatory', field: string, value: any) => void;
 }
 
-const EditableField: React.FC<EditableFieldProps> = ({ 
-    label, category, field, type = 'text', isSensitive = false, 
-    studentData, editFormData, isEditing, onChange 
+const EditableField: React.FC<EditableFieldProps> = ({
+    label, category, field, type = 'text', isSensitive = false,
+    studentData, editFormData, isEditing, onChange
 }) => {
-    
+
     const maskSensitiveID = (idStr?: string) => (idStr && idStr.length >= 4) ? `********${idStr.slice(-4)}` : 'N/A';
 
     const value = category === 'basic' ? studentData[field] : studentData[category]?.[field];
@@ -538,11 +539,11 @@ const EditableField: React.FC<EditableFieldProps> = ({
     }
 
     return (
-        <Input 
-            label={label} 
-            type={type} 
-            value={editValue || ''} 
-            onChange={(e) => onChange(category, field, e.target.value)} 
+        <Input
+            label={label}
+            type={type}
+            value={editValue || ''}
+            onChange={(e) => onChange(category, field, e.target.value)}
         />
     );
 };
@@ -552,6 +553,9 @@ const EditableField: React.FC<EditableFieldProps> = ({
 // ==========================================
 export default function StudentProfile({ studentId }: { studentId: string | undefined }) {
     const navigate = useNavigate();
+    const { currentRole } = useAuthData()
+
+    const isParent = currentRole === 'parent'
 
     // --- Queries & Mutations ---
     const { data: rawData, isLoading, isError } = useGetStudentById(studentId);
@@ -560,8 +564,8 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
 
     // --- State ---
     const [activeTab, setActiveTab] = useState<'mandatory' | 'nonMandatory'>('mandatory');
-    const [isEditing, setIsEditing] = useState(false);
-    
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+
     // Form State
     const [editForm, setEditForm] = useState<any>({});
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -606,7 +610,7 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
             const formData = new FormData();
             formData.append('studentName', editForm.studentName);
             formData.append('newOld', editForm.newOld);
-            
+
             Object.keys(editForm.mandatory || {}).forEach(key => {
                 if (editForm.mandatory[key] !== undefined && editForm.mandatory[key] !== null) {
                     formData.append(`mandatory[${key}]`, editForm.mandatory[key]);
@@ -644,13 +648,13 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
 
     return (
         <div className="w-full h-full flex flex-col max-w-[1400px] mx-auto bg-surface rounded-lg shadow-sm border border-border">
-            
+
             {/* --- 1. COMPACT, UNIFIED TOP BAR --- */}
             <header className="shrink-0 px-4 py-3 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4 bg-background/50">
                 <div className="flex items-center gap-4">
-                    
-                    <button 
-                        onClick={() => navigate(-1)} 
+
+                    <button
+                        onClick={() => navigate(-1)}
                         className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-border/50 text-muted hover:text-primary transition-colors shrink-0"
                     >
                         <i className="fas fa-arrow-left"></i>
@@ -677,14 +681,14 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
                             {isEditing ? (
                                 <>
                                     {/* Name Input */}
-                                    <Input 
-                                        value={editForm.studentName} 
-                                        onChange={(e) => handleFieldChange('basic', 'studentName', e.target.value)} 
-                                        wrapperClassName="w-48 !mb-0" 
-                                        className="!py-1" 
+                                    <Input
+                                        value={editForm.studentName}
+                                        onChange={(e) => handleFieldChange('basic', 'studentName', e.target.value)}
+                                        wrapperClassName="w-48 !mb-0"
+                                        className="!py-1"
                                     />
-                                    
-                                    
+
+
                                 </>
                             ) : (
                                 <h1 className="text-lg font-bold text-foreground leading-tight">{student.studentName}</h1>
@@ -716,30 +720,30 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
                             <span><i className="fas fa-layer-group text-muted/60 mr-1"></i>{student.currentSectionId?.name || 'N/A'}</span>
 
                             {/* New/Old Radio Buttons */}
-                                    <div className="flex items-center gap-3 bg-background border border-border px-3 py-1 rounded-lg h-[34px]">
-                                        <label className="flex items-center gap-1.5 text-xs font-medium text-foreground cursor-pointer">
-                                            <input 
-                                                type="radio" 
-                                                name="newOld" 
-                                                value="new" 
-                                                checked={editForm.newOld === 'new'} 
-                                                onChange={(e) => handleFieldChange('basic', 'newOld', e.target.value)} 
-                                                className="accent-primary" 
-                                            />
-                                            New
-                                        </label>
-                                        <label className="flex items-center gap-1.5 text-xs font-medium text-foreground cursor-pointer">
-                                            <input 
-                                                type="radio" 
-                                                name="newOld" 
-                                                value="old" 
-                                                checked={editForm.newOld === 'old'} 
-                                                onChange={(e) => handleFieldChange('basic', 'newOld', e.target.value)} 
-                                                className="accent-primary" 
-                                            />
-                                            Old
-                                        </label>
-                                    </div>
+                            {!isParent && <div className="flex items-center gap-3 bg-background border border-border px-3 py-1 rounded-lg h-[34px]">
+                                <label className="flex items-center gap-1.5 text-xs font-medium text-foreground cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="newOld"
+                                        value="new"
+                                        checked={editForm.newOld === 'new'}
+                                        onChange={(e) => handleFieldChange('basic', 'newOld', e.target.value)}
+                                        className="accent-primary"
+                                    />
+                                    New
+                                </label>
+                                <label className="flex items-center gap-1.5 text-xs font-medium text-foreground cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="newOld"
+                                        value="old"
+                                        checked={editForm.newOld === 'old'}
+                                        onChange={(e) => handleFieldChange('basic', 'newOld', e.target.value)}
+                                        className="accent-primary"
+                                    />
+                                    Old
+                                </label>
+                            </div>}
                         </div>
                     </div>
                 </div>
@@ -758,14 +762,14 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
 
             {/* --- 2. TWO TABS ONLY --- */}
             <div className="shrink-0 flex border-b border-border bg-background/20 px-4">
-                <button 
-                    onClick={() => setActiveTab('mandatory')} 
+                <button
+                    onClick={() => setActiveTab('mandatory')}
                     className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'mandatory' ? 'text-primary border-primary' : 'text-muted border-transparent hover:text-foreground'}`}
                 >
                     Mandatory Info
                 </button>
-                <button 
-                    onClick={() => setActiveTab('nonMandatory')} 
+                <button
+                    onClick={() => setActiveTab('nonMandatory')}
                     className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'nonMandatory' ? 'text-primary border-primary' : 'text-muted border-transparent hover:text-foreground'}`}
                 >
                     Non-Mandatory Info
@@ -774,7 +778,7 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
 
             {/* --- 3. FLAT, SCROLLABLE CONTENT AREA --- */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
-                
+
                 {activeTab === 'mandatory' && (
                     <div className="space-y-8 animate-in fade-in duration-200">
                         <section>
@@ -782,7 +786,7 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
                                 <i className="fas fa-user-circle"></i> Demographics & Identification
                             </h3>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-5">
-                                
+
                                 {isEditing ? (
                                     <div className="flex flex-col gap-1.5">
                                         <Label>Gender</Label>
@@ -800,15 +804,15 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
                                 )}
 
                                 <EditableField label="Date of Birth" category="mandatory" field="dob" type="date" {...fieldProps} />
-                                
+
                                 {isEditing ? (
                                     <div className="flex flex-col gap-1.5">
                                         <Label>Blood Group</Label>
-                                        <SearchSelect 
-                                            options={[ {label: 'A+', value: 'A+'}, {label: 'O+', value: 'O+'}, {label: 'B+', value: 'B+'}, {label: 'AB+', value: 'AB+'} ]} 
-                                            value={editForm.mandatory?.bloodGroup || ''} 
-                                            onChange={(opt: any) => handleFieldChange('mandatory', 'bloodGroup', opt?.value)} 
-                                            placeholder="Select" 
+                                        <SearchSelect
+                                            options={[{ label: 'A+', value: 'A+' }, { label: 'O+', value: 'O+' }, { label: 'B+', value: 'B+' }, { label: 'AB+', value: 'AB+' }]}
+                                            value={editForm.mandatory?.bloodGroup || ''}
+                                            onChange={(opt: any) => handleFieldChange('mandatory', 'bloodGroup', opt?.value)}
+                                            placeholder="Select"
                                         />
                                     </div>
                                 ) : (
@@ -821,7 +825,7 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
                                 <EditableField label="Nationality" category="mandatory" field="indian" {...fieldProps} />
                                 <EditableField label="Education No." category="mandatory" field="educationNumber" {...fieldProps} />
                                 <EditableField label="Aadhaar Name" category="mandatory" field="aadhaarName" {...fieldProps} />
-                                <EditableField label="Aadhaar No." category="mandatory" field="aadhaarNumber" isSensitive={true} {...fieldProps} /> 
+                                <EditableField label="Aadhaar No." category="mandatory" field="aadhaarNumber" isSensitive={true} {...fieldProps} />
                             </div>
                         </section>
 

@@ -1,21 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { type RootState } from '../../../features/store/store';
 
-
 // API Hooks
 import {
-    // useGetStudentRecordById,
     useGetStudentRecordByIdV1,
     useToggleStudentRecordStatus,
-    // useAssignStudentToClass,
-    // useRemoveStudentFromClass,
     useApplyConcession,
-    // useUpdateConcessionDetails,
-    useCollectFee,
     useRevertFeeTransaction,
-    // useRevertFeeTransaction
 } from '../../../api_services/student_api/studentRecordApi';
 
 import { useGetClasses } from '../../../api_services/schoolConfig_api/classApi';
@@ -28,11 +21,15 @@ import { SearchSelect } from '../../../shared/ui/SearchSelect';
 import { Toggle } from '../../../shared/ui/Toggle';
 import { toast } from '../../../shared/ui/ToastContext';
 import AssignClass from './AssignClass';
+import CollectFeeModal from './CollectFeeModal';
+import { useAuthData } from '../../../hooks/useAuthData';
 
 export default function StudentRecordSingle() {
     const { studentId } = useParams<{ studentId: string }>();
     const navigate = useNavigate();
     const location = useLocation()
+
+    const { currentRole } = useAuthData()
 
     const { schoolId } = useSelector((state: RootState) => state.auth);
 
@@ -40,14 +37,9 @@ export default function StudentRecordSingle() {
     // const { data: record, isLoading, isError, refetch } = useGetStudentRecordById(schoolId!, studentId);
     const { data: record, isLoading, isError, refetch } = useGetStudentRecordByIdV1(schoolId!, studentId);
 
-
-
-
     // Mutations
-    const collectFeeMutation = useCollectFee();
     const toggleStatusMutation = useToggleStudentRecordStatus();
-    // const assignClassMutation = useAssignStudentToClass();
-    // const removeClassMutation = useRemoveStudentFromClass();
+
     const applyConcessionMutation = useApplyConcession();
     const revertFeeMutation = useRevertFeeTransaction();
 
@@ -56,48 +48,6 @@ export default function StudentRecordSingle() {
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [isConcessionModalOpen, setIsConcessionModalOpen] = useState(false);
 
-    // ==========================================
-    // 1. FEE COLLECTION STATE & LOGIC
-    // ==========================================
-    const [feeData, setFeeData] = useState({
-        amount: '',
-        paymentMode: 'Cash',
-        referenceNumber: '',
-        bankName: '',
-        chequeDate: '',
-        remarks: '',
-        manualDueAllocation: false,
-        paidHeads: {
-            admissionFee: 0,
-            firstTermAmt: 0,
-            secondTermAmt: 0,
-            busFirstTermAmt: 0,
-            busSecondTermAmt: 0
-        }
-    });
-
-    const [denominations, setDenominations] = useState({
-        notes500: 0, notes200: 0, notes100: 0, notes50: 0, notes20: 0, notes10: 0
-    });
-    const [feeFiles, setFeeFiles] = useState<FileList | null>(null);
-
-    const calculatedCashTotal = useMemo(() => {
-        return (denominations.notes500 * 500) +
-            (denominations.notes200 * 200) + (denominations.notes100 * 100) +
-            (denominations.notes50 * 50) + (denominations.notes20 * 20) +
-            (denominations.notes10 * 10);
-    }, [denominations]);
-
-    const isCashValid = feeData.paymentMode !== 'Cash' || (calculatedCashTotal === Number(feeData.amount) && Number(feeData.amount) > 0);
-
-    const calculatedManualTotal = useMemo(() => {
-        return Object.values(feeData.paidHeads).reduce((acc, curr) => acc + (Number(curr) || 0), 0);
-    }, [feeData.paidHeads]);
-
-
-    // ==========================================
-    // 3. CONCESSION STATE & LOGIC
-    // ==========================================
     const [concessionData, setConcessionData] = useState({
         type: 'amount',     // 'amount' or 'percentage'
         value: '',          // The numeric value
@@ -115,12 +65,6 @@ export default function StudentRecordSingle() {
     // Detect if this is a Ghost Record (Not created in DB yet)
     const isRecordCreated = !!record?._id;
 
-
-    // NEW: Validation for Manual Allocation
-    const isManualValid = !feeData.manualDueAllocation || (calculatedManualTotal === Number(feeData.amount));
-
-    const canSubmit = isCashValid && isManualValid && Number(feeData.amount) > 0;
-
     // Safe extraction with fallbacks
     const fStruct = record?.feeStructure || {};
     const fPaid = record?.feePaid || {};
@@ -133,7 +77,7 @@ export default function StudentRecordSingle() {
     // 🛑 THE FIX: Safely extract IDs whether they are populated objects or raw strings
     const actualClassId = typeof record?.classId === 'object' ? record?.classId?._id : record?.classId;
     const actualSectionId = typeof record?.sectionId === 'object' ? record?.sectionId?._id : record?.sectionId;
-    const actualStudentId = typeof record?.studentId === 'object' ? record?.studentId?._id : record?.studentId;
+    // const actualStudentId = typeof record?.studentId === 'object' ? record?.studentId?._id : record?.studentId;
 
     // Use populated names if the flat string fields are missing
     const displayClassName = record?.className || record?.classId?.name || 'Unassigned';
@@ -141,86 +85,9 @@ export default function StudentRecordSingle() {
 
 
 
-    const handleFeeSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!schoolId || !studentId || !record) return;
-
-        const formData = new FormData();
-        formData.append('schoolId', schoolId);
-        formData.append('studentId', actualStudentId || '');
-        formData.append('studentName', record?.studentName || '');
-        formData.append('classId', actualClassId || '');
-        formData.append('sectionId', actualSectionId || '');
-        formData.append('amount', feeData.amount);
-        formData.append('paymentMode', feeData.paymentMode);
-        formData.append('remarks', feeData.remarks);
-        formData.append('newOld', record?.newOld);
-
-        // Add Manual Allocation Data
-        formData.append('manualDueAllocation', String(feeData.manualDueAllocation));
-        if (feeData.manualDueAllocation) {
-            formData.append('paidHeads', JSON.stringify(feeData.paidHeads));
-        }
-
-        // ... (Keep your Cash/Bank logic and Files logic exactly the same) ...
-
-        try {
-            await collectFeeMutation.mutateAsync(formData);
-            setIsFeeModalOpen(false);
-
-            // Reset everything on success
-            setFeeData({
-                amount: '', paymentMode: 'Cash', referenceNumber: '', bankName: '', chequeDate: '', remarks: '', manualDueAllocation: false,
-                paidHeads: { admissionFee: 0, firstTermAmt: 0, secondTermAmt: 0, busFirstTermAmt: 0, busSecondTermAmt: 0 }
-            });
-            setDenominations({ notes500: 0, notes200: 0, notes100: 0, notes50: 0, notes20: 0, notes10: 0 });
-
-            toast.success("Fee collected successfully!");
-            refetch();
-        } catch (err: any) {
-            console.error("Fee collection failed", err);
-            toast.error(err?.message || "Fee collection failed. Please try again.");
-        }
-    };
-
-    // ==========================================
-    // 2. ASSIGN CLASS STATE & LOGIC
-    // ==========================================
-    // const [assignData, setAssignData] = useState({ classId: '', sectionId: '', academicYear: null, rollNumber: '' });
     const { data: classesData } = useGetClasses(schoolId!);
-    const { data: sectionsData, isLoading: isSectionsLoading } = useGetSections({ schoolId: schoolId!, classId: concessionData.classId });
+    const { data: sectionsData, } = useGetSections({ schoolId: schoolId!, classId: concessionData.classId });
 
-    // --- Check if the selected class for Assignment has sections ---
-    // const assignSelectedClassObj = classesData?.find((c: any) => c?._id === assignData?.classId);
-    // const assignHasSections = assignSelectedClassObj?.hasSections === true;
-
-
-    // const handleAssignSubmit = async (e: React.FormEvent) => {
-    //     e.preventDefault();
-    //     try {
-    //         await assignClassMutation.mutateAsync({
-    //             schoolId: schoolId!,
-    //             studentId: typeof record?.studentId === 'object' ? record?.studentId?._id : record?.studentId,
-    //             studentName: record?.studentName || '',
-    //             newOld: record?.newOld || 'New',
-    //             ...assignData
-    //         });
-    //         setIsAssignModalOpen(false);
-    //         refetch();
-    //         toast.success("Successfully Assinged!");
-    //     } catch (err: any) {
-
-    //         console.error("Assignment failed", err);
-
-    //         toast.error(err?.message || "Failed to assign class.");
-    //     }
-    // };
-
-
-
-    // --- Fetch Classes & Sections for the Modal ---
-
-    // --- Options Mapping ---
 
 
     const classOptions = classesData?.map((cls: any) => ({ label: cls.name, value: cls._id })) || [];
@@ -315,6 +182,8 @@ export default function StudentRecordSingle() {
         .filter((tx: any) => tx.status === 'success')
         .reduce((sum: number, tx: any) => sum + (Number(tx.amountPaid) || 0), 0);
 
+    const isParent = currentRole === 'parent'
+
     // --- Render Guards ---
     if (isLoading) return (
         <div className="w-full h-64 flex items-center justify-center bg-background rounded-xl">
@@ -361,6 +230,7 @@ export default function StudentRecordSingle() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4">
+                    {!isParent && <>
                     <div className="bg-sub-header/50 px-4 py-2 rounded-lg border border-border">
                         <Toggle
                             checked={record?.isActive || false}
@@ -371,11 +241,13 @@ export default function StudentRecordSingle() {
 
                         />
                     </div>
-                    <Button variant="outline" onClick={() => setIsAssignModalOpen(true)} leftIcon="fas fa-chalkboard-user">Manage Class</Button>
-                    <Button variant="outline" onClick={() => setIsConcessionModalOpen(true)} leftIcon="fas fa-tags">Concession</Button>
-                    <Button variant="primary" onClick={() => setIsFeeModalOpen(true)} leftIcon="fas fa-rupee-sign">
-                        Collect Fee
-                    </Button>
+                    
+                        <Button variant="outline" onClick={() => setIsAssignModalOpen(true)} leftIcon="fas fa-chalkboard-user">Manage Class</Button>
+                        <Button variant="outline" onClick={() => setIsConcessionModalOpen(true)} leftIcon="fas fa-tags">Concession</Button>
+                        <Button variant="primary" onClick={() => setIsFeeModalOpen(true)} leftIcon="fas fa-rupee-sign">
+                            Collect Fee
+                        </Button>
+                    </>}
                 </div>
             </div>
 
@@ -660,179 +532,18 @@ export default function StudentRecordSingle() {
             {/* =========================================================
                 MODALS
             ========================================================= */}
-            {/* =========================================================
-                FEE COLLECTION MODAL
-            ========================================================= */}
-            <SideModal isOpen={isFeeModalOpen} onClose={() => setIsFeeModalOpen(false)} title="Collect Fee">
-                <form onSubmit={handleFeeSubmit} className="flex flex-col h-full space-y-6">
-                    <div className="space-y-5 overflow-y-auto custom-scrollbar pr-2 pb-4">
 
-                        {/* Summary Box */}
-                        <div className="bg-primary-soft/50 border border-primary/20 rounded-xl p-4 mb-2">
-                            <p className="text-sm font-semibold text-foreground">
-                                Total Dues Available: ₹{(fDues?.admissionDues || 0) + (fDues?.firstTermDues || 0) + (fDues?.secondTermDues || 0) + (record?.isBusApplicable ? (fDues?.busfirstTermDues || 0) + (fDues?.busSecondTermDues || 0) : 0)}
-                            </p>
-                        </div>
+            <CollectFeeModal
+                isOpen={isFeeModalOpen}
+                onClose={() => setIsFeeModalOpen(false)}
+                schoolId={schoolId!}
+                studentId={studentId!}
+                record={record}
+                refetch={refetch}
+            />
 
-                        {/* Amount Input */}
-                        <Input
-                            id="amount" type="number" label="Amount Received (₹)"
-                            value={feeData.amount} onChange={(e) => setFeeData({ ...feeData, amount: e.target.value })}
-                            required min="1" placeholder="e.g., 5000"
-                        />
-
-                        {/* --- MANUAL ALLOCATION TOGGLE & UI --- */}
-                        <div className="bg-background border border-border rounded-xl p-4 space-y-4">
-                            <Toggle
-                                checked={feeData.manualDueAllocation}
-                                onChange={(checked) => setFeeData({ ...feeData, manualDueAllocation: checked })}
-                                label="Manual Fee Allocation"
-                                description="Turn off for Auto-FIFO (pays oldest dues first)."
-                            />
-
-                            {feeData.manualDueAllocation && (
-                                <div className="pt-3 border-t border-border space-y-3">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <h4 className="text-xs font-semibold text-muted uppercase">Allocate to Heads</h4>
-                                        <span className={`text-sm font-bold px-2 py-1 rounded-md ${isManualValid && feeData.amount ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
-                                            Allocated: ₹{calculatedManualTotal} / ₹{feeData.amount || 0}
-                                        </span>
-                                    </div>
-
-                                    {fDues?.admissionDues > 0 && (
-                                        <Input id="m_adm" type="number" label={`Admission Fee (Max ₹${fDues.admissionDues})`} value={feeData.paidHeads.admissionFee || ''} onChange={(e) => setFeeData({ ...feeData, paidHeads: { ...feeData.paidHeads, admissionFee: Number(e.target.value) } })} max={fDues.admissionDues} />
-                                    )}
-                                    {fDues?.firstTermDues > 0 && (
-                                        <Input id="m_t1" type="number" label={`First Term (Max ₹${fDues.firstTermDues})`} value={feeData.paidHeads.firstTermAmt || ''} onChange={(e) => setFeeData({ ...feeData, paidHeads: { ...feeData.paidHeads, firstTermAmt: Number(e.target.value) } })} max={fDues.firstTermDues} />
-                                    )}
-                                    {fDues?.secondTermDues > 0 && (
-                                        <Input id="m_t2" type="number" label={`Second Term (Max ₹${fDues.secondTermDues})`} value={feeData.paidHeads.secondTermAmt || ''} onChange={(e) => setFeeData({ ...feeData, paidHeads: { ...feeData.paidHeads, secondTermAmt: Number(e.target.value) } })} max={fDues.secondTermDues} />
-                                    )}
-                                    {record?.isBusApplicable && fDues?.busfirstTermDues > 0 && (
-                                        <Input id="m_b1" type="number" label={`Bus First Term (Max ₹${fDues.busfirstTermDues})`} value={feeData.paidHeads.busFirstTermAmt || ''} onChange={(e) => setFeeData({ ...feeData, paidHeads: { ...feeData.paidHeads, busFirstTermAmt: Number(e.target.value) } })} max={fDues.busfirstTermDues} />
-                                    )}
-                                    {record?.isBusApplicable && fDues?.busSecondTermDues > 0 && (
-                                        <Input id="m_b2" type="number" label={`Bus Second Term (Max ₹${fDues.busSecondTermDues})`} value={feeData.paidHeads.busSecondTermAmt || ''} onChange={(e) => setFeeData({ ...feeData, paidHeads: { ...feeData.paidHeads, busSecondTermAmt: Number(e.target.value) } })} max={fDues.busSecondTermDues} />
-                                    )}
-
-                                    {!isManualValid && feeData.amount && (
-                                        <div className="flex items-center gap-2 mt-2 text-xs text-danger bg-danger/5 p-2 rounded border border-danger/20">
-                                            <i className="fas fa-exclamation-circle"></i>
-                                            <p>Allocation total does not match Amount Received.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* --- PAYMENT MODE SELECTION --- */}
-                        <div className="flex flex-col gap-1.5 pt-2 border-t border-border">
-                            <Label>Payment Mode</Label>
-                            <select className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary/50 outline-none" value={feeData.paymentMode} onChange={(e) => setFeeData({ ...feeData, paymentMode: e.target.value })}>
-                                <option value="Cash">Cash</option>
-                                <option value="Bank Transfer">Bank Transfer / UPI</option>
-                                <option value="Cheque">Cheque</option>
-                            </select>
-                        </div>
-
-                        {/* --- CASH DENOMINATIONS UI --- */}
-                        {feeData.paymentMode === 'Cash' && (
-                            <div className="bg-background border border-border rounded-xl p-4 space-y-4">
-                                <div className="flex justify-between items-center border-b border-border pb-3">
-                                    <h4 className="text-sm font-semibold text-foreground">Cash Denominations</h4>
-                                    <span className={`text-sm font-bold px-2 py-1 rounded-md ${isCashValid && feeData.amount ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
-                                        Total: ₹{calculatedCashTotal} / ₹{feeData.amount || 0}
-                                    </span>
-                                </div>
-                                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                                    {[500, 200, 100, 50, 20, 10].map((note) => (
-                                        <div key={note} className="flex items-center gap-3 bg-surface border border-border px-3 py-2 rounded-lg">
-                                            <span className="text-xs font-medium text-muted w-10 shrink-0">₹{note}</span>
-                                            <span className="text-xs text-muted">x</span>
-                                            <input
-                                                type="number" min="0" placeholder="0"
-                                                className="w-full bg-transparent text-sm text-foreground outline-none text-right font-medium"
-                                                value={denominations[`notes${note}` as keyof typeof denominations] || ''}
-                                                onChange={(e) => setDenominations({ ...denominations, [`notes${note}`]: Number(e.target.value) || 0 })}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                                {!isCashValid && feeData.amount && (
-                                    <div className="flex items-center gap-2 mt-3 text-xs text-danger bg-danger/5 p-2 rounded border border-danger/20">
-                                        <i className="fas fa-exclamation-circle"></i>
-                                        <p>Denomination total does not match Amount Received.</p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* --- BANK / CHEQUE UI --- */}
-                        {feeData.paymentMode !== 'Cash' && (
-                            <div className="space-y-4 bg-background border border-border rounded-xl p-4">
-                                <Input id="referenceNumber" label="Reference / Cheque Number" value={feeData.referenceNumber} onChange={(e) => setFeeData({ ...feeData, referenceNumber: e.target.value })} required />
-                                <Input id="bankName" label="Bank Name" value={feeData.bankName} onChange={(e) => setFeeData({ ...feeData, bankName: e.target.value })} required />
-                                {feeData.paymentMode === 'Cheque' && (
-                                    <Input id="chequeDate" type="date" label="Cheque Date" value={feeData.chequeDate} onChange={(e) => setFeeData({ ...feeData, chequeDate: e.target.value })} required />
-                                )}
-                            </div>
-                        )}
-
-                        {/* --- UPLOADS & REMARKS --- */}
-                        <div className="flex flex-col gap-1.5">
-                            <Label>Upload Attachments (Optional)</Label>
-                            <input type="file" multiple onChange={(e) => setFeeFiles(e.target.files)} className="w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-soft file:text-primary cursor-pointer" />
-                        </div>
-                        <Input id="remarks" label="Remarks / Note" value={feeData.remarks} onChange={(e) => setFeeData({ ...feeData, remarks: e.target.value })} />
-                    </div>
-
-                    {/* --- SUBMIT FOOTER --- */}
-                    <div className="mt-auto pt-6 flex justify-end gap-3 border-t border-border bg-surface">
-                        <Button type="button" variant="outline" onClick={() => setIsFeeModalOpen(false)}>Cancel</Button>
-                        <Button type="submit" variant="primary" isLoading={collectFeeMutation.isPending} disabled={!canSubmit}>Process Payment</Button>
-                    </div>
-                </form>
-            </SideModal>
 
             {/* 2. ASSIGN CLASS MODAL */}
-            {/* <SideModal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} title="Assign to Class">
-                <form onSubmit={handleAssignSubmit} className="flex flex-col h-full space-y-6">
-                    <div className="space-y-4">
-                        <SearchSelect
-                            label="Select Class"
-                            options={classesData?.map((c: any) => ({ label: c.name, value: c._id })) || []}
-                            value={assignData.classId}
-                            onChange={(o) => setAssignData({ ...assignData, classId: String(o.value), sectionId: '' })}
-                        />
-                        {assignHasSections && (
-                            <div className="relative" key={assignData.classId}>
-                                <SearchSelect
-                                    label="Select Section"
-                                    options={sectionsData?.map((s: any) => ({ label: s.name, value: s._id })) || []}
-                                    value={assignData.sectionId}
-                                    onChange={(o) => setAssignData({ ...assignData, sectionId: String(o.value) })}
-                                />
-                                {isSectionsLoading && <i className="fas fa-spinner fa-spin absolute right-3 top-[38px] text-muted text-xs"></i>}
-                            </div>
-                        )}
-                        <Input id="rollNumber" label="Roll Number (Optional)" value={assignData.rollNumber} onChange={(e) => setAssignData({ ...assignData, rollNumber: e.target.value })} />
-                        <Input id="academicYear" label="Academic Year" value={assignData.academicYear} onChange={(e) => setAssignData({ ...assignData, academicYear: e.target.value })} />
-                    </div>
-                    <div className="mt-auto pt-6 flex justify-end gap-3 border-t border-border">
-                        {record?.classId && (
-                            <Button type="button" variant="ghost" className="text-danger mr-auto" onClick={async () => {
-                                if (window.confirm("Remove student from current class?")) {
-                                    await removeClassMutation.mutateAsync({ schoolId: schoolId!, studentId: typeof record?.studentId === 'object' ? record?.studentId?._id : record?.studentId });
-                                    setIsAssignModalOpen(false); refetch();
-                                }
-                            }}>Remove from Class</Button>
-                        )}
-                        <Button type="button" variant="outline" onClick={() => setIsAssignModalOpen(false)}>Cancel</Button>
-                        <Button type="submit" variant="primary" isLoading={assignClassMutation.isPending} disabled={!assignData.classId}>Assign</Button>
-                    </div>
-                </form>
-            </SideModal> */}
-
 
             <AssignClass
                 isOpen={isAssignModalOpen}
@@ -843,22 +554,7 @@ export default function StudentRecordSingle() {
             />
 
             {/* 3. CONCESSION MODAL */}
-            {/* <SideModal isOpen={isConcessionModalOpen} onClose={() => setIsConcessionModalOpen(false)} title="Manage Concession">
-                <form onSubmit={handleConcessionSubmit} className="flex flex-col h-full space-y-6">
-                    <div className="space-y-4">
-                        <Input id="type" label="Concession Type" placeholder="e.g., Sibling, Staff, Merit" value={concessionData.type} onChange={(e) => setConcessionData({ ...concessionData, type: e.target.value })} required />
-                        <Input id="value" type="number" label="Concession Value (₹ or %)" value={concessionData.value} onChange={(e) => setConcessionData({ ...concessionData, value: e.target.value })} required />
-                        <div className="flex flex-col gap-1.5">
-                            <Label>Upload Proof Document</Label>
-                            <input type="file" onChange={(e) => setConcessionFile(e.target.files ? e.target.files[0] : null)} className="w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-soft file:text-primary cursor-pointer" />
-                        </div>
-                    </div>
-                    <div className="mt-auto pt-6 flex justify-end gap-3 border-t border-border">
-                        <Button type="button" variant="outline" onClick={() => setIsConcessionModalOpen(false)}>Cancel</Button>
-                        <Button type="submit" variant="primary" isLoading={applyConcessionMutation.isPending}>Apply Concession</Button>
-                    </div>
-                </form>
-            </SideModal> */}
+
 
             <SideModal isOpen={isConcessionModalOpen} onClose={() => setIsConcessionModalOpen(false)} title="Manage Concession">
                 <form onSubmit={handleConcessionSubmit} className="flex flex-col h-full space-y-6 pr-2">

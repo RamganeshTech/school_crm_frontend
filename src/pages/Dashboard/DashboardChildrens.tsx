@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useSearchParams } from 'react-router-dom';
 // import Sidebar from './Sidebar'; // Adjust path as needed
 // import { principalMenu } from '../../config/navigation'; // Import your specific role menu
 // import { useAuthData } from '../../hooks/useAuthData'; // Assuming you use this hook
@@ -16,9 +16,16 @@ const DashboardChildrens: React.FC = () => {
     // Get data from your auth hook or Redux store
     const dispatch = useDispatch();
     // const { schoolId, userName, currentRole } = useAuthData();
-    const { role , studentId} = useSelector((state: RootState) => state.auth)
+    const { role, studentId } = useSelector((state: RootState) => state.auth)
 
     const activeStudentId = studentId && studentId.length > 0 ? studentId[0] : null;
+
+    // const searchParam = useSearchParams()
+
+    // const activeStudentId = searchParam.get("studentId")
+
+    
+    
 
     const logoutMutation = useLogoutUser();
 

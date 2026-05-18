@@ -34,6 +34,15 @@ export const AUTH_CHECK_ROLES: UserRole[] = [
     "viceprincipal"
 ];
 
+export const STAFF_ONLY: UserRole[] = [
+    "correspondent",
+    "teacher",
+    "principal",
+    "accountant",
+    "administrator",
+    "viceprincipal"
+]
+
 export interface SubMenuItem {
     name: string;
     path: string;
@@ -48,6 +57,8 @@ export interface MenuItem {
 
 export const principalMenu: MenuItem[] = [
     // { name: 'Dashboard', path: "/dashboard", icon: 'fas fa-th-large' },
+    // { name: 'Dashboard', path: "/dashboard", icon: 'fas fa-chart-pie-simple'},
+    { name: 'Dashboard', path: "/dashboard", icon: 'fas fa-chart-pie' }, //or use this fas fa-chart-simple
     { name: 'Profile', path: "/dashboard/profile", icon: 'fas fa-user' },
     { name: 'Class', path: "/dashboard/class", icon: 'fas fa-chalkboard' },
     { name: 'Section', path: "/dashboard/section", icon: 'fas fa-box' },
@@ -58,15 +69,17 @@ export const principalMenu: MenuItem[] = [
     { name: 'Attendance', path: "/dashboard/attendance", icon: 'fas fa-clipboard' },
     { name: 'Assignments', path: "/dashboard/teacher-assignment", icon: 'fas fa-user' },
     { name: 'TimeTable', path: "/dashboard/timetable", icon: 'fas fa-table' },
-    { name: 'Expense', path: "/dashboard/expense", icon: 'fas fa-money' },
-    { name: 'Homework', path: "/dashboard/homework", icon: 'fas fa-noteclip' },
-    { name: 'Homework Submission', path: "/dashboard/homework-submission", icon: 'fas fa-noteclip' },
-    { name: 'Finance', path: "/dashboard/delete-archive", icon: 'fas fa-trash' },
-    { name: 'Audit', path: "/dashboard/audit", icon: 'fas fa-noteclip' },
+    { name: 'Expense', path: "/dashboard/expense", icon: 'fas fa-file-invoice-dollar' },
+    { name: 'Homework', path: "/dashboard/homework", icon: 'fas fa-calendar-check' },
+    { name: 'Homework Submission', path: "/dashboard/homework-submission", icon: 'fas fa-calendar-check' },
+    { name: 'Finance', path: "/dashboard/finance", icon: 'fas fa-book-open' },
+    { name: 'Audit', path: "/dashboard/audit", icon: 'fas fa-shield-alt' },
+    { name: 'Archive', path: "/dashboard/delete-archive", icon: 'fas fa-trash-restore' },
     { name: 'Announcement', path: "/dashboard/announcement", icon: 'fas fa-bullhorn' },
     { name: 'Clubs', path: "/dashboard/club", icon: 'fas fa-layer-group' },
     { name: 'Fee Structure', path: "/dashboard/fee-structure", icon: 'fas fa-coins' },
-
+    { name: 'Profile Selection', path: "/dashboard/profile-selection", icon: 'fas fa-user-group' },
+    { name: 'Mark report', path: "/dashboard/markreport", icon: 'fas fa-file-invoice' },
 ];
 
 
@@ -77,8 +90,14 @@ export const getParentMenu = (studentId: string | null): MenuItem[] => {
 
     return [
         { name: 'Profile', path: `/dashboard/profile`, icon: 'fas fa-user' },
-        { name: 'Attendance', path: `/dashboard/attendance${queryStr}`, icon: 'fas fa-clipboard' },
-        { name: 'Homework', path: `/dashboard/homework${queryStr}`, icon: 'fas fa-book' },
+        // { name: 'Homework', path: `/dashboard/homework${queryStr}`, icon: 'fas fa-book' },
         { name: 'My Homework Submissions', path: `/dashboard/homework-submission${queryStr}`, icon: 'fas fa-check-circle' },
+        { name: 'Profile Selection', path: "/dashboard/profile-selection", icon: 'fas fa-user-group' },
+        { name: 'Student Profile', path: `/dashboard/profile-selection/student/record-profile//${studentId}`, icon: 'fas fa-user-group' },
+        { name: 'Student Main', path: `/dashboard/profile-selection/student/main-profile/${studentId}`, icon: 'fas fa-user-group' },
+        { name: 'Attedance', path: `/dashboard/profile-selection/student/attendace/${studentId}`, icon: 'fas fa-clipboard' },
+        { name: 'Mark report', path: "/dashboard/markreport", icon: 'fas fa-file-invoice' },
+        { name: 'Annoucement', path: "/dashboard/profile-selection/student/announcement", icon: 'fas fa-bullhorn' },
+        { name: 'Clubs', path: "/dashboard/profile-selection/student/club", icon: 'fas fa-layer-group' },
     ];
 };

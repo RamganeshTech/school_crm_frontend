@@ -297,7 +297,14 @@ const Login = () => {
         toast.success(`Welcome back, ${response.user.userName}!`)
 
 
-        navigate('/dashboard');
+        // 3. SECURE ROUTING LOGIC: Check role and navigate accordingly
+        if (response.user.role?.toLowerCase() === 'parent') {
+          navigate('/dashboard/profile-selection');
+        } else {
+          navigate('/dashboard');
+        }
+
+        // navigate('/dashboard');
       }
     } catch (error: any) {
       // Show backend errors (like "Invalid credentials") directly on the password field

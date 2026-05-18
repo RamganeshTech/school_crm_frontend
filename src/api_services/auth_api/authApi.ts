@@ -246,3 +246,30 @@ export const useAssignRole = () => {
     },
   });
 };
+
+
+export interface AssociatedStudentsResponse {
+    ok: boolean;
+    message: string;
+    // Assuming your endpoint returns an array of student objects or strings
+    data: any[]; 
+}
+
+export const useGetParentStudents = () => {
+    const { userId, currentRole } = useAuthData();
+
+    return useQuery({
+        // Unique cache key tied to the parent's user ID
+        queryKey: ['parent-associated-students', userId],
+        queryFn: async () => {
+            const { data } = await Api.get<AssociatedStudentsResponse>(
+                `/api/user/associated-students/get/${userId}`
+            );
+            if (data.ok) return data.data;
+            throw new Error(data.message || 'Failed to load associated students');
+        },
+        // Performance optimization: Only execute if user is logged in as a parent
+        enabled: !!userId && currentRole === 'parent',
+        staleTime: 10 * 60 * 1000, // Cache student links for 10 minutes (it rarely changes)
+    });
+};
