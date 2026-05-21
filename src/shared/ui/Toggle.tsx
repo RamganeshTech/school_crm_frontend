@@ -7,6 +7,8 @@ interface ToggleProps {
   description?: string;
   disabled?: boolean;
   isLoading?: boolean;
+  className?: string;      // NEW: For the track (background)
+  thumbClassName?: string; // NEW: For the circle thumb
 }
 
 export const Toggle: React.FC<ToggleProps> = ({
@@ -15,7 +17,9 @@ export const Toggle: React.FC<ToggleProps> = ({
   label,
   description,
   disabled = false,
-  isLoading = false
+  isLoading = false,
+ className = "",
+  thumbClassName = ""
 }) => {
   return (
     <label className={`flex items-start gap-3 cursor-pointer ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}>
@@ -28,10 +32,10 @@ export const Toggle: React.FC<ToggleProps> = ({
           onChange={(e) => !disabled && !isLoading && onChange(e.target.checked)}
           disabled={disabled || isLoading}
         />
-        <div className="w-10 h-5.5 bg-background border border-divider rounded-full peer peer-checked:bg-primary transition-colors duration-200"></div>
+        <div className={`w-10 h-5.5 bg-background border-divider rounded-full peer peer-checked:bg-primary transition-colors duration-200 shadow-inner  ${className}`}></div>
         {/* Switch Thumb */}
-        <div className={`absolute left-0.5 top-0.5 w-4.5 h-4.5 bg-white rounded-full shadow-sm transform transition-transform duration-200  flex items-center justify-center
-          ${checked ? 'translate-x-4.5' : 'translate-x-0'}`}>
+        <div className={`absolute left-0.5 top-0.5 w-4.5 h-4.5 bg-surface rounded-full shadow-sm transform transition-transform duration-200  flex items-center justify-center
+          ${checked ? 'translate-x-4.5' : 'translate-x-0'} ${thumbClassName}`}>
 
           {isLoading && (
             <div className="w-2.5 h-2.5 border-2 border-gray-300 border-t-primary rounded-full animate-spin" />

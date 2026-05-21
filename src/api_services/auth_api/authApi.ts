@@ -102,7 +102,9 @@ export const fetchAuthSession = async (currentRole: UserRole) => {
     const { data } = await Api.get('/api/user/isauthenticated');
     return data;
   } catch (error: any) {
-    throw error.response?.data?.message || error.message || "something went wrong";
+    // throw error.response?.data?.message || error.message || "something went wrong";
+    const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+    throw new Error(errorMessage, { cause: error });
   }
 };
 
@@ -122,13 +124,46 @@ export const useUserIsAuthenticated = () => {
         if (data.ok) return data.data;
         throw new Error(data.message || 'Not authenticated');
       } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Session expired', { cause: error });
+        // throw new Error(error.response?.data?.message || 'Session expired', { cause: error });
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage, { cause: error });
       }
     },
     retry: false,
     enabled: !!currentRole, // Only runs if we have a role
   });
 };
+
+
+// --- Hook: Create User ---
+export const useCreateUser = () => {
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async (userData: any) => {
+      try {
+        // Ensure only authorized roles can create users
+        checkPermission(currentRole, [
+          "correspondent", "administrator",
+        ]);
+
+        const { data } = await Api.post<BaseResponse>(`/api/user/create`, userData);
+
+        if (data.ok) {
+          return data;
+        } else {
+          throw new Error(data.message || 'Failed to create user');
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage, { cause: error });
+      }
+    },
+    // Replace 'users' with your exact queryKey from useGetAllUsers if different
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['all-user'] }),
+  });
+};
+
 
 // --- Hook 1: Update User (Mutation) ---
 export const useUpdateUser = () => {
@@ -157,6 +192,8 @@ export const useUpdateUser = () => {
     },
   });
 };
+
+
 
 // --- Hook 2: Get Single User (Query) ---
 export const useGetSingleUser = (userId: string | undefined) => {
@@ -192,7 +229,7 @@ export const useGetSingleUser = (userId: string | undefined) => {
 
 
 // --- Hook 6: Get all User (Query) ---
-export const useGetAllUsers = ({role, schoolId}: {role:string, schoolId:string}) => {
+export const useGetAllUsers = ({ role, schoolId }: { role: string, schoolId: string }) => {
   const { currentRole } = useAuthData();
   return useQuery({
     queryKey: ['all-user', schoolId, role],
@@ -204,8 +241,6 @@ export const useGetAllUsers = ({role, schoolId}: {role:string, schoolId:string})
         ]);
 
         const { data } = await Api.get(`/api/user/${role}/${schoolId}`);
-
-        console.log("data", data)
 
         if (data.ok) {
           return data.data;
@@ -243,33 +278,80 @@ export const useAssignRole = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['user', variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ['all-user'] });
+
     },
   });
 };
 
 
+
+
+
+
+// --- Hook: Create User ---
+export const useDeleteUser = () => {
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      try {
+        // Ensure only authorized roles can create users
+        checkPermission(currentRole, [
+          "correspondent",
+        ]);
+
+        const { data } = await Api.delete(`/api/user/delete/${userId}`);
+
+        if (data.ok) {
+          return data;
+        } else {
+          throw new Error(data.message || 'Failed to create user');
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage, { cause: error });
+      }
+    },
+    // Replace 'users' with your exact queryKey from useGetAllUsers if different
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['all-user'] }),
+  });
+};
+
+
+
 export interface AssociatedStudentsResponse {
-    ok: boolean;
-    message: string;
-    // Assuming your endpoint returns an array of student objects or strings
-    data: any[]; 
+  ok: boolean;
+  message: string;
+  // Assuming your endpoint returns an array of student objects or strings
+  data: any[];
 }
 
 export const useGetParentStudents = () => {
-    const { userId, currentRole } = useAuthData();
+  const { userId, currentRole } = useAuthData();
 
-    return useQuery({
-        // Unique cache key tied to the parent's user ID
-        queryKey: ['parent-associated-students', userId],
-        queryFn: async () => {
-            const { data } = await Api.get<AssociatedStudentsResponse>(
-                `/api/user/associated-students/get/${userId}`
-            );
-            if (data.ok) return data.data;
-            throw new Error(data.message || 'Failed to load associated students');
-        },
-        // Performance optimization: Only execute if user is logged in as a parent
-        enabled: !!userId && currentRole === 'parent',
-        staleTime: 10 * 60 * 1000, // Cache student links for 10 minutes (it rarely changes)
-    });
+  return useQuery({
+    // Unique cache key tied to the parent's user ID
+    queryKey: ['parent-associated-students', userId],
+    queryFn: async () => {
+      try {
+        checkPermission(currentRole, ["correspondent", "administrator"]);
+
+        const { data } = await Api.get<AssociatedStudentsResponse>(
+          `/api/user/associated-students/get/${userId}`
+        );
+        if (data.ok) return data.data;
+        throw new Error(data.message || 'Failed to load associated students');
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage, { cause: error });
+      }
+    },
+    // Performance optimization: Only execute if user is logged in as a parent
+    enabled: !!userId && currentRole === 'parent',
+    staleTime: 10 * 60 * 1000, // Cache student links for 10 minutes (it rarely changes)
+  });
 };
+
+
+

@@ -104,7 +104,7 @@ export default function FinanceTrendsChart({ timelineData, isLoading }: TrendsCh
                     <div className="absolute inset-0 flex items-center justify-center">
                         <i className="fas fa-circle-notch fa-spin text-primary text-2xl"></i>
                     </div>
-                ) : timelineData.length === 0 ? (
+                ) : timelineData?.length === 0 ? (
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-muted">
                         <i className="fas fa-chart-line text-2xl mb-2 opacity-30"></i>
                         <p className="text-xs">No ledger activity captured for this block timeline.</p>

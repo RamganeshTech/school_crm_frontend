@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthData } from '../../hooks/useAuthData';
 // import { useGetExpenseById, useUpdateExpense, useDeleteExpenseProof } from '../../api_services/expenseApi'; // Adjust path
@@ -6,6 +6,7 @@ import { Button } from '../../shared/ui/Button';
 import { Input, Label } from '../../shared/ui/Input';
 import { SearchSelect } from '../../shared/ui/SearchSelect';
 import { useDeleteExpenseProof, useGetExpenseById, useUpdateExpense } from '../../api_services/expense_api/expenseApi';
+import { toast } from '../../shared/ui/ToastContext';
 
 const CATEGORY_OPTIONS = [
     { label: 'Maintenance', value: 'Maintenance' },
@@ -30,7 +31,7 @@ export default function ExpenseSingle() {
     // --- State ---
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState<any>({});
-    
+
     // File upload states
     const [newBillProof, setNewBillProof] = useState<File | null>(null);
     const [newWorkProof, setNewWorkProof] = useState<File | null>(null);
@@ -74,7 +75,7 @@ export default function ExpenseSingle() {
             formData.append('paymentMode', editForm.paymentMode);
             formData.append('date', editForm.date);
             formData.append('remarks', editForm.remarks);
-            
+
             if (editForm.paymentMode === 'Cheque' || editForm.paymentMode === 'Bank Transfer') {
                 formData.append('chequeNumber', editForm.chequeNumber);
                 formData.append('bankName', editForm.bankName);
@@ -86,8 +87,14 @@ export default function ExpenseSingle() {
 
             await updateExpenseMutation.mutateAsync({ id, formData });
             setIsEditing(false); // Switch back to view mode on success
-        } catch (error) {
+            toast.success("Updated Successfully")
+
+
+        } catch (error: any) {
             console.error("Failed to update expense", error);
+            toast.error(error.message || "failed to create expense")
+
+
         }
     };
 
@@ -95,8 +102,12 @@ export default function ExpenseSingle() {
         if (!window.confirm(`Are you sure you want to delete this ${type === 'bill' ? 'Bill' : 'Work'} proof?`)) return;
         try {
             await deleteProofMutation.mutateAsync({ expenseId: id!, proofId, type });
-        } catch (error) {
+            toast.success("Successfully Deleted");
+
+        } catch (error: any) {
             console.error("Failed to delete proof", error);
+            toast.error(error.message || "Failed to Delete.");
+
         }
     };
 
@@ -118,10 +129,10 @@ export default function ExpenseSingle() {
                                 <img src={proof.url} alt="Proof" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                             </a>
                         )}
-                        
+
                         {/* Delete Proof Button (Only visible in Edit Mode) */}
                         {isEditing && (
-                            <button 
+                            <button
                                 onClick={() => handleDeleteProof(proof._id, type)}
                                 className="absolute top-2 right-2 w-8 h-8 bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-danger/90"
                                 title="Delete this proof"
@@ -140,12 +151,12 @@ export default function ExpenseSingle() {
 
     return (
         <div className="w-full h-full flex flex-col bg-background">
-            
+
             {/* 1. HEADER AREA */}
             <header className="shrink-0 px-6 py-5 border-b border-border flex flex-wrap items-center justify-between gap-4 bg-surface sticky top-0 z-20">
                 <div className="flex items-center gap-4">
-                    <button 
-                        onClick={() => navigate(-1)} 
+                    <button
+                        onClick={() => navigate(-1)}
                         className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-background border border-transparent hover:border-border text-muted hover:text-foreground transition-all shrink-0"
                     >
                         <i className="fas fa-arrow-left"></i>
@@ -186,15 +197,15 @@ export default function ExpenseSingle() {
             {/* 2. MAIN CONTENT (Two Column Split) */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    
+
                     {/* LEFT PANE: Form Details (7 Columns) */}
                     <div className="lg:col-span-7 space-y-8">
-                        
+
                         <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
                             <h2 className="text-sm font-bold text-muted uppercase tracking-wider mb-6 flex items-center gap-2">
                                 <i className="fas fa-info-circle text-primary"></i> Basic Information
                             </h2>
-                            
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
                                 {isEditing ? (
                                     <>
@@ -236,7 +247,7 @@ export default function ExpenseSingle() {
                             <h2 className="text-sm font-bold text-muted uppercase tracking-wider mb-6 flex items-center gap-2">
                                 <i className="fas fa-university text-primary"></i> Payment & Remarks
                             </h2>
-                            
+
                             <div className="space-y-5">
                                 {/* Bank Details (Conditional) */}
                                 {(isEditing ? (editForm.paymentMode === 'Cheque' || editForm.paymentMode === 'Bank Transfer') : (expense.paymentMode === 'Cheque' || expense.paymentMode === 'Bank Transfer')) && (
@@ -276,24 +287,24 @@ export default function ExpenseSingle() {
                     </div>
 
                     {/* RIGHT PANE: Proofs & Attachments (5 Columns) */}
-                  {/* RIGHT PANE: Proofs & Attachments (5 Columns) */}
+                    {/* RIGHT PANE: Proofs & Attachments (5 Columns) */}
                     <div className="lg:col-span-5 space-y-6">
-                        
+
                         {/* Bill Proof Section */}
                         <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
                             <h2 className="text-sm font-bold text-muted uppercase tracking-wider mb-4 flex items-center justify-between">
                                 <span className="flex items-center gap-2"><i className="fas fa-receipt text-primary"></i> Bill / Invoice Proof</span>
                             </h2>
-                            
+
                             {/* FIX: Changed expense.billProof to expense.bill */}
                             {renderProofDisplay(expense.bill, 'bill')}
 
                             {isEditing && (
                                 <div className="mt-4 pt-4 border-t border-border border-dashed">
                                     <Label className="!text-xs">Upload New Bill (Overrides existing)</Label>
-                                    <input 
-                                        type="file" 
-                                        accept="image/*,.pdf" 
+                                    <input
+                                        type="file"
+                                        accept="image/*,.pdf"
                                         onChange={(e) => setNewBillProof(e.target.files?.[0] || null)}
                                         className="mt-1 block w-full text-xs text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-colors"
                                     />
@@ -307,16 +318,16 @@ export default function ExpenseSingle() {
                             <h2 className="text-sm font-bold text-muted uppercase tracking-wider mb-4 flex items-center justify-between">
                                 <span className="flex items-center gap-2"><i className="fas fa-camera text-primary"></i> Work / Product Photo</span>
                             </h2>
-                            
+
                             {/* FIX: Changed expense.workProof to expense.workPhoto */}
                             {renderProofDisplay(expense.workPhoto, 'workPhoto')}
 
                             {isEditing && (
                                 <div className="mt-4 pt-4 border-t border-border border-dashed">
                                     <Label className="!text-xs">Upload New Work Photo (Overrides existing)</Label>
-                                    <input 
-                                        type="file" 
-                                        accept="image/*,.pdf" 
+                                    <input
+                                        type="file"
+                                        accept="image/*,.pdf"
                                         onChange={(e) => setNewWorkProof(e.target.files?.[0] || null)}
                                         className="mt-1 block w-full text-xs text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-colors"
                                     />
@@ -324,7 +335,7 @@ export default function ExpenseSingle() {
                                 </div>
                             )}
                         </div>
-                        
+
                     </div>
                 </div>
             </div>

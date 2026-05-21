@@ -1,5 +1,5 @@
-import React from 'react';
-import { Outlet, useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useMemo } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 // import Sidebar from './Sidebar'; // Adjust path as needed
 // import { principalMenu } from '../../config/navigation'; // Import your specific role menu
 // import { useAuthData } from '../../hooks/useAuthData'; // Assuming you use this hook
@@ -10,13 +10,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../features/slices/authSlice';
 import { queryClient } from '../../lib/queryClient';
 import type { RootState } from '../../features/store/store';
+import { GlobalHeader } from '../../shared/components/GlobalHeader';
 
 const DashboardChildrens: React.FC = () => {
     const navigate = useNavigate();
     // Get data from your auth hook or Redux store
     const dispatch = useDispatch();
     // const { schoolId, userName, currentRole } = useAuthData();
-    const { role, studentId } = useSelector((state: RootState) => state.auth)
+    const { role, studentId, schoolName } = useSelector((state: RootState) => state.auth)
 
     const activeStudentId = studentId && studentId.length > 0 ? studentId[0] : null;
 
@@ -24,8 +25,8 @@ const DashboardChildrens: React.FC = () => {
 
     // const activeStudentId = searchParam.get("studentId")
 
-    
-    
+
+
 
     const logoutMutation = useLogoutUser();
 
@@ -55,12 +56,35 @@ const DashboardChildrens: React.FC = () => {
     console.log("role from redux", role)
 
 
-    let currentMenu:any[] = [];
-    if (role !== 'parent') {
-        currentMenu = principalMenu;
-    } else if (role === 'parent') {
-        currentMenu = getParentMenu(activeStudentId);
-    }
+    // let currentMenu: any[] = [];
+    // if (role !== 'parent') {
+    //     currentMenu = principalMenu;
+    // } else if (role === 'parent') {
+    //     currentMenu = getParentMenu(activeStudentId);
+    // }
+
+    // Inside your component or a utils file:
+    const getAuthorizedMenu = (role: string | null, activeStudentId: string | null) => {
+        if (role === 'parent') {
+            return getParentMenu(activeStudentId);
+        }
+
+        // Start with the full list
+        let menu = [...principalMenu];
+
+        // RESTRICTION: Hide 'Staffs' if the role is NOT 'correspondent'
+        if (role !== 'correspondent') {
+            menu = menu.filter(item => item.name !== 'Staffs');
+        }
+
+        return menu;
+    };
+
+    // Usage in your component:
+    const currentMenu = useMemo(() =>
+        getAuthorizedMenu(role, activeStudentId),
+        [role, activeStudentId]
+    );
 
     return (
         // Uses w-full and h-full to respect your index.css root boundaries
@@ -68,7 +92,7 @@ const DashboardChildrens: React.FC = () => {
 
             {/* Sidebar is fixed, so it sits on top of the layout structure */}
             <Sidebar
-                schoolName="JAI HIND PUBLIC SCHOOL" // Replace with actual dynamic name if available
+                schoolName={schoolName || ""} // Replace with actual dynamic name if available
                 schoolPath="/dashboard"
                 menuItems={currentMenu} // You can dynamically pass menus based on currentRole here
                 onLogout={handleLogout}
@@ -79,12 +103,17 @@ const DashboardChildrens: React.FC = () => {
         - flex-1 & w-full: Takes up all the remaining percentage of the width.
         - h-full & overflow-y-auto: Allows the content to scroll independently of the sidebar.
       */}
-            <main className="flex-1 w-full h-full bg-mainBg transition-all duration-300">
+            {/* <main className="flex-1 w-full h-full bg-mainBg transition-all duration-300"> */}
+            <main className="flex flex-col flex-1 min-w-0 h-full bg-mainBg">
 
                 {/* Optional: Top Mobile Navbar / Header area can go here if needed later */}
-
+                {/* <GlobalHeader /> */}
+                <div className="shrink-0">
+                    <GlobalHeader />
+                </div>
                 {/* The Outlet renders the nested routes (Profile, Class, Section, etc.) */}
-                <div className="w-full h-full p-4 md:p-6">
+                {/* <div className="w-full h-full p-4 md:p-6"> */}
+                <div className="flex-1 w-full p-4 overflow-y-auto">
                     <Outlet />
                 </div>
 

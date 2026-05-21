@@ -23,6 +23,7 @@ import { useGetSchoolById } from '../../../api_services/schoolConfig_api/schoola
 import { getAcademicYears } from '../../../utils/utils';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useGetAllStudents } from '../../../api_services/student_api/studentMainApi';
+import { toast } from '../../../shared/ui/ToastContext';
 
 
 export default function StudentRecordMain() {
@@ -201,7 +202,14 @@ export default function StudentRecordMain() {
             await applyConcessionMutation.mutateAsync(formData);
             refetch();
             setIsManageModalOpen(false);
-        } catch (error) { console.error("Failed to apply concession", error); }
+            toast.success("Concession applied Successfully!");
+
+        } catch (error: any) {
+
+            console.error("Failed to apply concession", error);
+            toast.error(error.message || "Operation Failed");
+
+        }
     };
 
     const handleUpdateConcession = async () => {
@@ -215,8 +223,14 @@ export default function StudentRecordMain() {
                 concessionValue
             });
             refetch();
+            toast.success("Updated Successfully!");
+
             setIsManageModalOpen(false);
-        } catch (error) { console.error("Failed to update concession", error); }
+        } catch (error: any) {
+            console.error("Failed to update concession", error);
+            toast.error(error.message || "Operation Failed");
+
+        }
     };
 
     // --- Options Mapping ---
@@ -261,7 +275,7 @@ export default function StudentRecordMain() {
             </div>
 
             {/* --- Main Layout --- */}
-            <div className="flex flex-col lg:flex-row gap-4 h-[calc(100%-80px)]">
+            <div className="flex flex-col lg:flex-row gap-2 h-[calc(100%-80px)]">
 
                 {/* LEFT PANEL: Filters */}
                 <div className="w-full lg:w-[25%] bg-surface border border-border rounded-xl p-5 flex flex-col gap-5 overflow-y-auto shrink-0 shadow-sm custom-scrollbar">
@@ -269,7 +283,7 @@ export default function StudentRecordMain() {
                         <i className="fas fa-filter text-muted"></i> Advanced Filters
                     </h3>
 
-                    <div className="space-y-4">
+                    <div className="space-y-3">
 
                         <SearchSelect
                             label="Academic Year"
@@ -326,7 +340,7 @@ export default function StudentRecordMain() {
                         </div>
 
                         {/* Financial Features (Chip Toggles) */}
-                        <div className="flex flex-col gap-2 pt-1">
+                        <div className="flex flex-col gap-1.5">
                             <Label>Financial Features</Label>
                             <div className="grid grid-cols-2 gap-3">
                                 {/* Bus Toggle Chip */}
@@ -439,11 +453,11 @@ export default function StudentRecordMain() {
                                                         size="sm"
                                                         // onClick={() => openManageModal(record)}
                                                         onClick={() => navigate(`single/${record._id}`)}
-                                                        // onClick={() => {
-                                                        //     // Check if studentId is populated as an object, or if it's just a string
-                                                        //     const targetStudentId = typeof record.studentId === 'object' ? record.studentId._id : record.studentId;
-                                                        //     navigate(`single/${targetStudentId}`);
-                                                        // }}
+                                                    // onClick={() => {
+                                                    //     // Check if studentId is populated as an object, or if it's just a string
+                                                    //     const targetStudentId = typeof record.studentId === 'object' ? record.studentId._id : record.studentId;
+                                                    //     navigate(`single/${targetStudentId}`);
+                                                    // }}
 
                                                     >
                                                         {/* Manage */}

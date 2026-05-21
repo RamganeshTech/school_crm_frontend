@@ -336,9 +336,9 @@ export default function UserProfile() {
             toast.success("Updated Successfully!");
 
 
-        } catch (error) {
+        } catch (error: any) {
             // console.error("Failed to update profile:", error);
-            toast.error("Network Error!", 5000);
+            toast.error(error.message || "Failed to Update");
 
         }
     };
@@ -623,7 +623,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
     };
 
     // Safely grab the first letter
-    const initial = userName ? userName.charAt(0).toUpperCase() : '?';
+    const initial = userName ? userName.charAt(0).toUpperCase() : 'U';
 
     // Inner content (Image or Initial)
     const content = imageUrl ? (

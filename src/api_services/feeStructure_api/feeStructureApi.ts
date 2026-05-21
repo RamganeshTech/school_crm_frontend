@@ -47,8 +47,8 @@ export interface SetFeeStructurePayload {
 }
 
 // Role Arrays
-const ADMIN_ROLES:UserRole[] = ["correspondent", "administrator"];
-const VIEW_ROLES:UserRole[] = ["correspondent", "administrator", "principal", "accountant", "teacher", "parent"];
+const ADMIN_ROLES: UserRole[] = ["correspondent", "administrator"];
+const VIEW_ROLES: UserRole[] = ["correspondent", "administrator", "principal", "accountant", "teacher", "parent"];
 
 // ====================================================================
 // REACT QUERY HOOKS
@@ -61,12 +61,17 @@ export const useGetAllFeeStructures = (schoolId: string | undefined) => {
     return useQuery({
         queryKey: ['fee-structures', 'all', schoolId],
         queryFn: async () => {
-            checkPermission(currentRole, VIEW_ROLES);
-            const { data } = await Api.get<BaseResponse<IFeeStructure[]>>('/api/feestructure/getall', {
-                params: { schoolId }
-            });
-            if (data.ok) return data.data;
-            throw new Error(data.message || 'Failed to fetch fee structures');
+            try {
+                checkPermission(currentRole, VIEW_ROLES);
+                const { data } = await Api.get<BaseResponse<IFeeStructure[]>>('/api/feestructure/getall', {
+                    params: { schoolId }
+                });
+                if (data.ok) return data.data;
+                throw new Error(data.message || 'Failed to fetch fee structures');
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         enabled: !!schoolId,
     });
@@ -79,12 +84,17 @@ export const useGetFeeStructureByClass = (schoolId: string | undefined, classId:
     return useQuery({
         queryKey: ['fee-structures', 'class', schoolId, classId],
         queryFn: async () => {
-            checkPermission(currentRole, VIEW_ROLES);
-            const { data } = await Api.get<BaseResponse<IFeeStructure[]>>('/api/feestructure/getbyclass', {
-                params: { schoolId, classId }
-            });
-            if (data.ok) return data.data;
-            throw new Error(data.message || 'Failed to fetch class fee structure');
+            try {
+                checkPermission(currentRole, VIEW_ROLES);
+                const { data } = await Api.get<BaseResponse<IFeeStructure[]>>('/api/feestructure/getbyclass', {
+                    params: { schoolId, classId }
+                });
+                if (data.ok) return data.data;
+                throw new Error(data.message || 'Failed to fetch class fee structure');
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         enabled: !!schoolId && !!classId,
     });
@@ -97,10 +107,15 @@ export const useSetFeeStructure = () => {
 
     return useMutation({
         mutationFn: async (payload: SetFeeStructurePayload) => {
-            checkPermission(currentRole, ADMIN_ROLES);
-            const { data } = await Api.post<BaseResponse<IFeeStructure>>('/api/feestructure/set', payload);
-            if (!data.ok) throw new Error(data.message || 'Failed to set fee structure');
-            return data;
+            try {
+                checkPermission(currentRole, ADMIN_ROLES);
+                const { data } = await Api.post<BaseResponse<IFeeStructure>>('/api/feestructure/set', payload);
+                if (!data.ok) throw new Error(data.message || 'Failed to set fee structure');
+                return data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: (_, variables) => {
             // Invalidate both the specific class query and the all structures query
@@ -117,10 +132,15 @@ export const useDeleteFeeStructure = () => {
 
     return useMutation({
         mutationFn: async (id: string) => {
-            checkPermission(currentRole, ADMIN_ROLES);
-            const { data } = await Api.delete<BaseResponse>(`/api/feestructure/delete/${id}`);
-            if (!data.ok) throw new Error(data.message || 'Failed to delete fee structure');
-            return data;
+            try {
+                checkPermission(currentRole, ADMIN_ROLES);
+                const { data } = await Api.delete<BaseResponse>(`/api/feestructure/delete/${id}`);
+                if (!data.ok) throw new Error(data.message || 'Failed to delete fee structure');
+                return data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['fee-structures'] });

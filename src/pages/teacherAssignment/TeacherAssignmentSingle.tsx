@@ -4,6 +4,7 @@ import { useAuthData } from '../../hooks/useAuthData';
 import { useGetSingleUser } from '../../api_services/auth_api/authApi';
 import { Button } from '../../shared/ui/Button';
 import { useGetAllClassesWithSections, useManageTeacherAssignments, type ClassWithSections, } from '../../api_services/teacher_api/teacherApi';
+import { toast } from '../../shared/ui/ToastContext';
 
 
 // Type for the queued updates
@@ -23,10 +24,10 @@ export default function TeacherAssignmentSingle() {
     // --- Queries & Mutations ---
     // Fetch the specific teacher (includes populated assignments)
     const { data: teacherData, isLoading: isLoadingTeacher } = useGetSingleUser(teacherId);
-    
+
     // Fetch the class structure
     const { data: classesData, isLoading: isLoadingClasses } = useGetAllClassesWithSections({ schoolId: schoolId! });
-    
+
     // Mutation to save changes
     const manageAssignmentMutation = useManageTeacherAssignments();
 
@@ -44,8 +45,8 @@ export default function TeacherAssignmentSingle() {
         // Backend populates classId and sectionId as objects: { _id, name }. We map them to flat strings.
         let current = (teacher.assignments || []).map((a: any) => ({
             classId: typeof a.classId === 'object' && a.classId !== null ? String(a.classId._id) : String(a.classId),
-            sectionId: a.sectionId 
-                ? (typeof a.sectionId === 'object' ? String(a.sectionId._id) : String(a.sectionId)) 
+            sectionId: a.sectionId
+                ? (typeof a.sectionId === 'object' ? String(a.sectionId._id) : String(a.sectionId))
                 : undefined
         }));
 
@@ -54,7 +55,7 @@ export default function TeacherAssignmentSingle() {
             if (!update.sectionId) {
                 // BULK CLASS TOGGLE (Scenarios 3 & 4)
                 const hasAny = current.some((a: any) => a.classId === update.classId);
-                
+
                 if (hasAny) {
                     // Scenario 4: Remove all sections of this class
                     current = current.filter((a: any) => a.classId !== update.classId);
@@ -99,7 +100,7 @@ export default function TeacherAssignmentSingle() {
 
     const handleSave = async () => {
         if (pendingUpdates.length === 0) return;
-        
+
         try {
             await manageAssignmentMutation.mutateAsync({
                 teacherId: teacherId!,
@@ -107,9 +108,13 @@ export default function TeacherAssignmentSingle() {
             });
             // Clear queue on success. 
             // The mutation's onSuccess will refetch the teacher query, naturally updating the UI.
-            setPendingUpdates([]); 
-        } catch (error) {
+            setPendingUpdates([]);
+            toast.success("Assinged Successfully!");
+
+        } catch (error: any) {
             console.error("Save failed:", error);
+            toast.error(error.message || "Operation Failed");
+
         }
     };
 
@@ -120,14 +125,14 @@ export default function TeacherAssignmentSingle() {
 
     const getClassStatus = (cls: ClassWithSections) => {
         const classAssignments = simulatedAssignments.filter((a: any) => a.classId === cls._id);
-        
+
         if (!cls.hasSections) {
             return { hasAny: classAssignments.length > 0, hasAll: classAssignments.length > 0 };
         }
-        
+
         const hasAny = classAssignments.length > 0;
         const hasAll = cls.sections.length > 0 && classAssignments.length === cls.sections.length;
-        
+
         return { hasAny, hasAll };
     };
 
@@ -144,12 +149,12 @@ export default function TeacherAssignmentSingle() {
 
     return (
         <div className="w-full h-full flex flex-col bg-background">
-            
+
             {/* FLAT HEADER */}
             <header className="shrink-0 px-6 py-5 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 bg-background z-20 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <button 
-                        onClick={() => navigate(-1)} 
+                    <button
+                        onClick={() => navigate(-1)}
                         className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-surface border border-transparent hover:border-border text-muted hover:text-foreground transition-all shrink-0"
                     >
                         <i className="fas fa-arrow-left"></i>
@@ -176,8 +181,8 @@ export default function TeacherAssignmentSingle() {
                             <i className="fas fa-circle text-[8px]"></i> Unsaved Changes Pending
                         </span>
                     )}
-                    <Button 
-                        variant="primary" 
+                    <Button
+                        variant="primary"
                         leftIcon="fas fa-save"
                         onClick={handleSave}
                         disabled={!hasUnsavedChanges || manageAssignmentMutation.isPending}
@@ -199,12 +204,12 @@ export default function TeacherAssignmentSingle() {
 
                             return (
                                 <div key={cls._id} className="p-6 hover:bg-surface/30 transition-colors flex flex-col md:flex-row md:items-start gap-6 group">
-                                    
+
                                     {/* Left Side: Class Bulk Action */}
                                     <div className="w-full md:w-64 shrink-0">
                                         <label className="flex items-center gap-3 cursor-pointer select-none group-hover:text-primary transition-colors w-fit">
-                                            <input 
-                                                type="checkbox" 
+                                            <input
+                                                type="checkbox"
                                                 className={`w-5 h-5 rounded border-border transition-colors cursor-pointer ${hasAny && !hasAll ? 'accent-warning opacity-70' : 'accent-primary'}`}
                                                 checked={hasAny}
                                                 onChange={() => handleToggle(cls._id)}
@@ -228,15 +233,14 @@ export default function TeacherAssignmentSingle() {
                                                     {cls.sections.map(sec => {
                                                         const isChecked = isSectionAssigned(cls._id, sec._id);
                                                         return (
-                                                            <label 
-                                                                key={sec._id} 
-                                                                className={`flex items-center gap-2.5 px-4 py-2 border rounded-md cursor-pointer select-none transition-all duration-200 ${
-                                                                    isChecked 
-                                                                        ? 'bg-primary/10 border-primary text-primary font-bold shadow-sm' 
-                                                                        : 'bg-surface border-border text-foreground hover:border-muted/50'
-                                                                }`}
+                                                            <label
+                                                                key={sec._id}
+                                                                className={`flex items-center gap-2.5 px-4 py-2 border rounded-md cursor-pointer select-none transition-all duration-200 ${isChecked
+                                                                    ? 'bg-primary/10 border-primary text-primary font-bold shadow-sm'
+                                                                    : 'bg-surface border-border text-foreground hover:border-muted/50'
+                                                                    }`}
                                                             >
-                                                                <input 
+                                                                <input
                                                                     type="checkbox"
                                                                     className="w-4 h-4 accent-primary rounded cursor-pointer"
                                                                     checked={isChecked}

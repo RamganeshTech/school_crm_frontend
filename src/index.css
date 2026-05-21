@@ -45,6 +45,7 @@ html {
 
 
   --border-default: #dbdbdb;
+  --border-soft: #f8f8f8;
 
   /* --brand-primary: #4b77c4;
   --brand-hover: #385b98;
@@ -55,6 +56,7 @@ html {
 
   /* --- Professional Ash/Gray Theme --- */
   --brand-primary: #4b5563; /* Medium Ash/Charcoal Gray (replaces standard blue) */
+  --brand-primary-soft: #c8cbd0; /* Medium Ash/Charcoal Gray (replaces standard blue) */
   --brand-hover: #374151;   /* Darker Deep Gray for hover states */
   --brand-soft: #f3f4f6;    /* Very soft, light gray for chip backgrounds/highlights */
 
@@ -121,7 +123,10 @@ html {
   --color-muted: var(--text-muted);
   --color-inverse: var(--text-inverse);
   --color-border: var(--border-default);
+  --color-border-soft: var(--border-soft);
   --color-primary: var(--brand-primary);
+  --color-primary-soft : var(--brand-primary-soft); /* Medium Ash/Charcoal Gray (replaces standard blue) */
+
   --color-border-default: var(--border-default);
   --color-primary-hover: var(--brand-hover);
   --color-primary-soft: var(--brand-soft);

@@ -24,7 +24,9 @@ import { type UserRole } from "../features/slices/authSlice";
 //     FINANCE_PAYROLL: '/dashboard/finance/payroll',
 // };
 
-export const AUTH_CHECK_ROLES: UserRole[] = [
+export type ValidUserRole = Exclude<UserRole, null>;
+
+export const AUTH_CHECK_ROLES: ValidUserRole[] = [
     "correspondent",
     "teacher",
     "principal",
@@ -58,8 +60,9 @@ export interface MenuItem {
 export const principalMenu: MenuItem[] = [
     // { name: 'Dashboard', path: "/dashboard", icon: 'fas fa-th-large' },
     // { name: 'Dashboard', path: "/dashboard", icon: 'fas fa-chart-pie-simple'},
-    { name: 'Dashboard', path: "/dashboard", icon: 'fas fa-chart-pie' }, //or use this fas fa-chart-simple
+    { name: 'Dashboard', path: "/dashboard/dashboard-main", icon: 'fas fa-chart-pie' }, //or use this fas fa-chart-simple
     { name: 'Profile', path: "/dashboard/profile", icon: 'fas fa-user' },
+    { name: 'Staffs', path: "/dashboard/user-list", icon: 'fas fa-users-gear' },
     { name: 'Class', path: "/dashboard/class", icon: 'fas fa-chalkboard' },
     { name: 'Section', path: "/dashboard/section", icon: 'fas fa-box' },
     { name: 'School', path: "/dashboard/school", icon: 'fas fa-building' },
@@ -71,15 +74,17 @@ export const principalMenu: MenuItem[] = [
     { name: 'TimeTable', path: "/dashboard/timetable", icon: 'fas fa-table' },
     { name: 'Expense', path: "/dashboard/expense", icon: 'fas fa-file-invoice-dollar' },
     { name: 'Homework', path: "/dashboard/homework", icon: 'fas fa-calendar-check' },
-    { name: 'Homework Submission', path: "/dashboard/homework-submission", icon: 'fas fa-calendar-check' },
+    // { name: 'Homework Submission', path: "/dashboard/homework-submission", icon: 'fas fa-calendar-check' },
     { name: 'Finance', path: "/dashboard/finance", icon: 'fas fa-book-open' },
     { name: 'Audit', path: "/dashboard/audit", icon: 'fas fa-shield-alt' },
     { name: 'Archive', path: "/dashboard/delete-archive", icon: 'fas fa-trash-restore' },
     { name: 'Announcement', path: "/dashboard/announcement", icon: 'fas fa-bullhorn' },
     { name: 'Clubs', path: "/dashboard/club", icon: 'fas fa-layer-group' },
     { name: 'Fee Structure', path: "/dashboard/fee-structure", icon: 'fas fa-coins' },
-    { name: 'Profile Selection', path: "/dashboard/profile-selection", icon: 'fas fa-user-group' },
+    // { name: 'Profile Selection', path: "/dashboard/profile-selection", icon: 'fas fa-user-group' },
     { name: 'Mark report', path: "/dashboard/markreport", icon: 'fas fa-file-invoice' },
+    { name: 'Mark report Configuration', path: "/dashboard/markreport-config", icon: 'fas fa-file-invoice' },
+    { name: 'Subscription', path: "/dashboard/subscription", icon: 'fas fa-crown' },
 ];
 
 

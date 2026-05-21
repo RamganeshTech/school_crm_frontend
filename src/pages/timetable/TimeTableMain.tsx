@@ -12,6 +12,7 @@ import { SearchSelect } from '../../shared/ui/SearchSelect';
 import { Button } from '../../shared/ui/Button';
 import { SideModal } from '../../shared/ui/SideModal';
 import { Input, Label } from '../../shared/ui/Input';
+import { toast } from '../../shared/ui/ToastContext';
 
 const DAYS_OF_WEEK = [
     { label: 'Monday', value: 'monday' },
@@ -38,7 +39,7 @@ export default function TimeTableMain() {
     // --- Queries ---
     const { data: classesData } = useGetAllClassesWithSections({ schoolId: schoolId! });
     const { data: teachersData } = useGetAllUsers({ role: 'teacher', schoolId: schoolId! });
-    
+
     const classes: ClassWithSections[] = classesData || [];
     const selectedClass = classes.find(c => c._id === selectedClassId);
 
@@ -50,7 +51,7 @@ export default function TimeTableMain() {
         sectionId: selectedSectionId || undefined
     });
 
-    const activeTimeTable = timeTablesData?.[0]; 
+    const activeTimeTable = timeTablesData?.[0];
 
     // --- Mutations ---
     const addDayMutation = useAddTimeTableDay();
@@ -63,7 +64,7 @@ export default function TimeTableMain() {
         if (!activeTimeTable?.weeklySchedule) return [];
         const order = DAYS_OF_WEEK.map(d => d.value);
         const scheduleCopy = [...activeTimeTable.weeklySchedule];
-        
+
         scheduleCopy.sort((a, b) => order.indexOf(a.day) - order.indexOf(b.day));
         scheduleCopy.forEach(day => {
             day.periods.sort((a: any, b: any) => a.periodNumber - b.periodNumber);
@@ -101,9 +102,13 @@ export default function TimeTableMain() {
                 sectionId: selectedSectionId || null,
                 day: dayToAdd
             });
-            setDayToAdd(''); 
-        } catch (error) {
+            toast.success("Created Successfully!");
+
+            setDayToAdd('');
+        } catch (error: any) {
             console.error("Failed to add day", error);
+            toast.error(error.message || "Operation Failed");
+
         }
     };
 
@@ -116,8 +121,12 @@ export default function TimeTableMain() {
                 sectionId: selectedSectionId || null,
                 weeklyScheduleId
             });
-        } catch (error) {
+            toast.success("Deleted Successfully!");
+
+        } catch (error: any) {
             console.error("Failed to delete day", error);
+            toast.error(error.message || "Operation Failed");
+
         }
     };
 
@@ -132,15 +141,15 @@ export default function TimeTableMain() {
             if (existingMatch && (existingMatch.startTime || existingMatch.endTime)) {
                 defaultStartTime = existingMatch.startTime || '';
                 defaultEndTime = existingMatch.endTime || '';
-                break; 
+                break;
             }
         }
 
         setEditingPeriod({
             periodNumber: nextPeriodNum,
             subjectName: '',
-            startTime: defaultStartTime, 
-            endTime: defaultEndTime,     
+            startTime: defaultStartTime,
+            endTime: defaultEndTime,
             teacherId: '',
             roomNumber: '',
             isBreak: false
@@ -172,8 +181,12 @@ export default function TimeTableMain() {
                 periodData: cleanedPeriod
             });
             setIsPeriodModalOpen(false);
-        } catch (error) {
+            toast.success("Updated Successfully!");
+
+        } catch (error: any) {
             console.error("Failed to save period", error);
+            toast.error(error.message || "Operation Failed");
+
         }
     };
 
@@ -189,8 +202,12 @@ export default function TimeTableMain() {
                 periodId: editingPeriod._id
             });
             setIsPeriodModalOpen(false);
-        } catch (error) {
+            toast.success("Deleted Successfully!");
+
+        } catch (error: any) {
             console.error("Failed to delete period", error);
+            toast.error(error.message || "Failed to delete student");
+
         }
     };
 
@@ -201,7 +218,7 @@ export default function TimeTableMain() {
 
     return (
         <div className="w-full h-full flex flex-col bg-background">
-            
+
             <header className="shrink-0 px-6 py-5 border-b border-border flex flex-wrap items-center justify-between gap-4 bg-surface/50 z-20">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
@@ -292,10 +309,10 @@ export default function TimeTableMain() {
                                 <thead>
                                     <tr>
                                         {/* Day Header */}
-                                        <th className="px-4 py-3 bg-primary/30 border-r border-b border-border font-bold text-primary uppercase tracking-wider text-xs w-32 sticky left-0 z-10 shadow-[1px_0_0_0_#e2e8f0]">
+                                        <th className="px-4 py-3 bg-primary-soft border-r border-b border-border font-bold text-primary uppercase tracking-wider text-xs w-32 sticky left-0 z-10 shadow-[1px_0_0_0_#e2e8f0]">
                                             Day
                                         </th>
-                                        
+
                                         {/* Dynamic Period Headers */}
                                         {Array.from({ length: maxPeriodsCount }).map((_, i) => {
                                             const timings = getPeriodTimings(i + 1);
@@ -312,7 +329,7 @@ export default function TimeTableMain() {
                                                 </th>
                                             );
                                         })}
-                                        
+
                                         {/* Actions Header */}
                                         <th className="px-4 py-3 bg-primary-soft border-b border-border text-center w-24">
                                             <span className="font-bold text-foreground uppercase tracking-wider text-xs">Actions</span>
@@ -322,12 +339,12 @@ export default function TimeTableMain() {
                                 <tbody>
                                     {sortedSchedule.map((daySchedule) => (
                                         <tr key={daySchedule._id} className="group">
-                                            
+
                                             {/* Row Header: Day Name (Sticky Left) */}
-                                            <td className="px-4 py-4 bg-border/20 text-foreground border-r border-b border-border font-bold  capitalize sticky left-0 z-10 shadow-[1px_0_0_0_#e2e8f0]">
+                                            <td className="px-4 py-4 bg-border-soft text-foreground border-r border-b border-border font-bold  capitalize sticky left-0 z-10 shadow-[1px_0_0_0_#e2e8f0]">
                                                 <div className="flex items-center justify-between gap-2">
                                                     <span>{daySchedule.day}</span>
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleDeleteDay(daySchedule._id!)}
                                                         className="text-danger cursor-pointer hover:text-danger hover:bg-danger/10 p-1.5 rounded-full transition-colors shrink-0"
                                                         title="Delete Day"
@@ -339,12 +356,11 @@ export default function TimeTableMain() {
 
                                             {/* Period Matrix Cells */}
                                             {daySchedule.periods.map((period: any) => (
-                                                <td 
-                                                    key={period._id} 
+                                                <td
+                                                    key={period._id}
                                                     onClick={() => openEditPeriodModal(daySchedule.day, daySchedule._id!, period)}
-                                                    className={`px-4 py-3 border-r border-b border-border align-top transition-colors cursor-pointer group/cell ${
-                                                        period.isBreak ? 'bg-background hover:bg-surface' : 'bg-surface hover:bg-primary/5'
-                                                    }`}
+                                                    className={`px-4 py-3 border-r border-b border-border align-top transition-colors cursor-pointer group/cell ${period.isBreak ? 'bg-background hover:bg-surface' : 'bg-surface hover:bg-primary/5'
+                                                        }`}
                                                 >
                                                     <div className="flex flex-col h-full justify-center">
                                                         {period.isBreak ? (
@@ -359,7 +375,7 @@ export default function TimeTableMain() {
                                                                 </div>
                                                                 {period.teacherId && (
                                                                     <div className="text-xs text-muted mt-1 truncate">
-                                                                        {teachersData?.find((t:any) => t._id === period.teacherId)?.userName || 'Teacher Assigned'}
+                                                                        {teachersData?.find((t: any) => t._id === period.teacherId)?.userName || 'Teacher Assigned'}
                                                                     </div>
                                                                 )}
                                                                 {period.roomNumber && (
@@ -382,7 +398,7 @@ export default function TimeTableMain() {
 
                                             {/* Add Period Action Cell */}
                                             <td className="px-4 py-3 border-b border-border text-center align-middle bg-surface">
-                                                <button 
+                                                <button
                                                     onClick={() => openAddPeriodModal(daySchedule.day, daySchedule._id!, daySchedule.periods.length + 1)}
                                                     className="w-8 h-8 cursor-pointer rounded-full border border-dashed border-primary text-primary hover:bg-primary hover:text-surface transition-colors mx-auto flex items-center justify-center"
                                                     title="Add Period"
@@ -401,9 +417,9 @@ export default function TimeTableMain() {
 
             {/* 3. UPSERT PERIOD MODAL */}
             {isPeriodModalOpen && editingPeriod && activeDayForPeriod && (
-                <SideModal 
-                    isOpen={isPeriodModalOpen} 
-                    onClose={() => setIsPeriodModalOpen(false)} 
+                <SideModal
+                    isOpen={isPeriodModalOpen}
+                    onClose={() => setIsPeriodModalOpen(false)}
                     title={editingPeriod._id ? `Edit Period ${editingPeriod.periodNumber}` : `Add Period ${editingPeriod.periodNumber}`}
                 >
                     <div className="flex flex-col h-full space-y-6">
@@ -419,34 +435,34 @@ export default function TimeTableMain() {
 
                         <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                             <label className="flex items-center gap-2 p-3 bg-surface border border-border rounded-lg cursor-pointer hover:bg-background transition-colors">
-                                <input 
-                                    type="checkbox" 
-                                    className="w-4 h-4 accent-primary" 
+                                <input
+                                    type="checkbox"
+                                    className="w-4 h-4 accent-primary"
                                     checked={editingPeriod.isBreak}
-                                    onChange={(e) => setEditingPeriod({...editingPeriod, isBreak: e.target.checked})}
+                                    onChange={(e) => setEditingPeriod({ ...editingPeriod, isBreak: e.target.checked })}
                                 />
                                 <span className="text-sm font-bold text-foreground">This is a Break / Recess</span>
                             </label>
 
-                            <Input 
+                            <Input
                                 label={editingPeriod.isBreak ? "Break Name" : "Subject Name"}
                                 placeholder={editingPeriod.isBreak ? "e.g., Lunch Break" : "e.g., Mathematics"}
                                 value={editingPeriod.subjectName}
-                                onChange={(e) => setEditingPeriod({...editingPeriod, subjectName: e.target.value})}
+                                onChange={(e) => setEditingPeriod({ ...editingPeriod, subjectName: e.target.value })}
                             />
 
                             <div className="grid grid-cols-2 gap-4">
-                                <Input 
+                                <Input
                                     label="Start Time"
                                     type="time"
                                     value={editingPeriod.startTime}
-                                    onChange={(e) => setEditingPeriod({...editingPeriod, startTime: e.target.value})}
+                                    onChange={(e) => setEditingPeriod({ ...editingPeriod, startTime: e.target.value })}
                                 />
-                                <Input 
+                                <Input
                                     label="End Time"
                                     type="time"
                                     value={editingPeriod.endTime}
-                                    onChange={(e) => setEditingPeriod({...editingPeriod, endTime: e.target.value})}
+                                    onChange={(e) => setEditingPeriod({ ...editingPeriod, endTime: e.target.value })}
                                 />
                             </div>
 
@@ -454,18 +470,18 @@ export default function TimeTableMain() {
                                 <>
                                     <div className="flex flex-col gap-1.5">
                                         <Label>Assign Teacher</Label>
-                                        <SearchSelect 
+                                        <SearchSelect
                                             options={teacherOptions}
                                             value={editingPeriod.teacherId}
-                                            onChange={(opt: any) => setEditingPeriod({...editingPeriod, teacherId: opt?.value || ''})}
+                                            onChange={(opt: any) => setEditingPeriod({ ...editingPeriod, teacherId: opt?.value || '' })}
                                             placeholder="Search Teacher..."
                                         />
                                     </div>
-                                    <Input 
+                                    <Input
                                         label="Room Number"
                                         placeholder="e.g., Room 101"
                                         value={editingPeriod.roomNumber}
-                                        onChange={(e) => setEditingPeriod({...editingPeriod, roomNumber: e.target.value})}
+                                        onChange={(e) => setEditingPeriod({ ...editingPeriod, roomNumber: e.target.value })}
                                     />
                                 </>
                             )}
@@ -477,7 +493,7 @@ export default function TimeTableMain() {
                                     Delete
                                 </Button>
                             ) : <div></div>}
-                            
+
                             <div className="flex gap-2">
                                 <Button variant="outline" onClick={() => setIsPeriodModalOpen(false)}>Cancel</Button>
                                 <Button variant="primary" onClick={handleSavePeriod} isLoading={upsertPeriodMutation.isPending} leftIcon="fas fa-save">

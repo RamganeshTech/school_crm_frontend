@@ -11,12 +11,13 @@ import { useAddExpense, useGetAllExpensesInfinite, useDeleteExpense } from '../.
 import { Outlet, useNavigate } from 'react-router-dom';
 import { toast } from '../../shared/ui/ToastContext';
 
-// Mock options for dropdowns
-const CATEGORY_OPTIONS = [
+export const EXPENSE_CATEGORY_OPTIONS = [
     { label: 'Maintenance', value: 'Maintenance' },
     { label: 'Utilities', value: 'Utilities' },
-    { label: 'Supplies', value: 'Supplies' },
+    { label: 'Operations', value: 'Operations' },
     { label: 'Events', value: 'Events' },
+    { label: 'Salary', value: 'Salary' },
+    { label: 'Fuel', value: 'Fuel' },
     { label: 'Miscellaneous', value: 'Miscellaneous' },
 ];
 
@@ -152,7 +153,10 @@ export default function ExpenseMain() {
         if (window.confirm("Are you sure you want to delete this expense? This action cannot be undone.")) {
             try {
                 await deleteExpenseMutation.mutateAsync(id);
-            } catch (error) {
+                toast.success("Successfully Deleted");
+
+            } catch (error: any) {
+                toast.error(error.message || "Failed to Delete.");
                 console.error("Failed to delete expense", error);
             }
         }
@@ -167,10 +171,10 @@ export default function ExpenseMain() {
 
 
     return (
-        <div className="w-full h-full flex flex-col bg-background overflow-hidden">
+        <div className="w-full h-full flex flex-col gap-3 bg-background overflow-hidden">
 
             {/* FLAT HEADER (Matches Class Configuration style) */}
-            <header className="shrink-0 px-6 py-5 border-b border-border flex items-center justify-between gap-4 bg-surface z-10 shadow-sm">
+            <header className="shrink-0 px-6 py-2 border-b border-border flex items-center justify-between gap-4 bg-surface z-10 shadow-sm">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                         <i className="fas fa-file-invoice-dollar text-primary"></i>
@@ -193,7 +197,7 @@ export default function ExpenseMain() {
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
 
                 {/* 30% LEFT: FILTERS PANE */}
-                <aside className="w-full lg:w-[20%] shrink-0 border-r border-border bg-surface/50 p-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
+                <aside className="w-full lg:w-[20%] shrink-0 border-r border-border bg-surface/50 p-3 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
                     <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
                         <i className="fas fa-filter text-primary"></i> Filter Records
                     </h2>
@@ -246,7 +250,7 @@ export default function ExpenseMain() {
                 </aside>
 
                 {/* 70% RIGHT: TABLE LIST PANE */}
-                <main className="flex-1 w-full lg:w-[80%] p-6 flex flex-col overflow-hidden bg-background">
+                <main className="flex-1 w-full lg:w-[80%] px-3 py-2 flex flex-col overflow-hidden bg-background">
                     {isLoading ? (
                         <div className="flex flex-1 justify-center items-center"><i className="fas fa-circle-notch fa-spin text-3xl text-primary"></i></div>
                     ) : allExpenses.length === 0 ? (
@@ -303,7 +307,7 @@ export default function ExpenseMain() {
                                                         variant="outline"
                                                         size="sm"
                                                         onClick={() => navigate(`single/${expense._id}`)}
-                                                        // className='border-primary-spft'
+                                                    // className='border-primary-spft'
                                                     >
                                                         View
                                                     </Button>
@@ -356,7 +360,7 @@ export default function ExpenseMain() {
                         <div className="flex flex-col gap-1.5">
                             <Label>Category</Label>
                             <SearchSelect
-                                options={CATEGORY_OPTIONS}
+                                options={EXPENSE_CATEGORY_OPTIONS}
                                 value={formData.category}
                                 onChange={(opt: any) => setFormData(prev => ({ ...prev, category: opt?.value || '' }))}
                             />

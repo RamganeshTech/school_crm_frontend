@@ -14,6 +14,7 @@ interface AuthState {
   studentId: string[]
   assignments: string[],
   isPlatformAdmin: boolean
+  schoolName: string | null
 }
 
 const initialState: AuthState = {
@@ -26,7 +27,8 @@ const initialState: AuthState = {
   academicYear: null,
   studentId: [],
   assignments: [],
-  isPlatformAdmin: false
+  isPlatformAdmin: false,
+  schoolName: null
 };
 
 const authSlice = createSlice({
@@ -45,6 +47,7 @@ const authSlice = createSlice({
         studentId: string[]
         assignments: string[],
         isPlatformAdmin: boolean
+        schoolName: string | null
       }>
     ) => {
       state._id = action.payload._id;
@@ -56,6 +59,7 @@ const authSlice = createSlice({
       state.studentId = action.payload.studentId;
       state.assignments = action.payload.assignments;
       state.isPlatformAdmin = action.payload.isPlatformAdmin;
+      state.schoolName = action.payload.schoolName;
     },
     logout: (_state) => {
       // Direct reset to initial state

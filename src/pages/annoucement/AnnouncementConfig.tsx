@@ -108,6 +108,7 @@ import {
 } from '../../api_services/announcement_api/announcementApi'; // Adjust path
 import AnnouncementSingle from './AnnouncementSingle';
 import { useGetSchoolById } from '../../api_services/schoolConfig_api/schoolapi';
+import { toast } from '../../shared/ui/ToastContext';
 
 export default function AnnouncementConfig() {
     const { id } = useParams();
@@ -167,15 +168,20 @@ export default function AnnouncementConfig() {
                 }
 
                 await createMutation.mutateAsync(formData);
+                toast.success("Successfully Created")
+
                 navigate('/dashboard/announcement');
             }
             else if (mode === 'edit' && id) {
                 await updateMutation.mutateAsync({ id, payload: formDataState });
                 // Return to view mode seamlessly after saving
-                setMode('view'); 
+                toast.success("Successfully Updated")
+
+                setMode('view');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Submission failed", error);
+            toast.error(error.message || "Operation Failed.");
         }
     };
 

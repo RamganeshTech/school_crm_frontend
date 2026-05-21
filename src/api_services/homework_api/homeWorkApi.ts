@@ -92,6 +92,7 @@ export const useGetAllHomeworkInfinite = (params: Omit<GetAllHomeworkParams, 'pa
         queryKey: ['homework-infinite', params],
         initialPageParam: 1,
         queryFn: async ({ pageParam = 1 }) => {
+            try{
             checkPermission(currentRole, [
                 "correspondent", "administrator", "principal", "parent", "accountant", "viceprincipal", "teacher"
             ]);
@@ -104,6 +105,10 @@ export const useGetAllHomeworkInfinite = (params: Omit<GetAllHomeworkParams, 'pa
                 return data; // Return full response to access data.pagination
             } else {
                 throw new Error(data.message || 'Failed to fetch homework');
+            }
+             } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
             }
         },
         getNextPageParam: (lastPage) => {

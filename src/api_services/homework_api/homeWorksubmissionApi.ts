@@ -50,7 +50,7 @@ export interface BaseResponse<T = any> {
 
 // Request Parameters
 export interface SubmitHomeworkStatusParams {
-    schoolId?: string; 
+    schoolId?: string;
     academicYear?: string;
     homeworkId: string;
     subjectId?: string;
@@ -80,25 +80,30 @@ export const useGetAllHomeworkSubmissionsInfinite = (params: Omit<GetAllHomework
         queryKey: ['homework-submissions-infinite', params],
         initialPageParam: 1,
         queryFn: async ({ pageParam = 1 }) => {
-            checkPermission(currentRole, [
-                "correspondent", "administrator", "principal", "parent", "accountant", "viceprincipal", "teacher"
-            ]);
-            
-            const { data } = await Api.get<BaseResponse<IHomeworkSubmission[]>>('/api/homework/submission/getall', { 
-                params: { ...params, page: pageParam } 
-            });
+            try {
+                checkPermission(currentRole, [
+                    "correspondent", "administrator", "principal", "parent", "accountant", "viceprincipal", "teacher"
+                ]);
 
-            if (data.ok) {
-                return data; // Return full response to access data.pagination
-            } else {
-                throw new Error(data.message || 'Failed to fetch homework submissions');
+                const { data } = await Api.get<BaseResponse<IHomeworkSubmission[]>>('/api/homework/submission/getall', {
+                    params: { ...params, page: pageParam }
+                });
+
+                if (data.ok) {
+                    return data; // Return full response to access data.pagination
+                } else {
+                    throw new Error(data.message || 'Failed to fetch homework submissions');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
             }
         },
         getNextPageParam: (lastPage) => {
             // Safely parse numbers to prevent string concatenation bugs
             const currentPage = Number(lastPage?.pagination?.currentPage) || 1;
             const totalPages = Number(lastPage?.pagination?.totalPages) || 1;
-            
+
             if (currentPage < totalPages) {
                 return currentPage + 1;
             }
@@ -179,10 +184,10 @@ export const useSubmitHomeworkStatus = () => {
             try {
                 // Notice the backend route only allows correspondent and parent for this endpoint right now
                 checkPermission(currentRole, ["correspondent", "parent"]);
-                
+
                 // Assuming JSON payload since upload.array("files") is not in your router snippet
                 const { data } = await Api.post<BaseResponse>('/api/homework/submission/submit', payload);
-                
+
                 if (!data.ok) throw new Error(data.message || 'Failed to submit homework status');
                 return data;
             } catch (error: any) {

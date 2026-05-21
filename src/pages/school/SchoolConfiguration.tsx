@@ -19,6 +19,7 @@ import {
     useUpdateSocialPlatform
 } from '../../api_services/schoolConfig_api/schoolapi';
 import type { RootState } from '../../features/store/store';
+import { toast } from '../../shared/ui/ToastContext';
 
 type TabOptions = 'details' | 'socials';
 
@@ -86,16 +87,20 @@ export default function SchoolConfiguration() {
 
     const handleSocialChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
-        setSocialsForm((prev:any) => ({ ...prev, [id]: value }));
+        setSocialsForm((prev: any) => ({ ...prev, [id]: value }));
     };
 
     const submitDetails = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             await updateSchoolMutation.mutateAsync({ id: schoolId!, data: detailsForm });
-            alert("School details updated successfully.");
-        } catch (error) {
+            // alert("School details updated successfully.");
+            toast.success("Updated Successfully!");
+
+        } catch (error: any) {
             console.error("Failed to update school details", error);
+            toast.error(error.message || "Failed to Update");
+
         }
     };
 
@@ -109,9 +114,13 @@ export default function SchoolConfiguration() {
         try {
             await updateLogoMutation.mutateAsync({ id: schoolId!, formData });
             if (fileInputRef.current) fileInputRef.current.value = '';
-            alert("School logo updated successfully.");
-        } catch (error) {
+            // alert("School logo updated successfully.");
+            toast.success("Updated Successfully!");
+
+        } catch (error: any) {
             console.error("Failed to update logo", error);
+            toast.error(error.message || "Failed to Update");
+
         }
     };
 
@@ -121,7 +130,11 @@ export default function SchoolConfiguration() {
                 id: schoolId!,
                 data: { socialPlatform: platform, link }
             });
-        } catch (error) {
+            toast.success("Updated Successfully!");
+
+        } catch (error: any) {
+            toast.error(error.message || "Failed to Update");
+
             console.error(`Failed to update ${platform}`, error);
         }
     };

@@ -51,20 +51,25 @@ export const useGetAllExpensesInfinite = (params: Omit<GetAllExpensesParams, 'pa
         queryKey: ['expenses-infinite', params],
         initialPageParam: 1,
         queryFn: async ({ pageParam = 1 }) => {
-            checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+            try {
+                checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
 
-            const { data } = await Api.get('/api/expense/getall', {
-                params: { ...params, page: pageParam }
-            });
+                const { data } = await Api.get('/api/expense/getall', {
+                    params: { ...params, page: pageParam }
+                });
 
-            if (data.ok) {
-                // Assuming your backend returns paginated format like { docs: [...], totalPages: N, page: X }
-                return data;
-            } else {
-                throw new Error(data.message || 'Failed to fetch expenses');
+                if (data.ok) {
+                    // Assuming your backend returns paginated format like { docs: [...], totalPages: N, page: X }
+                    return data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch expenses');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
             }
         },
-        getNextPageParam: (lastPage, allPages) => {
+        getNextPageParam: (lastPage) => {
             // FIX: Correctly access the totalPages from your backend's pagination object
             //    const currentPage = lastPage?.pagination?.currentPage || 1;
             //     const totalPages = lastPage?.pagination?.totalPages || 1;
@@ -251,5 +256,46 @@ export const useDeleteExpenseProof = () => {
             queryClient.invalidateQueries({ queryKey: ['expenses'] });
             queryClient.invalidateQueries({ queryKey: ['expense', variables.expenseId] });
         },
+    });
+};
+
+
+
+interface ExpenseReportFilters {
+    schoolId: string;
+    academicYear?: string;
+    startDate?: string;
+    endDate?: string;
+    verificationStatus?: string;
+    paymentMode?: string;
+    range?: 'week' | 'month' | 'year';
+}
+
+export const useGetExpenseReport = (filters: ExpenseReportFilters) => {
+    const { currentRole } = useAuthData();
+
+    return useQuery({
+        // The queryKey includes all filters so React Query automatically refetches when a filter changes!
+        queryKey: ['expense-report', filters],
+        queryFn: async () => {
+            try {
+                // Roles allowed: correspondent, accountant, principal
+                checkPermission(currentRole, ["correspondent", "accountant", "principal"]); // Assuming you have this imported
+
+                const { data } = await Api.get(`/api/expense/v1/report`, {
+                    params: filters // Pass the filters directly to the URL query string
+                });
+
+                if (data.ok) {
+                    return data.data; // Returns { kpi, categorySummary, timeline }
+                } else {
+                    throw new Error(data.message || 'Failed to fetch expense report');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage);
+            }
+        },
+        enabled: !!filters.schoolId, // Only run if we have a schoolId
     });
 };

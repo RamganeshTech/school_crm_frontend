@@ -60,24 +60,30 @@ export const useGetAllAuditLogsInfinite = (params: Omit<GetAllAuditLogsParams, '
         queryKey: ['audit-logs-infinite', params],
         initialPageParam: 1,
         queryFn: async ({ pageParam = 1 }) => {
-            // Role check based on backend middleware
-            checkPermission(currentRole, ["administrator", "correspondent", "principal", "viceprincipal"]);
-            
-            const { data } = await Api.get<BaseResponse<IAuditLog[]>>('/api/audit/getall', { 
-                params: { ...params, page: pageParam } 
-            });
+            try {
+                // Role check based on backend middleware
+                checkPermission(currentRole, ["administrator", "correspondent", "principal", "viceprincipal"]);
 
-            if (data.ok) {
-                return data; 
-            } else {
-                throw new Error(data.message || 'Failed to fetch audit logs');
+                const { data } = await Api.get<BaseResponse<IAuditLog[]>>('/api/audit/getall', {
+                    params: { ...params, page: pageParam }
+                });
+
+                if (data.ok) {
+                    return data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch audit logs');
+                }
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
             }
         },
         getNextPageParam: (lastPage) => {
             // FIX: Using lastPage?.pagination?.page because backend returns { page: pageNum }
             const currentPage = Number(lastPage?.pagination?.page) || 1;
             const totalPages = Number(lastPage?.pagination?.totalPages) || 1;
-            
+
             if (currentPage < totalPages) {
                 return currentPage + 1;
             }
@@ -94,6 +100,7 @@ export const useGetAuditLogById = (logId: string | undefined) => {
     return useQuery({
         queryKey: ['audit-log-single', logId],
         queryFn: async () => {
+            try{
             checkPermission(currentRole, ["administrator", "correspondent", "principal", "viceprincipal"]);
 
             const { data } = await Api.get<BaseResponse<IAuditLog>>(`/api/audit/get/${logId}`);
@@ -102,6 +109,11 @@ export const useGetAuditLogById = (logId: string | undefined) => {
                 return data.data;
             } else {
                 throw new Error(data.message || 'Failed to fetch audit log details');
+            }
+             } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
             }
         },
         enabled: !!logId,

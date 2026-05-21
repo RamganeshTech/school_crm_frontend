@@ -93,10 +93,10 @@ export default function DeleteArchiveMain() {
     };
 
     return (
-        <div className="w-full h-full flex flex-col bg-background overflow-hidden">
+        <div className="w-full h-full flex flex-col gap-3 bg-background overflow-hidden">
             
             {/* HEADER */}
-            <header className="shrink-0 px-6 py-5 border-b border-border flex items-center justify-between bg-surface z-10 shadow-sm">
+            <header className="shrink-0 px-6 py-2 border-b border-border flex items-center justify-between bg-surface z-10 shadow-sm">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                         <i className="fas fa-trash-restore text-primary"></i>
@@ -110,7 +110,7 @@ export default function DeleteArchiveMain() {
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
                 
                 {/* 20% LEFT: FILTERS PANE */}
-                <aside className="w-full lg:w-[20%] min-w-[250px] shrink-0 border-r border-border bg-surface/50 p-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
+                <aside className="w-full lg:w-[20%] min-w-[250px] shrink-0 border-r border-border bg-surface/50 p-3 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
                     <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
                         <i className="fas fa-filter text-primary"></i> Filter Trash
                     </h2>
@@ -138,7 +138,7 @@ export default function DeleteArchiveMain() {
                 </aside>
 
                 {/* 80% RIGHT: TABLE LIST PANE */}
-                <main className="flex-1 w-full lg:w-[80%] p-6 flex flex-col overflow-hidden bg-background">
+                <main className="flex-1 w-full lg:w-[80%] px-6 py-3 flex flex-col overflow-hidden bg-background">
                     {isListLoading ? (
                         <div className="flex flex-1 justify-center items-center">
                             <i className="fas fa-circle-notch fa-spin text-3xl text-primary"></i>
@@ -151,7 +151,7 @@ export default function DeleteArchiveMain() {
                         </div>
                     ) : (
                         <TableContainer onScroll={handleScroll} className="h-full custom-scrollbar overscroll-none">
-                            <THead className="sticky top-0 z-10 shadow-sm bg-surface">
+                            <THead className="sticky top-0 z-10 shadow-sm">
                                 <tr>
                                     <Th>S.No</Th>
                                     <Th>Deleted On</Th>

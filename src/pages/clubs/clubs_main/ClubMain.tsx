@@ -1,17 +1,18 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { 
-    useGetAllClubsInfinite, 
-    useCreateClub, 
-    useUpdateClubText, 
-    useUpdateClubThumbnail, 
-    useDeleteClub 
-} from '../../../api_services/clubs_api/clubApi'; 
+import {
+    useGetAllClubsInfinite,
+    useCreateClub,
+    useUpdateClubText,
+    useUpdateClubThumbnail,
+    useDeleteClub
+} from '../../../api_services/clubs_api/clubApi';
 import { useAuthData } from '../../../hooks/useAuthData';
 import { Button } from '../../../shared/ui/Button';
 import ClubCard from './ClubCard';
 import { SideModal } from '../../../shared/ui/SideModal';
 import { Input, Label } from '../../../shared/ui/Input';
 import { Outlet, useNavigate } from 'react-router-dom';
+import { toast } from '../../../shared/ui/ToastContext';
 
 export default function ClubMain() {
     const { schoolId, currentRole } = useAuthData();
@@ -21,11 +22,11 @@ export default function ClubMain() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [editingClubId, setEditingClubId] = useState<string | null>(null);
-    
+
     // Independent Loading States for cards
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [updatingThumbId, setUpdatingThumbId] = useState<string | null>(null);
-    
+
     // Form State
     const [formData, setFormData] = useState({
         name: '',
@@ -35,12 +36,12 @@ export default function ClubMain() {
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
 
     // --- Queries & Mutations ---
-    const { 
-        data: clubsData, 
-        fetchNextPage, 
-        hasNextPage, 
-        isFetchingNextPage, 
-        isLoading 
+    const {
+        data: clubsData,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        isLoading
     } = useGetAllClubsInfinite({ schoolId: schoolId! });
 
     const allClubs = useMemo(() => {
@@ -90,16 +91,22 @@ export default function ClubMain() {
                 if (thumbnailFile) payload.append('thumbnail', thumbnailFile);
 
                 await createMutation.mutateAsync(payload);
+                toast.success("Successfully Created")
+
             } else if (modalMode === 'edit' && editingClubId) {
                 const originalClub = allClubs.find(c => c._id === editingClubId);
                 await updateTextMutation.mutateAsync({
                     id: editingClubId,
                     payload: { ...formData, classId: originalClub?.classId || null }
                 });
+                toast.success("Successfully Updated")
+
             }
             setIsModalOpen(false);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Action failed", error);
+            toast.error(error.message || "Something went wrong")
+
         }
     };
 
@@ -113,8 +120,12 @@ export default function ClubMain() {
 
         try {
             await updateThumbnailMutation.mutateAsync({ id: clubId, formData: payload });
-        } catch (error) {
+            toast.success("Successfully Updated")
+
+        } catch (error: any) {
             console.error("Cover update failed", error);
+            toast.error(error.message || "Failed to update the cover Image")
+
         } finally {
             setUpdatingThumbId(null); // Stop spinner
             e.target.value = ''; // Reset input
@@ -126,8 +137,12 @@ export default function ClubMain() {
             setDeletingId(clubId); // Trigger spinner for this specific card
             try {
                 await deleteMutation.mutateAsync(clubId);
-            } catch (error) {
+
+                toast.success("Successfully Deleted");
+
+            } catch (error: any) {
                 console.error("Delete failed", error);
+                toast.error(error.message || "Failed to Delete.");
             } finally {
                 setDeletingId(null); // Stop spinner
             }
@@ -136,17 +151,17 @@ export default function ClubMain() {
 
     const isAdmin = ["correspondent", "administrator"].includes(currentRole || '');
 
-    
+
     const isChild = location.pathname.includes("single")
     if (isChild) {
         return <Outlet />
     }
 
     return (
-        <div className="w-full h-full flex flex-col bg-background overflow-hidden">
-            
+        <div className="w-full h-full flex flex-col gap-3 bg-background overflow-hidden">
+
             {/* TOP HEADER */}
-            <header className="shrink-0 px-6 py-5 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface z-10 shadow-sm">
+            <header className="shrink-0 px-6 py-3 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface z-10 shadow-sm">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                         <i className="fas fa-layer-group text-primary"></i>
@@ -162,8 +177,8 @@ export default function ClubMain() {
             </header>
 
             {/* MAIN GALLERY / GRID */}
-            <main 
-                className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar bg-background"
+            <main
+                className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-background"
                 onScroll={handleScroll}
             >
                 {isLoading ? (
@@ -179,7 +194,7 @@ export default function ClubMain() {
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-max">
                         {allClubs.map((club) => (
-                            <ClubCard 
+                            <ClubCard
                                 key={club._id}
                                 club={club}
                                 isAdmin={isAdmin}
@@ -193,7 +208,7 @@ export default function ClubMain() {
                         ))}
                     </div>
                 )}
-                
+
                 {/* Infinite Scroll Loader */}
                 {isFetchingNextPage && (
                     <div className="flex justify-center py-8">
@@ -233,9 +248,9 @@ export default function ClubMain() {
                             <p className="text-[10px] text-muted mt-0.5">Inactive clubs are hidden from students.</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
-                            <input 
-                                type="checkbox" 
-                                className="sr-only peer" 
+                            <input
+                                type="checkbox"
+                                className="sr-only peer"
                                 checked={formData.isActive}
                                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                             />
@@ -265,10 +280,10 @@ export default function ClubMain() {
                                         <span className="text-xs text-muted mt-1">High quality JPG or PNG (Max 5MB)</span>
                                     </>
                                 )}
-                                <input 
-                                    type="file" 
-                                    accept="image/*" 
-                                    className="hidden" 
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
                                     onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
                                 />
                             </label>
@@ -276,9 +291,9 @@ export default function ClubMain() {
                     )}
 
                     <div className="mt-auto pt-8 pb-4">
-                        <Button 
-                            variant="primary" 
-                            className="w-full py-4 rounded-xl shadow-md text-sm" 
+                        <Button
+                            variant="primary"
+                            className="w-full py-4 rounded-xl shadow-md text-sm"
                             onClick={handleFormSubmit}
                             isLoading={createMutation.isPending || updateTextMutation.isPending}
                             disabled={!formData.name || !formData.description}

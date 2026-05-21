@@ -9,6 +9,7 @@ import { useGetAllHomeworkInfinite } from '../../api_services/homework_api/homeW
 // import { useGetAllHomeworkSubmissions, useSubmitHomeworkStatus } from '../../api_services/homework_api/homeWorksubmissionApi';
 import { useGetSchoolById } from '../../api_services/schoolConfig_api/schoolapi';
 import { useGetAllHomeworkSubmissions, useSubmitHomeworkStatus } from '../../api_services/homework_api/homeWorksubmissionApi';
+import { toast } from '../../shared/ui/ToastContext';
 
 export default function HomeworkSubmissionMain() {
     const { schoolId } = useAuthData();
@@ -117,8 +118,10 @@ export default function HomeworkSubmissionMain() {
                 remarks: remarks,
             });
 
+            toast.success("Status Updated Successfully");
             setSelectedSubject(null);
-        } catch (error) {
+        } catch (error: any) {
+            toast.error(error.message || "Failed to update status.");
             console.error("Failed to submit homework", error);
         }
     };
@@ -152,7 +155,7 @@ export default function HomeworkSubmissionMain() {
                     <div>
                         <h1 className="text-xl font-bold text-foreground leading-tight">My Homework</h1>
                         <p className="text-[11px] text-muted font-medium uppercase tracking-wider">
-                            {studentRecord?.studentName || "Student"} • {studentRecord?.currentClassId?.name} • {studentRecord?.currentSectionId?.name} 
+                            {studentRecord?.studentName || "Student"} • {studentRecord?.currentClassId?.name} • {studentRecord?.currentSectionId?.name}
                         </p>
                     </div>
                 </div>
@@ -167,11 +170,11 @@ export default function HomeworkSubmissionMain() {
                             {viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
                         </h2>
                         <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="bg-surface border-border text-foreground hover:bg-header/20"  onClick={() => setViewDate(new Date(viewDate.setMonth(viewDate.getMonth() - 1)))}>
+                            <Button variant="outline" size="sm" className="bg-surface border-border text-foreground hover:bg-header/20" onClick={() => setViewDate(new Date(viewDate.setMonth(viewDate.getMonth() - 1)))}>
                                 <i className="fas fa-chevron-left text-xs"></i>
                             </Button>
-                            <Button variant="outline" size="sm"  className="bg-surface border-border text-foreground hover:bg-header/20" onClick={() => setViewDate(new Date())}>Today</Button>
-                            <Button variant="outline" size="sm"  className="bg-surface border-border text-foreground hover:bg-header/20" onClick={() => setViewDate(new Date(viewDate.setMonth(viewDate.getMonth() + 1)))}>
+                            <Button variant="outline" size="sm" className="bg-surface border-border text-foreground hover:bg-header/20" onClick={() => setViewDate(new Date())}>Today</Button>
+                            <Button variant="outline" size="sm" className="bg-surface border-border text-foreground hover:bg-header/20" onClick={() => setViewDate(new Date(viewDate.setMonth(viewDate.getMonth() + 1)))}>
                                 <i className="fas fa-chevron-right text-xs"></i>
                             </Button>
                         </div>

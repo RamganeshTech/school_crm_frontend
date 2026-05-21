@@ -4,9 +4,12 @@ import { Input, Label } from '../../shared/ui/Input';
 import { SideModal } from '../../shared/ui/SideModal';
 import { TableContainer, THead, Th, TBody, Tr, Td } from '../../shared/ui/TableLayout';
 import { Card, CardContent } from '../../shared/ui/Card'; // Assuming you saved Card here
-import { useGetAllSchools, 
-    useCreateSchool, 
-    useDeleteSchool  } from '../../api_services/schoolConfig_api/schoolapi';
+import {
+    useGetAllSchools,
+    useCreateSchool,
+    useDeleteSchool
+} from '../../api_services/schoolConfig_api/schoolapi';
+import { toast } from '../../shared/ui/ToastContext';
 
 
 type ViewMode = 'list' | 'grid';
@@ -21,7 +24,7 @@ export default function SchoolListMain() {
     const [viewMode, setViewMode] = useState<ViewMode>('list');
     const [searchQuery, setSearchQuery] = useState('');
     const [isFormOpen, setIsFormOpen] = useState(false);
-    
+
     // Form State
     const [formData, setFormData] = useState({
         name: '',
@@ -60,7 +63,7 @@ export default function SchoolListMain() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         try {
             const submitData = new FormData();
             submitData.append('name', formData.name);
@@ -75,8 +78,14 @@ export default function SchoolListMain() {
             await createSchoolMutation.mutateAsync(submitData);
             refetch();
             closeForm();
-        } catch (error) {
+            toast.success("Created Successfully!");
+
+        } catch (error: any) {
             console.error("Failed to create school", error);
+            // toast.error("Created Successfully!");
+            toast.error(error.message || "Failed to Update");
+
+
         }
     };
 
@@ -84,9 +93,13 @@ export default function SchoolListMain() {
         if (window.confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
             try {
                 await deleteSchoolMutation.mutateAsync(id);
+
                 refetch();
-            } catch (error) {
+                toast.success("Deleted Successfully!");
+            } catch (error: any) {
                 console.error("Failed to delete school", error);
+                toast.error(error.message || "Failed to delete school");
+
             }
         }
     };
@@ -134,14 +147,14 @@ export default function SchoolListMain() {
 
                     {/* View Toggle */}
                     <div className="flex items-center bg-surface border border-divider rounded-lg p-1 shrink-0">
-                        <button 
+                        <button
                             onClick={() => setViewMode('list')}
                             className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-primary-soft text-primary shadow-sm' : 'text-content-muted hover:text-content'}`}
                             title="List View"
                         >
                             <i className="fas fa-list w-5 text-center"></i>
                         </button>
-                        <button 
+                        <button
                             onClick={() => setViewMode('grid')}
                             className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-primary-soft text-primary shadow-sm' : 'text-content-muted hover:text-content'}`}
                             title="Grid View"
@@ -241,7 +254,7 @@ export default function SchoolListMain() {
                                         </div>
                                         <h3 className="text-lg font-bold text-foreground mb-1 truncate">{school.name}</h3>
                                         <p className="text-sm text-muted mb-4 line-clamp-2 h-10">{school.address}</p>
-                                        
+
                                         <div className="space-y-2 pt-4 border-t border-divider text-sm">
                                             <div className="flex items-center gap-3 text-content">
                                                 <i className="fas fa-envelope text-muted w-4"></i>
@@ -282,12 +295,12 @@ export default function SchoolListMain() {
                         <Input id="phoneNo" type="tel" label="Contact Number" required value={formData.phoneNo} onChange={handleInputChange} disabled={createSchoolMutation.isPending} />
                         <Input id="address" label="Full Address" required value={formData.address} onChange={handleInputChange} disabled={createSchoolMutation.isPending} />
                         <Input id="currentAcademicYear" label="Academic Year (e.g., 2024-2025)" required value={formData.currentAcademicYear} onChange={handleInputChange} disabled={createSchoolMutation.isPending} />
-                        
+
                         <div className="flex flex-col gap-1.5">
                             <Label>School Logo (Optional)</Label>
-                            <input 
-                                type="file" 
-                                accept="image/*" 
+                            <input
+                                type="file"
+                                accept="image/*"
                                 ref={fileInputRef}
                                 onChange={handleFileChange}
                                 className="block w-full text-sm text-content file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-soft file:text-primary hover:file:bg-primary/20 transition-all border border-divider rounded-lg p-1 cursor-pointer"

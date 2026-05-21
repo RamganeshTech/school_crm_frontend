@@ -73,7 +73,8 @@ export const useAuthCheck = () => {
                         token: '',
                         studentId: userData?.studentId || [],
                         assignments: userData?.assignments || [],
-                        isPlatformAdmin: userData?.isPlatformAdmin || false
+                        isPlatformAdmin: userData?.isPlatformAdmin || false,
+                        schoolName: userData?.schoolName || null
                     }));
 
                     console.log("5. Redux state successfully dispatched!");

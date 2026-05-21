@@ -55,11 +55,16 @@ export const useCreateMarkReport = () => {
 
     return useMutation({
         mutationFn: async (payload: CreateMarkReportPayload) => {
-            checkPermission(currentRole, ["administrator", "correspondent", "principal", "viceprincipal", "teacher"]);
+            try {
+                checkPermission(currentRole, ["administrator", "correspondent", "principal", "viceprincipal", "teacher"]);
 
-            const { data } = await Api.post('/api/mark-report/create', payload); // Adjust endpoint if different
-            if (!data.ok) throw new Error(data.message);
-            return data.data;
+                const { data } = await Api.post('/api/markreport/create', payload); // Adjust endpoint if different
+                if (!data.ok) throw new Error(data.message);
+                return data.data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: () => {
             // Invalidate the list queries to refresh the UI automatically
@@ -78,11 +83,16 @@ export const useGetAllMarkReports = (params: GetMarkReportsParams) => {
         // Include all filter params in the queryKey so it refetches when they change
         queryKey: ['mark-reports', 'list', params],
         queryFn: async () => {
+            try{
             checkPermission(currentRole, MARK_REPORT_ROLES);
 
-            const { data } = await Api.get('/api/mark-report/getall', { params }); // Adjust endpoint
+            const { data } = await Api.get('/api/markreport/get-all', { params }); // Adjust endpoint
             if (!data.ok) throw new Error(data.message);
             return data; // Returns { ok, message, count, data: [...] }
+             } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         // Only run the query if schoolId is provided (as mandated by your backend)
         enabled: !!params.schoolId,
@@ -98,16 +108,23 @@ export const useUpdateMarkReport = () => {
 
     return useMutation({
         mutationFn: async ({ reportId, ...updateData }: UpdateMarkReportPayload) => {
-            checkPermission(currentRole, ["administrator", "correspondent", "principal", "viceprincipal", "teacher"]);
+            try {
+                checkPermission(currentRole, ["administrator", "correspondent", "principal", "viceprincipal", "teacher"]);
 
-            const { data } = await Api.put(`/api/mark-report/update/${reportId}`, updateData); // Adjust endpoint
-            if (!data.ok) throw new Error(data.message);
-            return data.data;
+                const { data } = await Api.put(`/api/markreport/update/${reportId}`, updateData); // Adjust endpoint
+                if (!data.ok) throw new Error(data.message);
+                return data.data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
-        onSuccess: (_updatedData, variables) => {
+        onSuccess: (updatedData) => {
             // Invalidate the lists and the specific single report query
             queryClient.invalidateQueries({ queryKey: ['mark-reports'] });
-            queryClient.invalidateQueries({ queryKey: ['mark-reports', 'single', variables.reportId] });
+            // queryClient.invalidateQueries({ queryKey: ['mark-reports', 'single', variables.reportId] });
+            queryClient.invalidateQueries({ queryKey: ['mark-report', updatedData.studentId, updatedData.academicYear] });
+
         }
     });
 };
@@ -121,11 +138,16 @@ export const useDeleteMarkReport = () => {
 
     return useMutation({
         mutationFn: async (reportId: string) => {
-            checkPermission(currentRole, ["administrator", "correspondent", "principal"]); // Restrict deletion to higher roles
+            try {
+                checkPermission(currentRole, ["administrator", "correspondent", "principal"]); // Restrict deletion to higher roles
 
-            const { data } = await Api.delete(`/api/mark-report/delete/${reportId}`); // Adjust endpoint
-            if (!data.ok) throw new Error(data.message);
-            return data;
+                const { data } = await Api.delete(`/api/markreport/delete/${reportId}`); // Adjust endpoint
+                if (!data.ok) throw new Error(data.message);
+                return data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['mark-reports'] });
@@ -142,13 +164,57 @@ export const useGetMarkReportById = (reportId: string | undefined) => {
     return useQuery({
         queryKey: ['mark-reports', 'single', reportId],
         queryFn: async () => {
-            checkPermission(currentRole, MARK_REPORT_ROLES);
+            try {
+                checkPermission(currentRole, MARK_REPORT_ROLES);
 
-            const { data } = await Api.get(`/api/mark-report/get/${reportId}`); // Adjust endpoint
-            if (!data.ok) throw new Error(data.message);
-            return data.data;
+                const { data } = await Api.get(`/api/markreport/get/${reportId}`); // Adjust endpoint
+                if (!data.ok) throw new Error(data.message);
+                return data.data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         // Only run the query if a reportId actually exists
         enabled: !!reportId,
+    });
+};
+
+
+export const useGetMarkReportByIdV1 = (
+    {
+
+        studentId,
+        academicYear,
+        classId,
+        sectionId,
+    }:
+        {
+            studentId: string | null,
+            academicYear: string,
+            classId: string | null,
+            sectionId: string | null
+        }
+) => {
+    const { currentRole } = useAuthData();
+
+    return useQuery({
+        queryKey: ['mark-report', studentId, academicYear],
+        queryFn: async () => {
+            try {
+                checkPermission(currentRole, MARK_REPORT_ROLES);
+
+                const { data } = await Api.get(`/api/markreport/v1/get/student/${studentId}`, {
+                    params: { academicYear, classId, sectionId }
+                });
+                if (data.ok) return data;
+                throw new Error(data.message);
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
+        },
+        // CRITICAL: Only run this query if a student has been selected!
+        enabled: !!studentId && !!academicYear,
     });
 };

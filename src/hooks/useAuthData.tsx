@@ -10,6 +10,7 @@ export const useAuthData = () => {
     schoolId: auth.schoolId,
     userId: auth._id,
     userName: auth.userName,
-    isAuthenticated: auth.isAuthenticated
+    isAuthenticated: auth.isAuthenticated,
+    isPlatformAdmin: auth.isPlatformAdmin,
   };
 };

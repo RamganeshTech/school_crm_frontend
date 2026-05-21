@@ -36,14 +36,14 @@
 //   return (
 //     <div className={`w-full ${wrapperClassName}`}>
 //       {label && <Label htmlFor={inputId} isRequired={required}>{label}</Label>}
-      
+
 //       <div className="relative">
 //         {leftIcon && (
 //           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-content-muted">
 //             <i className={leftIcon}></i>
 //           </div>
 //         )}
-        
+
 //         <input
 //           ref={ref}
 //           id={inputId}
@@ -60,14 +60,14 @@
 //           `}
 //           {...props}
 //         />
-        
+
 //         {rightIcon && (
 //           <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-content-muted">
 //             <i className={rightIcon}></i>
 //           </div>
 //         )}
 //       </div>
-      
+
 //       {error && <p className="mt-1.5 text-xs text-red-500 font-medium"><i className="fa-solid fa-circle-exclamation mr-1"></i>{error}</p>}
 //     </div>
 //   );
@@ -77,7 +77,7 @@
 
 
 
-import React, { type InputHTMLAttributes, forwardRef, useId } from 'react';
+import React, { type InputHTMLAttributes, type MouseEvent, forwardRef, useId } from 'react';
 
 export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
   isRequired?: boolean;
@@ -96,10 +96,12 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   leftIcon?: string;
   rightIcon?: string;
   wrapperClassName?: string;
+  // onRightIconClick?: () => void;
+  onRightIconClick?: (e: MouseEvent<HTMLElement>) => void;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(({
-  label, error, leftIcon, rightIcon,
+  label, error, leftIcon, rightIcon,onRightIconClick,
   className = '', wrapperClassName = '', required, id, ...props
 }, ref) => {
   const generatedId = useId();
@@ -128,8 +130,19 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
           `}
           {...props}
         />
-        {rightIcon && (
+        {/* {rightIcon && (
           <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-muted">
+            <i className={rightIcon}></i>
+          </div>
+        )} */}
+
+        {rightIcon && (
+          <div
+            className={`absolute inset-y-0 right-0 pr-3 flex items-center text-muted 
+      ${onRightIconClick ? 'cursor-pointer hover:text-primary pointer-events-auto' : 'pointer-events-none'}
+    `}
+            onClick={onRightIconClick}
+          >
             <i className={rightIcon}></i>
           </div>
         )}

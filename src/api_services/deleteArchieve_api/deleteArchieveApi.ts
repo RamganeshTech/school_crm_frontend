@@ -56,24 +56,29 @@ export const useGetAllDeletedItemsInfinite = (params: Omit<GetAllArchiveParams, 
         queryKey: ['delete-archives-infinite', params],
         initialPageParam: 1,
         queryFn: async ({ pageParam = 1 }) => {
-            // Role check based on your backend route
-            checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal"]);
-            
-            const { data } = await Api.get<BaseResponse<IDeletedArchive[]>>('/api/deletearchive/getall', { 
-                params: { ...params, page: pageParam } 
-            });
+            try {
+                // Role check based on your backend route
+                checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal"]);
 
-            if (data.ok) {
-                return data; // Return full response to access data.pagination
-            } else {
-                throw new Error(data.message || 'Failed to fetch archived items');
+                const { data } = await Api.get<BaseResponse<IDeletedArchive[]>>('/api/deletearchive/getall', {
+                    params: { ...params, page: pageParam }
+                });
+
+                if (data.ok) {
+                    return data; // Return full response to access data.pagination
+                } else {
+                    throw new Error(data.message || 'Failed to fetch archived items');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
             }
         },
         getNextPageParam: (lastPage) => {
             // Safely parse numbers to prevent string concatenation bugs
             const currentPage = Number(lastPage?.pagination?.currentPage) || 1;
             const totalPages = Number(lastPage?.pagination?.totalPages) || 1;
-            
+
             if (currentPage < totalPages) {
                 return currentPage + 1;
             }
@@ -90,14 +95,19 @@ export const useGetDeletedItemById = (archiveId: string | undefined) => {
     return useQuery({
         queryKey: ['delete-archive-single', archiveId],
         queryFn: async () => {
-            checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal"]);
+            try {
+                checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal"]);
 
-            const { data } = await Api.get<BaseResponse<IDeletedArchive>>(`/api/deletearchive/get/${archiveId}`);
+                const { data } = await Api.get<BaseResponse<IDeletedArchive>>(`/api/deletearchive/get/${archiveId}`);
 
-            if (data.ok) {
-                return data.data;
-            } else {
-                throw new Error(data.message || 'Failed to fetch archived item details');
+                if (data.ok) {
+                    return data.data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch archived item details');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
             }
         },
         enabled: !!archiveId,
@@ -114,13 +124,18 @@ export const useDeletePermanently = () => {
 
     return useMutation({
         mutationFn: async (archiveId: string) => {
-            // Strictly Correspondent only as per backend route
-            checkPermission(currentRole, ["correspondent"]);
-            
-            const { data } = await Api.delete<BaseResponse>(`/api/deletearchive/delete/${archiveId}`);
-            
-            if (!data.ok) throw new Error(data.message || 'Failed to permanently delete item');
-            return data;
+            try {
+                // Strictly Correspondent only as per backend route
+                checkPermission(currentRole, ["correspondent"]);
+
+                const { data } = await Api.delete<BaseResponse>(`/api/deletearchive/delete/${archiveId}`);
+
+                if (!data.ok) throw new Error(data.message || 'Failed to permanently delete item');
+                return data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: (_, archiveId) => {
             // Refresh lists upon successful permanent deletion

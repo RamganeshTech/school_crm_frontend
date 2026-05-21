@@ -1,18 +1,16 @@
 // import React, { useState, useEffect, useMemo } from 'react';
-// import { Button } from '../../shared/ui/Button'; // Adjust path
-// import { Input } from '../../shared/ui/Input'; // Adjust path
-// import { SearchSelect } from '../../shared/ui/SearchSelect'; // Adjust path
-// import { Toggle } from '../../shared/ui/Toggle'; // Adjust path
-
-
-// interface IMarkSubject {
-//     _id?: string;
-//     subject: string;
-//     marksObtained: number;
-//     maxMarks: number;
-//     minPassingMarks: number;
-//     grade?: string;
-// }
+// import { Button } from '../../shared/ui/Button';
+// import { Input } from '../../shared/ui/Input';
+// import { SearchSelect } from '../../shared/ui/SearchSelect';
+// import { Toggle } from '../../shared/ui/Toggle';
+// import { SideModal } from '../../shared/ui/SideModal';
+// import { useAuthData } from '../../hooks/useAuthData';
+// import { useGetMarkReportConfigByClass } from '../../api_services/markReport_api/markReportConfigApi';
+// // Adjust these imports based on your actual file paths
+// import { useGetClasses } from '../../api_services/schoolConfig_api/classApi';
+// import { useGetSections } from '../../api_services/schoolConfig_api/sectionApi';
+// import { useGetAllStudents } from '../../api_services/student_api/studentMainApi';
+// // import { useGetAllStudents } from '../../api_services/student_api/studentApi';
 
 // interface MarkReportSingleProps {
 //     mode: 'view' | 'edit' | 'create';
@@ -24,6 +22,8 @@
 //     onCancel: () => void;
 // }
 
+// type MarksDictionary = Record<string, Record<string, number | null>>;
+
 // export default function MarkReportSingle({
 //     mode,
 //     initialData,
@@ -33,7 +33,10 @@
 //     onEdit,
 //     onCancel
 // }: MarkReportSingleProps) {
-//     // --- Form State ---
+//     const { schoolId } = useAuthData();
+//     const isViewMode = mode === 'view';
+
+//     // --- Form & Filter State ---
 //     const [formData, setFormData] = useState({
 //         academicYear: '',
 //         classId: '',
@@ -43,296 +46,416 @@
 //         isAbsent: false,
 //     });
 
-//     const [subjects, setSubjects] = useState<IMarkSubject[]>([]);
+//     const [marksDict, setMarksDict] = useState<MarksDictionary>({});
 
-//     // --- Populate State on Mount or InitialData Change ---
+//     // --- SideModal State ---
+//     const [cellEditor, setCellEditor] = useState<{
+//         examName: string;
+//         subjectName: string;
+//         maxMarks: number;
+//         passingMarks: number;
+//         currentVal: string;
+//     } | null>(null);
+
+//     // --- Populate Initial Data ---
 //     useEffect(() => {
-//         if (initialData && mode !== 'create') {
+//         if (initialData) {
 //             setFormData({
 //                 academicYear: initialData.academicYear || '',
-//                 classId: initialData.classId?._id || '',
-//                 sectionId: initialData.sectionId?._id || '',
-//                 studentId: initialData.studentId?._id || '',
+//                 classId: initialData.classId?._id || initialData.classId || '',
+//                 sectionId: initialData.sectionId?._id || initialData.sectionId || '',
+//                 studentId: initialData.studentId?._id || initialData.studentId || '',
 //                 remarks: initialData.remarks || '',
 //                 isAbsent: initialData.isAbsent || false,
 //             });
-//             setSubjects(initialData.subjects || []);
-//         } else if (mode === 'create') {
-//             // Default empty subject row for quick start
-//             setSubjects([{ subject: '', marksObtained: 0, maxMarks: 100, minPassingMarks: 35, grade: '' }]);
-//         }
-//     }, [initialData, mode]);
 
-//     // --- Subject Array Handlers ---
-//     const handleAddSubject = () => {
-//         setSubjects([...subjects, { subject: '', marksObtained: 0, maxMarks: 100, minPassingMarks: 35, grade: '' }]);
-//     };
-
-//     const handleRemoveSubject = (index: number) => {
-//         setSubjects(subjects.filter((_, i) => i !== index));
-//     };
-
-//     const handleSubjectChange = (index: number, field: keyof IMarkSubject, value: any) => {
-//         const newSubjects = [...subjects];
-//         newSubjects[index] = { ...newSubjects[index], [field]: value };
-//         setSubjects(newSubjects);
-//     };
-
-//     // --- Submit Handler ---
-//     const handleFormSubmit = (e: React.FormEvent) => {
-//         e.preventDefault();
-//         onSubmit({ ...formData, subjects });
-//     };
-
-//     // --- Derived Calculations ---
-//     const summary = useMemo(() => {
-//         let obtained = 0;
-//         let totalMax = 0;
-//         let isFailed = false;
-
-//         subjects.forEach(sub => {
-//             obtained += Number(sub.marksObtained) || 0;
-//             totalMax += Number(sub.maxMarks) || 0;
-//             if (Number(sub.marksObtained) < Number(sub.minPassingMarks)) {
-//                 isFailed = true;
+//             if (initialData.examRecords && Array.isArray(initialData.examRecords)) {
+//                 const loadedDict: MarksDictionary = {};
+//                 initialData.examRecords.forEach((exam: any) => {
+//                     loadedDict[exam.examName] = {};
+//                     exam.subjects.forEach((sub: any) => {
+//                         loadedDict[exam.examName][sub.subject] = sub.marksObtained;
+//                     });
+//                 });
+//                 setMarksDict(loadedDict);
 //             }
+//         }
+//     }, [initialData]);
+
+//     // ==========================================
+//     // LIVE API HOOKS & OPTIONS MAPPING
+//     // ==========================================
+
+//     // 1. Fetch Classes
+//     const { data: classesData, isLoading: isClassesLoading } = useGetClasses(schoolId!);
+//     const classOptions = useMemo(() => {
+//         return classesData?.map((cls: any) => ({
+//             label: cls.name || cls.className,
+//             value: cls._id
+//         })) || [];
+//     }, [classesData]);
+
+//     // 2. Fetch Sections (Dependent on Class)
+//     const { data: sectionsData, isLoading: isSectionsLoading } = useGetSections({
+//         schoolId: schoolId!,
+//         classId: formData.classId
+//     });
+//     const sectionOptions = useMemo(() => {
+//         return sectionsData?.map((sec: any) => ({
+//             label: sec.name || sec.sectionName,
+//             value: sec._id
+//         })) || [];
+//     }, [sectionsData]);
+
+//     // 3. Fetch Students (Dependent on Class & Section)
+//     const { data: studentsResponse, isLoading: isStudentsLoading } = useGetAllStudents({
+//         schoolId: schoolId!,
+//         classId: formData.classId,
+//         sectionId: formData.sectionId,
+//         limit: 100 // High limit to populate the dropdown
+//     });
+
+
+
+//     const students = studentsResponse?.pages?.flat() || [];
+
+//     const studentOptions = useMemo(() => {
+//         // Handle both paginated (infinite query) and standard array responses
+//         const studentList = students
+
+//         return studentList.map((stu: any) => ({
+//             label: stu?.studentName || stu?.name,
+//             value: stu._id
+//         }));
+//     }, [students]);
+
+//     // 4. Fetch Configuration Matrix
+//     const { data: configData, isLoading: isConfigLoading } = useGetMarkReportConfigByClass({
+//         schoolId: schoolId!,
+//         academicYear: formData.academicYear,
+//         classId: formData.classId
+//     });
+
+//     const exams = useMemo(() => {
+//         return [...(configData?.exams || [])].sort((a, b) => (a.order || 0) - (b.order || 0));
+//     }, [configData]);
+
+//     const subjects = useMemo(() => {
+//         return [...(configData?.subjects || [])].sort((a, b) => (a.order || 0) - (b.order || 0));
+//     }, [configData]);
+
+
+//     // ==========================================
+//     // HANDLERS
+//     // ==========================================
+
+//     const handleFilterChange = (key: string, value: string) => {
+//         setFormData(prev => ({
+//             ...prev,
+//             [key]: value,
+//             // Reset dependencies if parent changes
+//             ...(key === 'classId' ? { sectionId: '', studentId: '' } : {}),
+//             ...(key === 'sectionId' ? { studentId: '' } : {})
+//         }));
+//     };
+
+//     const openCellEditor = (exam: any, subject: any) => {
+//         if (isViewMode || formData.isAbsent) return;
+
+//         const existingMark = marksDict[exam.examName]?.[subject.subjectName];
+
+//         setCellEditor({
+//             examName: exam.examName,
+//             subjectName: subject.subjectName,
+//             maxMarks: exam.maxMarks || 100,
+//             passingMarks: exam.passingMarks || 35,
+//             currentVal: existingMark !== undefined && existingMark !== null ? String(existingMark) : ''
+//         });
+//     };
+
+//     const saveCellMark = () => {
+//         if (!cellEditor) return;
+
+//         setMarksDict(prev => {
+//             const updated = { ...prev };
+//             if (!updated[cellEditor.examName]) {
+//                 updated[cellEditor.examName] = {};
+//             }
+//             updated[cellEditor.examName][cellEditor.subjectName] =
+//                 cellEditor.currentVal === '' ? null : Number(cellEditor.currentVal);
+//             return updated;
 //         });
 
-//         const percentage = totalMax > 0 ? ((obtained / totalMax) * 100).toFixed(2) : '0.00';
-//         return { obtained, totalMax, percentage, status: isFailed ? 'FAIL' : 'PASS' };
-//     }, [subjects]);
+//         setCellEditor(null);
+//     };
 
-//     // --- Mock Data Options (Replace with your actual React Query hooks) ---
-//     // const { data: classes } = useGetClasses();
-//     const mockOptions = [{ label: 'Loading from API...', value: 'mock' }]; 
-//     const isViewMode = mode === 'view';
+//     const handleFormSubmit = (e: React.FormEvent) => {
+//         e.preventDefault();
+
+//         // 1. Compile the modern matrix data (examRecords)
+//         const compiledExamRecords = exams.map(exam => {
+//             const examMarks = marksDict[exam.examName] || {};
+
+//             return {
+//                 examName: exam.examName,
+//                 isAbsent: false,
+//                 remarks: "",
+//                 subjects: subjects.map(sub => ({
+//                     subject: sub.subjectName,
+//                     // Ensure we don't pass null if empty, pass 0 to be safe for DB
+//                     marksObtained: examMarks[sub.subjectName] !== undefined && examMarks[sub.subjectName] !== null 
+//                         ? examMarks[sub.subjectName] 
+//                         : 0,
+//                     maxMarks: exam.maxMarks || 100,
+//                     minPassingMarks: exam.passingMarks || 35,
+//                 }))
+//             };
+//         });
+
+//         // 2. THE FIX: Compile a flat subjects array just to satisfy your backend's strict validation rule!
+//         const legacySubjects = subjects.map(sub => ({
+//             subject: sub.subjectName,
+//             marksObtained: 0, // Fallback value
+//             maxMarks: 100,
+//             minPassingMarks: 35
+//         }));
+
+//         // 3. Send both to the backend
+//         onSubmit({
+//             ...formData,
+//             markReportConfigId: configData?._id,
+//             examRecords: compiledExamRecords,
+//             subjects: legacySubjects // <--- This guarantees the backend validation passes!
+//         });
+//     };
 
 //     return (
-//         <div className="w-full h-full flex flex-col bg-mainBg overflow-y-auto custom-scrollbar animate-in fade-in duration-300">
-//             <form onSubmit={handleFormSubmit} className="max-w-6xl w-full mx-auto p-4 md:p-6 space-y-6">
-                
-//                 {/* --- HEADER --- */}
-//                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-//                     <div>
-//                         <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
-//                             <i className={`fas ${isViewMode ? 'fa-file-certificate text-primary' : 'fa-edit text-warning'}`}></i>
-//                             {isViewMode ? 'Academic Mark Report' : mode === 'edit' ? 'Edit Mark Report' : 'Create Mark Report'}
-//                         </h2>
-//                         {isViewMode && initialData?.recordedBy && (
-//                             <p className="text-xs text-muted mt-1">
-//                                 Recorded by: <span className="font-medium text-foreground">{initialData.recordedBy.userName}</span>
-//                             </p>
-//                         )}
+//         <div className="w-full h-full flex flex-col bg-mainBg overflow-hidden animate-in fade-in duration-300 relative">
+
+//             {/* --- SIDE MODAL FOR CELL EDITING --- */}
+//             <SideModal
+//                 isOpen={!!cellEditor}
+//                 onClose={() => setCellEditor(null)}
+//                 title={`${cellEditor?.examName || 'Exam'} Marks`}
+//                 width="w-full sm:w-[400px]"
+//             >
+//                 {cellEditor && (
+//                     <div className="space-y-6">
+//                         <div className="bg-surface border border-border rounded-xl p-4 shadow-sm">
+//                             <h4 className="text-sm font-bold text-foreground mb-1">{cellEditor.subjectName}</h4>
+//                             <p className="text-xs text-muted mb-4">Enter the marks obtained by the student for this specific evaluation.</p>
+
+//                             <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">
+//                                 Marks Obtained
+//                             </label>
+//                             <Input
+//                                 autoFocus
+//                                 type="number"
+//                                 min="0"
+//                                 max={cellEditor.maxMarks}
+//                                 value={cellEditor.currentVal}
+//                                 onChange={(e) => setCellEditor({ ...cellEditor, currentVal: e.target.value })}
+//                                 placeholder={`Max: ${cellEditor.maxMarks}`}
+//                                 className="text-lg py-3 font-bold"
+//                             />
+
+//                             <div className="flex justify-between items-center text-[11px] text-muted mt-3 bg-mainBg p-3 rounded-lg border border-border">
+//                                 <span>Max Marks: <strong className="text-foreground">{cellEditor.maxMarks}</strong></span>
+//                                 <span>Pass Threshold: <strong className="text-warning">{cellEditor.passingMarks}</strong></span>
+//                             </div>
+//                         </div>
+
+//                         <div className="flex justify-end gap-3 pt-4 border-t border-border">
+//                             <Button variant="outline" onClick={() => setCellEditor(null)}>Cancel</Button>
+//                             <Button variant="primary" onClick={saveCellMark}>Update Subject Mark</Button>
+//                         </div>
 //                     </div>
-                    
-//                     {/* Action Buttons */}
-//                     <div className="flex items-center gap-3">
-//                         <Button type="button" variant="outline" onClick={onCancel}>
-//                             {isViewMode ? 'Go Back' : 'Cancel'}
-//                         </Button>
-//                         {isViewMode && isEditable && (
-//                             <Button type="button" variant="primary" onClick={onEdit} leftIcon="fas fa-pen">
-//                                 Edit Report
+//                 )}
+//             </SideModal>
+
+//             <form onSubmit={handleFormSubmit} className="flex flex-col h-full w-full">
+
+//                 {/* --- TOP HEADER & CONTEXT FILTERS BAR --- */}
+//                 <div className="border-b border-border bg-surface shrink-0 z-10 shadow-sm">
+//                     {/* Title & Actions */}
+//                     <div className="p-4 md:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+//                         <div>
+//                             <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
+//                                 <i className={`fas ${isViewMode ? 'fa-file-certificate text-primary' : 'fa-edit text-warning'}`}></i>
+//                                 {isViewMode ? 'Academic Mark Report' : mode === 'edit' ? 'Edit Mark Report' : 'Student Marking Panel'}
+//                             </h2>
+//                         </div>
+
+//                         <div className="flex items-center gap-3">
+//                             <Button type="button" variant="outline" onClick={onCancel}>
+//                                 {isViewMode ? 'Go Back' : 'Cancel'}
 //                             </Button>
-//                         )}
-//                         {!isViewMode && (
-//                             <Button type="submit" variant="primary" isLoading={isSubmitting} leftIcon="fas fa-save">
-//                                 Save Report
-//                             </Button>
+//                             {!isViewMode && formData.studentId && (
+//                                 <Button type="submit" variant="primary" isLoading={isSubmitting} leftIcon="fas fa-save">
+//                                     Save Report
+//                                 </Button>
+//                             )}
+//                         </div>
+//                     </div>
+
+//                     {/* Integrated Live API Filters */}
+//                     <div className="bg-mainBg border-t border-border p-4 md:px-6">
+//                         {isViewMode ? (
+//                             <div className="flex flex-wrap gap-6">
+//                                 <div>
+//                                     <p className="text-[10px] text-muted font-bold uppercase tracking-wider">Academic Year</p>
+//                                     <p className="text-sm font-semibold text-foreground mt-0.5">{formData.academicYear || 'N/A'}</p>
+//                                 </div>
+//                                 <div>
+//                                     <p className="text-[10px] text-muted font-bold uppercase tracking-wider">Student ID</p>
+//                                     <p className="text-sm font-semibold text-foreground mt-0.5">{formData.studentId || 'N/A'}</p>
+//                                 </div>
+//                             </div>
+//                         ) : (
+//                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+//                                 <Input
+//                                     id="academicYear" label="Academic Year" placeholder="e.g. 2025-2026"
+//                                     value={formData.academicYear}
+//                                     onChange={(e) => handleFilterChange('academicYear', e.target.value)}
+//                                 />
+//                                 <SearchSelect
+//                                     label="Class" options={classOptions}
+//                                     placeholder={isClassesLoading ? "Loading..." : "Select Class..."}
+//                                     value={formData.classId} onChange={(opt) => handleFilterChange('classId', String(opt.value))}
+//                                 />
+//                                 <SearchSelect
+//                                     label="Section" options={sectionOptions}
+//                                     placeholder={isSectionsLoading ? "Loading..." : "Select Section..."}
+//                                     value={formData.sectionId} onChange={(opt) => handleFilterChange('sectionId', String(opt.value))}
+//                                 />
+//                                 <SearchSelect
+//                                     label="Student" options={studentOptions}
+//                                     placeholder={isStudentsLoading ? "Loading..." : "Select Student..."}
+//                                     value={formData.studentId} onChange={(opt) => handleFilterChange('studentId', String(opt.value))}
+//                                 />
+//                             </div>
 //                         )}
 //                     </div>
 //                 </div>
 
-//                 {/* --- WARNING BANNER (If Absent) --- */}
-//                 {(formData.isAbsent || (isViewMode && initialData?.isAbsent)) && (
-//                     <div className="bg-danger/10 border border-danger/20 text-danger px-5 py-4 rounded-xl flex items-center gap-3">
-//                         <i className="fas fa-user-times text-xl"></i>
-//                         <div>
-//                             <p className="font-bold text-sm">Student Marked Absent</p>
-//                             <p className="text-xs mt-0.5 opacity-80">This student was absent during this evaluation period. Marks will not be calculated towards final aggregates.</p>
+//                 {/* --- MAIN WORKSPACE (Full Width Matrix) --- */}
+//                 <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 bg-mainBg">
+
+//                     {!formData.studentId ? (
+//                         <div className="h-full w-full flex flex-col items-center justify-center text-muted border-2 border-dashed border-border rounded-2xl">
+//                             <i className="fas fa-user-graduate text-5xl mb-4 opacity-50"></i>
+//                             <h3 className="text-lg font-bold text-foreground">No Student Selected</h3>
+//                             <p className="text-sm mt-1">Please select a class, section, and student from the header to load the marking matrix.</p>
 //                         </div>
-//                     </div>
-//                 )}
+//                     ) : (
+//                         <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300 max-w-7xl mx-auto">
 
-//                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-//                     {/* --- LEFT COLUMN: Meta Data --- */}
-//                     <div className="lg:col-span-1 space-y-6">
-//                         <div className="bg-surface border border-border rounded-2xl p-5 shadow-sm space-y-5">
-//                             <h3 className="text-sm font-bold text-foreground uppercase tracking-wider border-b border-border pb-3">Student Details</h3>
-                            
-//                             {isViewMode ? (
-//                                 <div className="space-y-4">
-//                                     <div className="flex items-center gap-4">
-//                                         <div className="w-14 h-14 rounded-full bg-primary-soft text-primary flex items-center justify-center font-bold text-xl border border-primary/20">
-//                                             {initialData?.studentId?.studentName?.charAt(0) || 'S'}
-//                                         </div>
-//                                         <div>
-//                                             <p className="font-bold text-foreground text-lg">{initialData?.studentId?.studentName || 'N/A'}</p>
-//                                             <p className="text-xs font-semibold text-muted">SR ID: {initialData?.studentId?.srId || 'N/A'}</p>
-//                                         </div>
-//                                     </div>
-//                                     <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
-//                                         <div>
-//                                             <p className="text-[10px] text-muted font-bold uppercase tracking-wider">Class</p>
-//                                             <p className="text-sm font-semibold text-foreground mt-0.5">{initialData?.classId?.name || 'N/A'}</p>
-//                                         </div>
-//                                         <div>
-//                                             <p className="text-[10px] text-muted font-bold uppercase tracking-wider">Section</p>
-//                                             <p className="text-sm font-semibold text-foreground mt-0.5">{initialData?.sectionId?.name || 'N/A'}</p>
-//                                         </div>
-//                                         <div className="col-span-2">
-//                                             <p className="text-[10px] text-muted font-bold uppercase tracking-wider">Academic Year</p>
-//                                             <p className="text-sm font-semibold text-foreground mt-0.5">{initialData?.academicYear || 'N/A'}</p>
-//                                         </div>
-//                                     </div>
-//                                 </div>
-//                             ) : (
-//                                 <div className="space-y-4">
-//                                     <Input 
-//                                         id="academicYear" label="Academic Year" placeholder="e.g. 2025-2026"
-//                                         value={formData.academicYear} 
-//                                         onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })} 
+//                             {/* Absent Toggle & Remarks Row */}
+//                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//                                 <div className="lg:col-span-1 bg-surface border border-border rounded-2xl p-5 shadow-sm flex flex-col justify-center">
+//                                     <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-2">Attendance Status</h3>
+//                                     <Toggle
+//                                         checked={formData.isAbsent}
+//                                         onChange={(val) => setFormData({ ...formData, isAbsent: val })}
+//                                         label="Mark Student as Absent"
+//                                         description="Locks matrix and excludes from aggregates."
 //                                     />
-//                                     <SearchSelect 
-//                                         label="Select Class" options={mockOptions} // Replace with actual class options
-//                                         value={formData.classId} onChange={(opt) => setFormData({ ...formData, classId: String(opt.value) })}
-//                                     />
-//                                     <SearchSelect 
-//                                         label="Select Section" options={mockOptions} // Replace with actual section options
-//                                         value={formData.sectionId} onChange={(opt) => setFormData({ ...formData, sectionId: String(opt.value) })}
-//                                     />
-//                                     <SearchSelect 
-//                                         label="Select Student" options={mockOptions} // Replace with actual student options
-//                                         value={formData.studentId} onChange={(opt) => setFormData({ ...formData, studentId: String(opt.value) })}
-//                                     />
-                                    
-//                                     <div className="pt-4 border-t border-border">
-//                                         <Toggle 
-//                                             checked={formData.isAbsent} 
-//                                             onChange={(val) => setFormData({ ...formData, isAbsent: val })}
-//                                             label="Mark as Absent"
-//                                             description="Student did not attend this evaluation."
-//                                         />
-//                                     </div>
 //                                 </div>
-//                             )}
-//                         </div>
-
-//                         {/* Summary Widget (View Mode) */}
-//                         {isViewMode && !formData.isAbsent && (
-//                             <div className="bg-surface border border-border rounded-2xl p-5 shadow-sm">
-//                                 <h3 className="text-sm font-bold text-foreground uppercase tracking-wider border-b border-border pb-3 mb-4">Performance Summary</h3>
-//                                 <div className="grid grid-cols-2 gap-4">
-//                                     <div>
-//                                         <p className="text-[10px] text-muted font-bold uppercase tracking-wider">Total Score</p>
-//                                         <p className="text-xl font-black text-foreground mt-1">{summary.obtained} <span className="text-sm text-muted">/ {summary.totalMax}</span></p>
-//                                     </div>
-//                                     <div>
-//                                         <p className="text-[10px] text-muted font-bold uppercase tracking-wider">Percentage</p>
-//                                         <p className="text-xl font-black text-primary mt-1">{summary.percentage}%</p>
-//                                     </div>
-//                                     <div className="col-span-2 mt-2">
-//                                         <p className="text-[10px] text-muted font-bold uppercase tracking-wider mb-2">Final Status</p>
-//                                         <span className={`px-4 py-2 rounded-lg text-sm font-bold uppercase tracking-widest border flex items-center justify-center gap-2 ${
-//                                             summary.status === 'FAIL' ? 'bg-danger/10 text-danger border-danger/20' : 'bg-success/10 text-success border-success/20'
-//                                         }`}>
-//                                             <i className={`fas ${summary.status === 'FAIL' ? 'fa-times-circle' : 'fa-check-circle'}`}></i>
-//                                             {summary.status}
-//                                         </span>
-//                                     </div>
-//                                 </div>
-//                             </div>
-//                         )}
-//                     </div>
-
-//                     {/* --- RIGHT COLUMN: Subjects & Remarks --- */}
-//                     <div className="lg:col-span-2 space-y-6">
-                        
-//                         {/* Subjects Grid */}
-//                         <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col">
-//                             <div className="p-5 border-b border-border bg-sub-header/50 flex justify-between items-center">
-//                                 <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Subject Evaluations</h3>
-//                                 {!isViewMode && (
-//                                     <Button type="button" variant="outline" onClick={handleAddSubject} className="text-xs py-1.5 px-3">
-//                                         <i className="fas fa-plus mr-1.5"></i> Add Subject
-//                                     </Button>
-//                                 )}
-//                             </div>
-                            
-//                             <div className="overflow-x-auto custom-scrollbar p-1">
-//                                 <table className="w-full text-left border-collapse min-w-[40rem]">
-//                                     <thead>
-//                                         <tr className="text-[11px] font-bold text-muted uppercase tracking-wider border-b border-border">
-//                                             <th className="p-4 w-1/3">Subject Name</th>
-//                                             <th className="p-4 w-24 text-center">Marks</th>
-//                                             <th className="p-4 w-24 text-center">Passing</th>
-//                                             <th className="p-4 w-24 text-center">Max</th>
-//                                             <th className="p-4 w-24 text-center">Grade</th>
-//                                             {!isViewMode && <th className="p-4 w-16 text-center">Act</th>}
-//                                         </tr>
-//                                     </thead>
-//                                     <tbody className="divide-y divide-border/50">
-//                                         {subjects.length === 0 ? (
-//                                             <tr>
-//                                                 <td colSpan={isViewMode ? 5 : 6} className="p-8 text-center text-muted text-sm">
-//                                                     No subjects added yet.
-//                                                 </td>
-//                                             </tr>
-//                                         ) : subjects.map((sub, idx) => (
-//                                             <tr key={idx} className={isViewMode ? "hover:bg-sub-header/30 transition-colors" : ""}>
-//                                                 {isViewMode ? (
-//                                                     <>
-//                                                         <td className="p-4 font-semibold text-foreground">{sub.subject}</td>
-//                                                         <td className={`p-4 text-center font-bold ${Number(sub.marksObtained) < Number(sub.minPassingMarks) ? 'text-danger' : 'text-foreground'}`}>
-//                                                             {sub.marksObtained}
-//                                                         </td>
-//                                                         <td className="p-4 text-center text-muted font-medium">{sub.minPassingMarks}</td>
-//                                                         <td className="p-4 text-center text-muted font-medium">{sub.maxMarks}</td>
-//                                                         <td className="p-4 text-center font-bold text-primary">{sub.grade || '--'}</td>
-//                                                     </>
-//                                                 ) : (
-//                                                     <>
-//                                                         <td className="p-2"><Input id={`sub-${idx}`} value={sub.subject} onChange={(e) => handleSubjectChange(idx, 'subject', e.target.value)} required placeholder="e.g. Mathematics" /></td>
-//                                                         <td className="p-2"><Input id={`obt-${idx}`} type="number" min="0" value={sub.marksObtained} onChange={(e) => handleSubjectChange(idx, 'marksObtained', e.target.value)} required /></td>
-//                                                         <td className="p-2"><Input id={`min-${idx}`} type="number" min="0" value={sub.minPassingMarks} onChange={(e) => handleSubjectChange(idx, 'minPassingMarks', e.target.value)} required /></td>
-//                                                         <td className="p-2"><Input id={`max-${idx}`} type="number" min="1" value={sub.maxMarks} onChange={(e) => handleSubjectChange(idx, 'maxMarks', e.target.value)} required /></td>
-//                                                         <td className="p-2"><Input id={`grd-${idx}`} value={sub.grade} onChange={(e) => handleSubjectChange(idx, 'grade', e.target.value)} placeholder="A+" /></td>
-//                                                         <td className="p-2 text-center">
-//                                                             <button type="button" onClick={() => handleRemoveSubject(idx)} className="w-8 h-8 rounded-lg bg-danger/10 text-danger hover:bg-danger hover:text-white transition-colors flex items-center justify-center">
-//                                                                 <i className="fas fa-trash-alt text-xs"></i>
-//                                                             </button>
-//                                                         </td>
-//                                                     </>
-//                                                 )}
-//                                             </tr>
-//                                         ))}
-//                                     </tbody>
-//                                 </table>
-//                             </div>
-//                         </div>
-
-//                         {/* Remarks Section */}
-//                         <div className="bg-surface border border-border rounded-2xl p-5 shadow-sm">
-//                             <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-4 border-b border-border pb-3">Teacher Remarks & Evaluation</h3>
-//                             {isViewMode ? (
-//                                 <div className="bg-background rounded-xl p-4 border border-border text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-//                                     {formData.remarks || <span className="text-muted italic">No remarks provided for this evaluation.</span>}
-//                                 </div>
-//                             ) : (
-//                                 <div>
-//                                     <textarea 
-//                                         className="w-full bg-background border border-border rounded-xl p-4 text-sm text-foreground focus:ring-2 focus:ring-primary/50 outline-none resize-none custom-scrollbar"
-//                                         rows={4}
-//                                         placeholder="Enter detailed evaluation remarks, areas of improvement, or general feedback..."
+//                                 <div className="lg:col-span-2 bg-surface border border-border rounded-2xl p-5 shadow-sm">
+//                                     <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-3">Overall Remarks</h3>
+//                                     <Input
+//                                         placeholder="Enter overall evaluation remarks, areas of improvement, or general feedback..."
 //                                         value={formData.remarks}
 //                                         onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+//                                         disabled={isViewMode}
 //                                     />
 //                                 </div>
-//                             )}
-//                         </div>
+//                             </div>
 
-//                     </div>
+//                             {/* The Full-Width Marking Matrix */}
+//                             <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col">
+//                                 <div className="p-4 border-b border-border bg-sub-header/50 flex justify-between items-center">
+//                                     <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">
+//                                         <i className="fas fa-table-cells text-primary mr-2"></i>
+//                                         Academic Marking Matrix
+//                                     </h3>
+//                                 </div>
+
+//                                 <div className="overflow-x-auto custom-scrollbar">
+//                                     {isConfigLoading ? (
+//                                         <div className="p-12 flex items-center justify-center">
+//                                             <i className="fas fa-circle-notch fa-spin text-primary text-3xl"></i>
+//                                         </div>
+//                                     ) : !configData || subjects.length === 0 ? (
+//                                         <div className="p-12 text-center text-danger">
+//                                             <i className="fas fa-exclamation-triangle text-3xl mb-3 opacity-50"></i>
+//                                             <p className="font-bold">Missing Configuration</p>
+//                                             <p className="text-sm opacity-80 mt-1">The report card structure for this class has not been set up yet.</p>
+//                                         </div>
+//                                     ) : (
+//                                         <table className="w-full text-left border-collapse min-w-max">
+//                                             <thead>
+//                                                 <tr className="text-[11px] font-bold text-muted uppercase tracking-wider border-b-2 border-border bg-mainBg">
+//                                                     <th className="p-4 border-r border-border/50 sticky left-0 z-10 bg-mainBg shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-64">
+//                                                         Subjects
+//                                                     </th>
+//                                                     {exams.map((exam, eIdx) => (
+//                                                         <th key={eIdx} className="p-4 border-r border-border/50 text-center min-w-[140px]">
+//                                                             <div className="font-bold text-foreground text-sm">{exam.examName}</div>
+//                                                             <div className="text-[10px] mt-1 font-normal opacity-70">
+//                                                                 Max {exam.maxMarks} • Pass {exam.passingMarks}
+//                                                             </div>
+//                                                         </th>
+//                                                     ))}
+//                                                 </tr>
+//                                             </thead>
+//                                             <tbody className="divide-y divide-border/50">
+//                                                 {subjects.map((sub, sIdx) => (
+//                                                     <tr key={sIdx} className="hover:bg-sub-header/30 transition-colors group">
+
+//                                                         <td className="p-4 font-semibold text-foreground border-r border-border/50 sticky left-0 z-10 bg-surface group-hover:bg-sub-header/50 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+//                                                             {sub.subjectName}
+//                                                             {sub.subjectCode && <span className="block text-[10px] text-muted font-normal mt-0.5">{sub.subjectCode}</span>}
+//                                                         </td>
+
+//                                                         {exams.map((exam, eIdx) => {
+//                                                             const mark = marksDict[exam.examName]?.[sub.subjectName];
+//                                                             const hasMark = mark !== undefined && mark !== null;
+//                                                             const isFail = hasMark && Number(mark) < (exam.passingMarks || 35);
+
+//                                                             return (
+//                                                                 <td
+//                                                                     key={eIdx}
+//                                                                     className={`p-3 border-r border-border/50 transition-colors ${formData.isAbsent || isViewMode
+//                                                                             ? 'bg-mainBg/30 cursor-not-allowed'
+//                                                                             : 'cursor-pointer hover:bg-primary/5'
+//                                                                         }`}
+//                                                                     onClick={() => openCellEditor(exam, sub)}
+//                                                                 >
+//                                                                     {hasMark ? (
+//                                                                         <div className="flex flex-col items-center justify-center">
+//                                                                             <span className={`font-bold text-lg ${isFail ? 'text-danger' : 'text-foreground'}`}>
+//                                                                                 {mark}
+//                                                                             </span>
+//                                                                             {isFail && <span className="text-[9px] text-danger uppercase tracking-wider mt-0.5 font-bold">Fail</span>}
+//                                                                         </div>
+//                                                                     ) : (
+//                                                                         <div className="w-full max-w-[80px] h-9 mx-auto bg-mainBg border border-border/50 border-dashed rounded flex items-center justify-center group-hover:border-primary/50 group-hover:bg-primary/5 transition-colors">
+//                                                                             <span className="text-[10px] text-muted opacity-50 group-hover:text-primary group-hover:opacity-100">Empty</span>
+//                                                                         </div>
+//                                                                     )}
+//                                                                 </td>
+//                                                             );
+//                                                         })}
+//                                                     </tr>
+//                                                 ))}
+//                                             </tbody>
+//                                         </table>
+//                                     )}
+//                                 </div>
+//                             </div>
+//                         </div>
+//                     )}
 //                 </div>
 //             </form>
 //         </div>
@@ -341,32 +464,32 @@
 
 
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '../../shared/ui/Button'; // Adjust path
-import { Input } from '../../shared/ui/Input'; // Adjust path
-import { SearchSelect } from '../../shared/ui/SearchSelect'; // Adjust path
-import { Toggle } from '../../shared/ui/Toggle'; // Adjust path
 
-export interface IMarkSubject {
-    _id?: string;
-    subject: string;
-    minPassingMarks: number;
-    marksObtained?: number; // Legacy fallback
-    quarterly?: number | string;
-    midTerm?: number | string;
-    halfYearly?: number | string;
-    annual?: number | string;
-}
+
+import React, { useState, useEffect, useMemo } from 'react';
+import { Button } from '../../shared/ui/Button';
+import { Input } from '../../shared/ui/Input';
+import { SearchSelect } from '../../shared/ui/SearchSelect';
+import { SideModal } from '../../shared/ui/SideModal';
+import { useAuthData } from '../../hooks/useAuthData';
+import { useGetMarkReportConfigByClass } from '../../api_services/markReport_api/markReportConfigApi';
+import { useGetClasses } from '../../api_services/schoolConfig_api/classApi';
+import { useGetSections } from '../../api_services/schoolConfig_api/sectionApi';
+import { useGetAllStudents } from '../../api_services/student_api/studentMainApi';
+import { toast } from '../../shared/ui/ToastContext'; // Make sure to import toast for feedback
+import { getAcademicYears } from '../../utils/utils';
 
 interface MarkReportSingleProps {
     mode: 'view' | 'edit' | 'create';
     initialData?: any;
     onSubmit: (data: any) => void;
     isSubmitting: boolean;
-    isEditable: boolean;
-    onEdit: () => void;
+    isEditable?: boolean; // Kept for interface compatibility but relying on 'mode'
+    onEdit?: () => void;
     onCancel: () => void;
 }
+
+type MarksDictionary = Record<string, Record<string, number | null>>;
 
 export default function MarkReportSingle({
     mode,
@@ -377,9 +500,11 @@ export default function MarkReportSingle({
     onEdit,
     onCancel
 }: MarkReportSingleProps) {
-    // --- Form State ---
+    const { schoolId } = useAuthData();
+    const isViewMode = mode === 'view';
+
     const [formData, setFormData] = useState({
-        academicYear: '',
+        academicYear: '2026-2027',
         classId: '',
         sectionId: '',
         studentId: '',
@@ -387,308 +512,460 @@ export default function MarkReportSingle({
         isAbsent: false,
     });
 
-    const [subjects, setSubjects] = useState<IMarkSubject[]>([]);
+    const [marksDict, setMarksDict] = useState<MarksDictionary>({});
 
-    // --- Populate State on Mount or InitialData Change ---
+    const [cellEditor, setCellEditor] = useState<{
+        examName: string;
+        subjectName: string;
+        maxMarks: number;
+        passingMarks: number;
+        currentVal: string;
+    } | null>(null);
+
+    // ==========================================
+    // LIVE API HOOKS & OPTIONS MAPPING
+    // ==========================================
+
+    const { data: classesData, isLoading: isClassesLoading } = useGetClasses(schoolId!);
+    const classOptions = useMemo(() => {
+        return classesData?.map((cls: any) => ({
+            label: cls.name || cls.className,
+            value: cls._id
+        })) || [];
+    }, [classesData]);
+
+    const { data: sectionsData, isLoading: isSectionsLoading } = useGetSections({
+        schoolId: schoolId!,
+        classId: formData.classId
+    });
+
+    const sectionOptions = useMemo(() => {
+        return sectionsData?.map((sec: any) => ({
+            label: sec.name || sec.sectionName,
+            value: sec._id
+        })) || [];
+    }, [sectionsData]);
+
+    const { data: studentsResponse, isLoading: isStudentsLoading } = useGetAllStudents({
+        schoolId: schoolId!,
+        classId: formData.classId,
+        sectionId: formData.sectionId,
+        limit: 100
+    });
+
+    const studentOptions = useMemo(() => {
+        const studentList = studentsResponse?.pages?.flat() || [];
+        return studentList.map((stu: any) => ({
+            label: stu?.studentName || stu?.name,
+            value: stu._id
+        }));
+    }, [studentsResponse]);
+
+    const { data: configData, isLoading: isConfigLoading } = useGetMarkReportConfigByClass({
+        schoolId: schoolId!,
+        academicYear: formData.academicYear,
+        classId: formData.classId
+    });
+
+    const exams = useMemo(() => {
+        return [...(configData?.exams || [])].sort((a, b) => (a.order || 0) - (b.order || 0));
+    }, [configData]);
+
+    const subjects = useMemo(() => {
+        return [...(configData?.subjects || [])].sort((a, b) => (a.order || 0) - (b.order || 0));
+    }, [configData]);
+
+    // Helper to get the selected student's name dynamically
+    const getStudentName = () => {
+        if (initialData?.studentId?.studentName) return initialData.studentId.studentName;
+        if (initialData?.studentId?.name) return initialData.studentId.name;
+        const selected = studentOptions.find(opt => opt.value === formData.studentId);
+        return selected ? selected.label : 'Select a student...';
+    };
+
+    // ==========================================
+    // DATA HYDRATION (Unpacking)
+    // ==========================================
+    // ==========================================
+    // DATA HYDRATION (Unpacking)
+    // ==========================================
     useEffect(() => {
-        if (initialData && mode !== 'create') {
+        if (initialData) {
             setFormData({
                 academicYear: initialData.academicYear || '',
-                classId: initialData.classId?._id || '',
-                sectionId: initialData.sectionId?._id || '',
-                studentId: initialData.studentId?._id || '',
+                classId: initialData.classId?._id || initialData.classId || '',
+                sectionId: initialData.sectionId?._id || initialData.sectionId || '',
+                studentId: initialData.studentId?._id || initialData.studentId || '',
                 remarks: initialData.remarks || '',
                 isAbsent: initialData.isAbsent || false,
             });
-            
-            // Map legacy marksObtained to quarterly if new fields don't exist yet
-            const mappedSubjects = (initialData.subjects || []).map((sub: any) => ({
-                ...sub,
-                quarterly: sub.quarterly ?? sub.marksObtained ?? ''
-            }));
-            setSubjects(mappedSubjects);
-            
-        } else if (mode === 'create') {
-            setSubjects([{ subject: '', minPassingMarks: 35, quarterly: '', midTerm: '', halfYearly: '', annual: '' }]);
         }
-    }, [initialData, mode]);
+    }, [initialData]);
 
-    // --- Subject Array Handlers ---
-    const handleAddSubject = () => {
-        setSubjects([...subjects, { subject: '', minPassingMarks: 35, quarterly: '', midTerm: '', halfYearly: '', annual: '' }]);
+    useEffect(() => {
+        // Read directly from the proper examRecords array!
+        if (initialData?.examRecords && Array.isArray(initialData.examRecords) && exams.length > 0) {
+            const loadedDict: MarksDictionary = {};
+
+            initialData.examRecords.forEach((exam: any) => {
+                loadedDict[exam.examName] = {};
+                exam.subjects.forEach((sub: any) => {
+                    loadedDict[exam.examName][sub.subject] = sub.marksObtained;
+                });
+            });
+
+            setMarksDict(loadedDict);
+        }
+    }, [initialData, exams]);
+
+    // ==========================================
+    // HANDLERS
+    // ==========================================
+
+    const handleFilterChange = (key: string, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            [key]: value,
+            ...(key === 'classId' ? { sectionId: '', studentId: '' } : {}),
+            ...(key === 'sectionId' ? { studentId: '' } : {})
+        }));
     };
 
-    const handleRemoveSubject = (index: number) => {
-        setSubjects(subjects.filter((_, i) => i !== index));
+    const openCellEditor = (exam: any, subject: any) => {
+        if (isViewMode) return;
+        if (formData.isAbsent) {
+            toast?.error("Cannot enter marks while the student is marked Absent.");
+            return;
+        }
+
+        const existingMark = marksDict[exam.examName]?.[subject.subjectName];
+        setCellEditor({
+            examName: exam.examName,
+            subjectName: subject.subjectName,
+            maxMarks: exam.maxMarks || 100,
+            passingMarks: exam.passingMarks || 35,
+            currentVal: existingMark !== undefined && existingMark !== null ? String(existingMark) : ''
+        });
     };
 
-    const handleSubjectChange = (index: number, field: keyof IMarkSubject, value: any) => {
-        const newSubjects = [...subjects];
-        newSubjects[index] = { ...newSubjects[index], [field]: value };
-        setSubjects(newSubjects);
+    const saveCellMark = () => {
+        if (!cellEditor) return;
+        setMarksDict(prev => {
+            const updated = { ...prev };
+            if (!updated[cellEditor.examName]) updated[cellEditor.examName] = {};
+            updated[cellEditor.examName][cellEditor.subjectName] =
+                cellEditor.currentVal === '' ? null : Number(cellEditor.currentVal);
+            return updated;
+        });
+        setCellEditor(null);
     };
 
-    // --- Submit Handler ---
+    // ==========================================
+    // DATA SUBMISSION (Packing)
+    // ==========================================
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Ensure quarterly maps to marksObtained for backend backward compatibility
-        const payloadSubjects = subjects.map(sub => ({
-            ...sub,
-            marksObtained: sub.quarterly // Temporary bridge until backend schema is fully updated
-        }));
-        onSubmit({ ...formData, subjects: payloadSubjects });
+
+        // 1. Compile the REAL matrix data (This keeps I Mid Term and II Mid Term safely separated!)
+        const compiledExamRecords = exams.map(exam => {
+            const examMarks = marksDict[exam.examName] || {};
+            return {
+                examName: exam.examName,
+                isAbsent: false,
+                remarks: "",
+                subjects: subjects.map(sub => ({
+                    subject: sub.subjectName,
+                    // Send actual mark, or 0 if empty
+                    marksObtained: examMarks[sub.subjectName] !== undefined && examMarks[sub.subjectName] !== null
+                        ? examMarks[sub.subjectName]
+                        : 0,
+                    maxMarks: exam.maxMarks || 100,
+                    minPassingMarks: exam.passingMarks || 35,
+                }))
+            };
+        });
+
+        // 2. Compile the legacy subjects array as a "Grand Total" to satisfy backend validation
+        const aggregateSubjects = subjects.map(sub => {
+            // let totalMarks = 0;
+            // let totalMaxMarks = 0;
+
+            let totalMarks: number | null = null;
+            let totalMaxMarks: number | null = null;
+            let hasEnteredMarks = false;
+
+            // Add up the marks for this subject across ALL exams in the matrix
+            exams.forEach(exam => {
+                const mark = marksDict[exam.examName]?.[sub.subjectName];
+                // if (mark !== undefined && mark !== null) {
+                //     totalMarks += Number(mark);
+                //     totalMaxMarks += (exam.maxMarks || 100);
+                // }
+
+                // Only add it if it's an actual number
+                if (typeof mark === 'number' && mark !== undefined && mark !== null) {
+                    hasEnteredMarks = true;
+                    totalMarks = (totalMarks || 0) + mark;
+                    totalMaxMarks = (totalMaxMarks || 0) + (exam.maxMarks || 100);
+                }
+            });
+
+            return {
+                subject: sub.subjectName,
+                // marksObtained: totalMarks,     // Shows the sum instead of 0!
+                marksObtained: hasEnteredMarks ? totalMarks : null,
+                maxMarks: totalMaxMarks || 100,
+                minPassingMarks: 35
+            };
+        });
+
+        // 3. Submit BOTH to the backend!
+        onSubmit({
+            ...formData,
+            markReportConfigId: configData?._id,
+            examRecords: compiledExamRecords, // <--- CRITICAL: This was missing! It holds your actual grid.
+            subjects: aggregateSubjects          // <--- This passes the validation.
+        });
     };
 
-    // --- Mock Data Options (Replace with your actual React Query hooks) ---
-    const mockOptions = [{ label: 'Loading from API...', value: 'mock' }]; 
-    const isViewMode = mode === 'view';
-
     return (
-        <div className="w-full h-full flex flex-col bg-mainBg overflow-y-auto custom-scrollbar animate-in fade-in duration-300">
-            <form onSubmit={handleFormSubmit} className="max-w-6xl w-full mx-auto p-4 md:p-6 space-y-6">
-                
-                {/* --- HEADER --- */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
-                            <i className={`fas ${isViewMode ? 'fa-file-certificate text-primary' : 'fa-edit text-warning'}`}></i>
-                            {isViewMode ? 'Academic Mark Report' : mode === 'edit' ? 'Edit Mark Report' : 'Create Mark Report'}
-                        </h2>
-                        {isViewMode && initialData?.recordedBy && (
-                            <p className="text-xs text-muted mt-1">
-                                Recorded by: <span className="font-medium text-foreground">{initialData.recordedBy.userName}</span>
-                            </p>
-                        )}
-                    </div>
-                    
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-3">
-                        <Button type="button" variant="outline" onClick={onCancel}>
-                            {isViewMode ? 'Go Back' : 'Cancel'}
-                        </Button>
-                        {isViewMode && isEditable && (
-                            <Button type="button" variant="primary" onClick={onEdit} leftIcon="fas fa-pen">
-                                Edit Report
-                            </Button>
-                        )}
-                        {!isViewMode && (
-                            <Button type="submit" variant="primary" isLoading={isSubmitting} leftIcon="fas fa-save">
-                                Save Report
-                            </Button>
-                        )}
-                    </div>
-                </div>
+        <div className="w-full h-full flex flex-col bg-mainBg overflow-hidden animate-in fade-in duration-300 relative">
 
-                {/* --- WARNING BANNER (If Absent) --- */}
-                {(formData.isAbsent || (isViewMode && initialData?.isAbsent)) && (
-                    <div className="bg-danger/10 border border-danger/20 text-danger px-5 py-4 rounded-xl flex items-center gap-3">
-                        <i className="fas fa-user-times text-xl"></i>
-                        <div>
-                            <p className="font-bold text-sm">Student Marked Absent</p>
-                            <p className="text-xs mt-0.5 opacity-80">This student was absent during this evaluation period. Marks will not be calculated towards final aggregates.</p>
+            {/* --- SIDE MODAL FOR CELL EDITING --- */}
+            <SideModal
+                isOpen={!!cellEditor}
+                onClose={() => setCellEditor(null)}
+                title={`${cellEditor?.examName || 'Exam'} Marks`}
+                width="w-full sm:w-[400px]"
+            >
+                {cellEditor && (
+                    <div className="space-y-6">
+                        <div className="bg-surface border border-border rounded-xl p-4 shadow-sm">
+                            <h4 className="text-sm font-bold text-foreground mb-1">{cellEditor.subjectName}</h4>
+                            <p className="text-xs text-muted mb-4">Enter the marks obtained by the student for this specific evaluation.</p>
+
+                            <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">
+                                Marks Obtained
+                            </label>
+                            <Input
+                                autoFocus
+                                type="number"
+                                min="0"
+                                max={cellEditor.maxMarks}
+                                value={cellEditor.currentVal}
+                                onChange={(e) => setCellEditor({ ...cellEditor, currentVal: e.target.value })}
+                                placeholder={`Max: ${cellEditor.maxMarks}`}
+                                className="text-lg py-3 font-bold"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        saveCellMark();
+                                    }
+                                }}
+                            />
+
+                            <div className="flex justify-between items-center text-[11px] text-muted mt-3 bg-mainBg p-3 rounded-lg border border-border">
+                                <span>Max Marks: <strong className="text-foreground">{cellEditor.maxMarks}</strong></span>
+                                <span>Pass Threshold: <strong className="text-warning">{cellEditor.passingMarks}</strong></span>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-4 border-t border-border">
+                            <Button variant="outline" onClick={() => setCellEditor(null)}>Cancel</Button>
+                            <Button variant="primary" onClick={saveCellMark}>Update Mark</Button>
                         </div>
                     </div>
                 )}
+            </SideModal>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    {/* --- LEFT COLUMN: Meta Data --- */}
-                    <div className="lg:col-span-1 space-y-6">
-                        <div className="bg-surface border border-border rounded-2xl p-5 shadow-sm space-y-5">
-                            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider border-b border-border pb-3">Student Details</h3>
-                            
-                            {isViewMode ? (
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-full bg-primary-soft text-primary flex items-center justify-center font-bold text-xl border border-primary/20">
-                                            {initialData?.studentId?.studentName?.charAt(0) || 'S'}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-foreground text-lg">{initialData?.studentId?.studentName || 'N/A'}</p>
-                                            <p className="text-xs font-semibold text-muted">SR ID: {initialData?.studentId?.srId || 'N/A'}</p>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
-                                        <div>
-                                            <p className="text-[10px] text-muted font-bold uppercase tracking-wider">Class</p>
-                                            <p className="text-sm font-semibold text-foreground mt-0.5">{initialData?.classId?.name || 'N/A'}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] text-muted font-bold uppercase tracking-wider">Section</p>
-                                            <p className="text-sm font-semibold text-foreground mt-0.5">{initialData?.sectionId?.name || 'N/A'}</p>
-                                        </div>
-                                        <div className="col-span-2">
-                                            <p className="text-[10px] text-muted font-bold uppercase tracking-wider">Academic Year</p>
-                                            <p className="text-sm font-semibold text-foreground mt-0.5">{initialData?.academicYear || 'N/A'}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    <Input 
-                                        id="academicYear" label="Academic Year" placeholder="e.g. 2025-2026"
-                                        value={formData.academicYear} 
-                                        onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })} 
-                                    />
-                                    <SearchSelect 
-                                        label="Select Class" options={mockOptions} 
-                                        value={formData.classId} onChange={(opt) => setFormData({ ...formData, classId: String(opt.value) })}
-                                    />
-                                    <SearchSelect 
-                                        label="Select Section" options={mockOptions} 
-                                        value={formData.sectionId} onChange={(opt) => setFormData({ ...formData, sectionId: String(opt.value) })}
-                                    />
-                                    <SearchSelect 
-                                        label="Select Student" options={mockOptions} 
-                                        value={formData.studentId} onChange={(opt) => setFormData({ ...formData, studentId: String(opt.value) })}
-                                    />
-                                    
-                                    <div className="pt-4 border-t border-border">
-                                        <Toggle 
-                                            checked={formData.isAbsent} 
-                                            onChange={(val) => setFormData({ ...formData, isAbsent: val })}
-                                            label="Mark as Absent"
-                                            description="Student did not attend this evaluation."
-                                        />
-                                    </div>
-                                </div>
-                            )}
+            <form onSubmit={handleFormSubmit} className="flex flex-col h-full w-full">
+
+                {/* --- TOP HEADER & GLOBAL ACTIONS --- */}
+                <div className="border-b border-border bg-surface shrink-0 z-10 shadow-sm">
+                    <div className="p-4 md:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
+                                <i className={`fas ${isViewMode ? 'fa-file-certificate text-primary' : 'fa-edit text-warning'}`}></i>
+                                {isViewMode ? 'Academic Mark Report' : mode === 'edit' ? 'Edit Mark Report' : 'Student Marking Panel'}
+                            </h2>
                         </div>
 
-                        {/* Remarks Section */}
-                        <div className="bg-surface border border-border rounded-2xl p-5 shadow-sm">
-                            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-4 border-b border-border pb-3">Teacher Remarks & Evaluation</h3>
-                            {isViewMode ? (
-                                <div className="bg-background rounded-xl p-4 border border-border text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                                    {formData.remarks || <span className="text-muted italic">No remarks provided for this evaluation.</span>}
+                        <div className="flex items-center gap-3">
+                            <Button type="button" variant="outline" onClick={onCancel}>
+                                {isViewMode ? 'Go Back' : 'Cancel'}
+                            </Button>
+                            {isViewMode && isEditable && onEdit && (
+                                <Button type="button" variant="primary" onClick={onEdit} leftIcon="fas fa-pen">
+                                    Edit Report
+                                </Button>
+                            )}
+                            {!isViewMode && formData.studentId && (
+                                <Button type="submit" variant="primary" isLoading={isSubmitting} leftIcon="fas fa-save">
+                                    Save Report
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* CREATE MODE: Dropdown Filters */}
+                    {mode === 'create' && (
+                        <div className="bg-mainBg border-t border-border p-4 md:px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {/* <Input
+                                id="academicYear" label="Academic Year" placeholder="e.g. 2025-2026"
+                                value={formData.academicYear}
+                                onChange={(e) => handleFilterChange('academicYear', e.target.value)}
+                            /> */}
+
+                            <SearchSelect
+                                label="Academic Years" // Removed label to keep the top bar clean like a search input
+                                options={getAcademicYears()}
+                                value={formData.academicYear}
+                                onChange={(opt) => handleFilterChange('academicYear', String(opt.value))}
+                                placeholder="Academic Year..."
+                            />
+                            <SearchSelect
+                                label="Class" options={classOptions}
+                                placeholder={isClassesLoading ? "Loading..." : "Select Class..."}
+                                value={formData.classId} onChange={(opt) => handleFilterChange('classId', String(opt.value))}
+                            />
+                            <SearchSelect
+                                label="Section" options={sectionOptions}
+                                placeholder={isSectionsLoading ? "Loading..." : "Select Section..."}
+                                value={formData.sectionId} onChange={(opt) => handleFilterChange('sectionId', String(opt.value))}
+                            />
+                            <SearchSelect
+                                label="Student" options={studentOptions}
+                                placeholder={isStudentsLoading ? "Loading..." : "Select Student..."}
+                                value={formData.studentId} onChange={(opt) => handleFilterChange('studentId', String(opt.value))}
+                            />
+                        </div>
+                    )}
+                </div>
+
+                {/* --- MAIN WORKSPACE --- */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 bg-mainBg">
+
+                    {!formData.studentId ? (
+                        <div className="h-full w-full flex flex-col items-center justify-center text-muted border-2 border-dashed border-border rounded-2xl">
+                            <i className="fas fa-user-graduate text-5xl mb-4 opacity-50"></i>
+                            <h3 className="text-lg font-bold text-foreground">No Student Selected</h3>
+                            <p className="text-sm mt-1">Please select a class, section, and student from the header to begin.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300 max-w-7xl mx-auto">
+
+                            {/* COMPACT INFORMATION ROW */}
+                            <div className="bg-surface border border-border rounded-xl p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                                <div className="flex flex-wrap items-center gap-6 md:gap-8">
+                                    <div>
+                                        <p className="text-[10px] text-muted font-bold uppercase tracking-wider mb-0.5">Academic Year</p>
+                                        <p className="text-sm font-semibold text-foreground">{formData.academicYear || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-muted font-bold uppercase tracking-wider mb-0.5">Student Name</p>
+                                        <p className="text-sm font-bold text-primary">{getStudentName()}</p>
+                                    </div>
+                                    {/* <div className="border-l border-border pl-6 md:pl-8">
+                                        <Toggle
+                                            checked={formData.isAbsent}
+                                            onChange={(val) => setFormData({ ...formData, isAbsent: val })}
+                                            label="Mark Absent"
+                                            disabled={isViewMode}
+                                            // 1. Track: Add a border and ensure it doesn't wash out
+                                            className="border border-border bg-sub-header peer-checked:bg-primary"
+
+                                            // 2. Thumb: Add a border to make the circle pop against the background
+                                            thumbClassName="border border-border"
+                                        />
+                                    </div> */}
                                 </div>
-                            ) : (
-                                <div>
-                                    <textarea 
-                                        className="w-full bg-background border border-border rounded-xl p-4 text-sm text-foreground focus:ring-2 focus:ring-primary/50 outline-none resize-none custom-scrollbar"
-                                        rows={4}
-                                        placeholder="Enter detailed evaluation remarks, areas of improvement, or general feedback..."
+                                {/* <div className="flex-1 w-full lg:max-w-md">
+                                    <Input
+                                        placeholder="Overall teacher remarks..."
                                         value={formData.remarks}
                                         onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+                                        disabled={isViewMode}
+                                        className="bg-mainBg w-full"
                                     />
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* --- RIGHT COLUMN: Matrix Grid --- */}
-                    <div className="lg:col-span-2 space-y-6">
-                        
-                        <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col">
-                            <div className="p-5 border-b border-border bg-sub-header/50 flex justify-between items-center">
-                                <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Academic Matrix</h3>
-                                {!isViewMode && (
-                                    <Button type="button" variant="outline" onClick={handleAddSubject} className="text-xs py-1.5 px-3">
-                                        <i className="fas fa-plus mr-1.5"></i> Add Subject
-                                    </Button>
-                                )}
+                                </div> */}
                             </div>
-                            
-                            <div className="overflow-x-auto custom-scrollbar">
-                                <table className="w-full text-left border-collapse min-w-[40rem]">
-                                    <thead>
-                                        <tr className="text-[11px] font-bold text-muted uppercase tracking-wider border-b border-border">
-                                            <th className="p-4 border-r border-border/50">Subject</th>
-                                            {!isViewMode && <th className="p-4 w-20 text-center">Pass Threshold</th>}
-                                            <th className="p-4 w-24 text-center">Quarterly</th>
-                                            <th className="p-4 w-24 text-center">Mid Term</th>
-                                            <th className="p-4 w-24 text-center">Half Yearly</th>
-                                            <th className="p-4 w-24 text-center">Annual</th>
-                                            {!isViewMode && <th className="p-4 w-16 text-center">Act</th>}
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-border/50">
-                                        {subjects.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={isViewMode ? 5 : 7} className="p-8 text-center text-muted text-sm">
-                                                    No subjects added yet.
-                                                </td>
-                                            </tr>
-                                        ) : subjects.map((sub, idx) => {
-                                            const passThreshold = sub.minPassingMarks || 35;
 
-                                            const getMarkColor = (mark: number | string | undefined) => {
-                                                if (mark === null || mark === undefined || mark === '') return 'text-muted/40';
-                                                return Number(mark) < passThreshold ? 'text-danger font-bold' : 'text-foreground font-semibold';
-                                            };
-
-                                            return (
-                                                <tr key={idx} className={isViewMode ? "hover:bg-sub-header/30 transition-colors" : ""}>
-                                                    {isViewMode ? (
-                                                        <>
-                                                            <td className="p-4 font-semibold text-foreground border-r border-border/50">{sub.subject}</td>
-                                                            <td className={`p-4 text-center text-base ${getMarkColor(sub.quarterly)}`}>{sub.quarterly || '--'}</td>
-                                                            <td className={`p-4 text-center text-base ${getMarkColor(sub.midTerm)}`}>{sub.midTerm || '--'}</td>
-                                                            <td className={`p-4 text-center text-base ${getMarkColor(sub.halfYearly)}`}>{sub.halfYearly || '--'}</td>
-                                                            <td className={`p-4 text-center text-base ${getMarkColor(sub.annual)}`}>{sub.annual || '--'}</td>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <td className="p-2 border-r border-border/50"><Input id={`sub-${idx}`} value={sub.subject} onChange={(e) => handleSubjectChange(idx, 'subject', e.target.value)} required placeholder="Subject Name" /></td>
-                                                            <td className="p-2"><Input id={`min-${idx}`} type="number" min="0" value={sub.minPassingMarks} onChange={(e) => handleSubjectChange(idx, 'minPassingMarks', Number(e.target.value))} required /></td>
-                                                            <td className="p-2"><Input id={`q-${idx}`} type="number" min="0" value={sub.quarterly} onChange={(e) => handleSubjectChange(idx, 'quarterly', e.target.value)} /></td>
-                                                            <td className="p-2"><Input id={`m-${idx}`} type="number" min="0" value={sub.midTerm} onChange={(e) => handleSubjectChange(idx, 'midTerm', e.target.value)} /></td>
-                                                            <td className="p-2"><Input id={`h-${idx}`} type="number" min="0" value={sub.halfYearly} onChange={(e) => handleSubjectChange(idx, 'halfYearly', e.target.value)} /></td>
-                                                            <td className="p-2"><Input id={`a-${idx}`} type="number" min="0" value={sub.annual} onChange={(e) => handleSubjectChange(idx, 'annual', e.target.value)} /></td>
-                                                            <td className="p-2 text-center">
-                                                                <button type="button" onClick={() => handleRemoveSubject(idx)} className="w-8 h-8 rounded-lg bg-danger/10 text-danger hover:bg-danger hover:text-white transition-colors flex items-center justify-center mx-auto">
-                                                                    <i className="fas fa-trash-alt text-xs"></i>
-                                                                </button>
-                                                            </td>
-                                                        </>
-                                                    )}
+                            {/* THE MARKING MATRIX */}
+                            <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col">
+                                <div className="overflow-x-auto custom-scrollbar">
+                                    {isConfigLoading ? (
+                                        <div className="p-12 flex items-center justify-center">
+                                            <i className="fas fa-circle-notch fa-spin text-primary text-3xl"></i>
+                                        </div>
+                                    ) : !configData || subjects.length === 0 ? (
+                                        <div className="p-12 text-center text-danger">
+                                            <i className="fas fa-exclamation-triangle text-3xl mb-3 opacity-50"></i>
+                                            <p className="font-bold">Missing Configuration</p>
+                                            <p className="text-sm opacity-80 mt-1">The report card template for this class has not been configured.</p>
+                                        </div>
+                                    ) : (
+                                        <table className="w-full text-left border-collapse min-w-max">
+                                            <thead>
+                                                <tr className="text-[11px] font-bold text-muted uppercase tracking-wider border-b-2 border-border bg-mainBg">
+                                                    <th className="p-4 border-r border-border/50 sticky left-0 z-10 bg-mainBg shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-64">
+                                                        Subjects
+                                                    </th>
+                                                    {exams.map((exam, eIdx) => (
+                                                        <th key={eIdx} className="p-4 border-r border-border/50 text-center min-w-[140px]">
+                                                            <div className="font-bold text-foreground text-sm">{exam.examName}</div>
+                                                            <div className="text-[10px] mt-1 font-normal opacity-70">
+                                                                Max {exam.maxMarks} • Pass {exam.passingMarks}
+                                                            </div>
+                                                        </th>
+                                                    ))}
                                                 </tr>
-                                            );
-                                        })}
+                                            </thead>
+                                            <tbody className="divide-y divide-border/50">
+                                                {subjects.map((sub, sIdx) => (
+                                                    <tr key={sIdx} className="hover:bg-sub-header/30 transition-colors group">
+                                                        <td className="p-4 font-semibold text-foreground border-r border-border/50 sticky left-0 z-10 bg-surface group-hover:bg-sub-header/50 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                                                            {sub.subjectName}
+                                                            {sub.subjectCode && <span className="block text-[10px] text-muted font-normal mt-0.5">{sub.subjectCode}</span>}
+                                                        </td>
 
-                                        {/* --- Overall Status Footer Row --- */}
-                                        <tr className="bg-sub-header/20 border-t-2 border-border">
-                                            <td className="p-4 font-bold text-muted uppercase tracking-wider border-r border-border/50 text-right text-[11px]" colSpan={isViewMode ? 1 : 2}>
-                                                Overall Result
-                                            </td>
-                                            {['quarterly', 'midTerm', 'halfYearly', 'annual'].map((examKey, idx) => {
-                                                let hasData = false;
-                                                let isFail = false;
+                                                        {exams.map((exam, eIdx) => {
+                                                            const mark = marksDict[exam.examName]?.[sub.subjectName];
+                                                            const hasMark = mark !== undefined && mark !== null;
+                                                            const isFail = hasMark && Number(mark) < (exam?.passingMarks || 35);
 
-                                                subjects.forEach((sub: any) => {
-                                                    const passThreshold = sub.minPassingMarks || 35;
-                                                    const mark = sub[examKey];
-                                                    
-                                                    if (mark !== null && mark !== undefined && mark !== '') {
-                                                        hasData = true;
-                                                        if (Number(mark) < passThreshold) {
-                                                            isFail = true;
-                                                        }
-                                                    }
-                                                });
-
-                                                if (!hasData) {
-                                                    return <td key={idx} className="p-4 text-center font-medium text-muted/40">--</td>;
-                                                }
-
-                                                return (
-                                                    <td key={idx} className="p-4 text-center">
-                                                        <span className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
-                                                            isFail ? 'bg-danger/10 text-danger border-danger/20' : 'bg-success/10 text-success border-success/20'
-                                                        }`}>
-                                                            {isFail ? 'Fail' : 'Pass'}
-                                                        </span>
-                                                    </td>
-                                                );
-                                            })}
-                                            {!isViewMode && <td className="p-4"></td>}
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                                            return (
+                                                                <td
+                                                                    key={eIdx}
+                                                                    className={`p-3 border-r border-border/50 transition-colors ${formData.isAbsent || isViewMode
+                                                                        ? 'bg-mainBg/30'
+                                                                        : 'cursor-pointer hover:bg-primary/5'
+                                                                        }`}
+                                                                    onClick={() => openCellEditor(exam, sub)}
+                                                                >
+                                                                    {hasMark ? (
+                                                                        <div className="flex flex-col items-center justify-center">
+                                                                            <span className={`font-bold text-lg ${isFail ? 'text-danger' : 'text-foreground'}`}>
+                                                                                {mark}
+                                                                            </span>
+                                                                            {/* {isFail && <span className="text-[9px] text-danger uppercase tracking-wider mt-0.5 font-bold">Fail</span>} */}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="w-full max-w-[80px] h-9 mx-auto bg-mainBg border border-border/50 border-dashed rounded flex items-center justify-center group-hover:border-primary/50 group-hover:bg-primary/5 transition-colors">
+                                                                            <span className="text-[10px] text-muted opacity-50 group-hover:text-primary group-hover:opacity-100">Empty</span>
+                                                                        </div>
+                                                                    )}
+                                                                </td>
+                                                            );
+                                                        })}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
                             </div>
                         </div>
-
-                    </div>
+                    )}
                 </div>
             </form>
         </div>

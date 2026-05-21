@@ -2,16 +2,20 @@ import { useState, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthData } from '../../hooks/useAuthData'; // Adjust path
 import { useGetClasses } from '../../api_services/schoolConfig_api/classApi'; // Adjust path
-import { useGetAllMarkReports } from '../../api_services/markReport_api/markReportApi'; // Adjust path
-import { SearchSelect } from '../../shared/ui/SearchSelect'; // Adjust path
+// import { useGetAllMarkReports } from '../../api_services/markReport_api/markReportApi'; // Adjust path
+import { SearchSelect, type SelectOption } from '../../shared/ui/SearchSelect'; // Adjust path
 import { Button } from '../../shared/ui/Button'; // Adjust path
 import { getAcademicYears } from '../../utils/utils';
 import { useGetSchoolById } from '../../api_services/schoolConfig_api/schoolapi';
+import { useGetSections } from '../../api_services/schoolConfig_api/sectionApi';
+import { useGetAllStudentsV1 } from '../../api_services/student_api/studentMainApi';
+// import { useGetMarkReportByIdV1 } from '../../api_services/markReport_api/markReportApi';
+// import { useGetMarkReportConfigByClass } from '../../api_services/markReport_api/markReportConfigApi';
 
 export default function MarkReportMain() {
     const navigate = useNavigate();
     const location = useLocation(); // Hook to track current URL
-    const { schoolId , currentRole} = useAuthData();
+    const { schoolId, currentRole } = useAuthData();
     // const currentYear = new Date().getFullYear();
 
     const { data: schoolData } = useGetSchoolById(schoolId!);
@@ -29,17 +33,36 @@ export default function MarkReportMain() {
 
     // --- Data Queries ---
     const { data: classesData, isLoading: isClassesLoading } = useGetClasses(schoolId!);
-
-    // Fetch reports based on current selections
-    const { data: reportPayload, isLoading: isReportsLoading } = useGetAllMarkReports({
+    const { data: sectionsData, isLoading: isSectionsLoading } = useGetSections({
         schoolId: schoolId!,
-        academicYear: filters.academicYear,
-        classId: filters.classId || undefined,
-        sectionId: filters.sectionId || undefined,
-        studentId: filters.studentId || undefined
+        classId: filters.classId
     });
 
-    const reports = reportPayload?.data || [];
+
+
+    // 1. Fetch Students based on Class and Section (Roster View)
+    const { data: studentsList, isLoading: isStudentsLoading } = useGetAllStudentsV1({
+        schoolId: schoolId!,
+        classId: filters.classId || undefined,
+        sectionId: filters.sectionId || undefined,
+    });
+
+    // 2. NEW: Fetch single report only when a student is selected
+    // const { data: reportPayload, isLoading: isReportLoading } = useGetMarkReportByIdV1(
+    //     {
+    //         studentId: filters.studentId,
+    //         academicYear: filters.academicYear,
+    //         classId: filters.classId,
+    //         sectionId: filters.sectionId
+    //     }
+
+    // );
+
+
+   
+    // NOTE: You will use your "Get or Initialize Marksheet" hook further down in your code 
+    // ONLY when filters.studentId is not null.
+    // const reports = reportPayload?.data || [];
 
     // --- Select Handlers ---
     const handleFilterChange = (key: keyof typeof filters, value: string) => {
@@ -52,44 +75,20 @@ export default function MarkReportMain() {
         }));
     };
 
-    // Extract unique students across available reports
-    const studentOptions = useMemo(() => {
-        const uniqueStudents: Record<string, string> = {};
-        reports.forEach((rep: any) => {
-            if (rep.studentId?._id && rep.studentId?.studentName) {
-                uniqueStudents[rep.studentId._id] = rep.studentId.studentName;
-            }
-        });
-        return Object.entries(uniqueStudents).map(([value, label]) => ({ label, value }));
-    }, [reports]);
+   
 
-    const classOptions = useMemo(() => {
+
+    const classOptions: SelectOption[] = useMemo(() => {
         return (classesData || []).map((c: any) => ({ label: `Class ${c.name}`, value: c._id }));
     }, [classesData]);
 
-    const activeReport = useMemo(() => {
-        if (!filters.studentId) return null;
-        return reports.find((r: any) => r.studentId?._id === filters.studentId);
-    }, [reports, filters.studentId]);
+    const sectionOptions: SelectOption[] = useMemo(() => {
+        return sectionsData?.map((sec: any) => ({ label: `Section ${sec.name}`, value: sec._id })) || [];
+    }, [sectionsData]);
 
-    const marksSummary = useMemo(() => {
-        if (!activeReport || activeReport.isAbsent) return null;
-        let obtained = 0;
-        let totalMax = 0;
-        let status = 'PASS';
-
-        activeReport.subjects.forEach((sub: any) => {
-            obtained += sub.marksObtained || 0;
-            totalMax += sub.maxMarks || 100;
-            if (sub.marksObtained < sub.minPassingMarks) {
-                status = 'FAIL';
-            }
-        });
-
-        const percentage = totalMax > 0 ? parseFloat(((obtained / totalMax) * 100).toFixed(2)) : 0;
-        return { obtained, totalMax, percentage, status };
-    }, [activeReport]);
-
+    // This replaces your old useMemo!
+    // const activeReport = reportPayload?.data || null;
+   
 
     const canCreate = !['parent'].includes(currentRole || '');
 
@@ -102,7 +101,7 @@ export default function MarkReportMain() {
     }
 
     return (
-        <div className="w-full h-full flex flex-col space-y-6 overflow-hidden p-2 md:p-6 bg-mainBg animate-in fade-in duration-300">
+        <div className="w-full h-full flex flex-col space-y-6 overflow-hidden p-2 bg-mainBg animate-in fade-in duration-300">
 
             {/* --- FLAT HEADER DESIGN (Matches Class Configuration) --- */}
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5 shrink-0 px-1">
@@ -134,7 +133,17 @@ export default function MarkReportMain() {
                             placeholder={isClassesLoading ? "Loading..." : "Choose Class..."}
                         />
                     </div>
-                    <div className="w-full sm:w-56">
+                    {/* --- NEW SECTION FILTER --- */}
+                    <div className="w-full sm:w-48 relative">
+                        <SearchSelect
+                            label=""
+                            options={sectionOptions}
+                            value={filters.sectionId}
+                            onChange={(opt) => handleFilterChange('sectionId', String(opt.value))}
+                            placeholder={isSectionsLoading ? "Loading..." : "Section..."}
+                        />
+                    </div>
+                    {/* <div className="w-full sm:w-56">
                         <SearchSelect
                             label=""
                             options={studentOptions}
@@ -142,13 +151,13 @@ export default function MarkReportMain() {
                             onChange={(opt) => handleFilterChange('studentId', String(opt.value))}
                             placeholder="Target Student..."
                         />
-                    </div>
+                    </div> */}
 
                     {/* NEW: Create Button (Hidden from Parents) */}
                     {canCreate && (
-                        <Button 
-                            variant="primary" 
-                            leftIcon="fas fa-plus" 
+                        <Button
+                            variant="primary"
+                            leftIcon="fas fa-plus"
                             onClick={() => navigate('create')}
                             className="w-full sm:w-auto ml-2 shrink-0"
                         >
@@ -167,237 +176,221 @@ export default function MarkReportMain() {
                         <p className="font-semibold text-foreground">Awaiting Parameters</p>
                         <p className="text-sm mt-1 max-w-xs">Please select an active academic level from the top dropdown panels to stream results.</p>
                     </div>
-                ) : isReportsLoading ? (
+                ) : isStudentsLoading ? (
                     <div className="flex-1 flex items-center justify-center">
                         <i className="fas fa-circle-notch fa-spin text-primary text-3xl"></i>
                     </div>
                 ) : !filters.studentId ? (
-                    <div className="flex-1 flex flex-col overflow-hidden">
-                        <div className="px-6 py-4 border-b border-border bg-sub-header flex justify-between items-center shrink-0">
-                            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Class Report Registry ({reports.length})</h3>
-                        </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                            {reports.map((report: any) => (
-                                <div key={report._id} className="border border-border rounded-xl p-5 bg-background flex justify-between items-center hover:border-primary/30 transition-colors">
-                                    <div className="flex items-center gap-4 overflow-hidden">
-                                        <div className="w-12 h-12 rounded-full bg-sub-header flex items-center justify-center text-primary font-bold text-lg shrink-0 border border-border">
-                                            {report.studentId?.studentName?.charAt(0) || 'S'}
-                                        </div>
-                                        <div className="truncate">
-                                            <p className="text-base font-bold text-foreground truncate">{report.studentId?.studentName || 'Unknown Student'}</p>
-                                            <p className="text-xs text-muted font-medium mt-0.5">SR ID: {report.studentId?.srId || 'N/A'}</p>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+                        {/* Map over the actual students */}
+                        {studentsList?.map((student: any) => (
+                            <div
+                                key={student._id}
+                                className="group flex flex-col bg-surface border border-border rounded-2xl overflow-hidden hover:shadow-md hover:border-primary/40 transition-all duration-200"
+                            >
+                                {/* Top half: Identity */}
+                                <div className="p-5 flex items-start gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-primary-soft flex items-center justify-center text-primary font-bold text-xl shrink-0 shadow-sm">
+                                        {student.studentName?.charAt(0).toUpperCase() || 'S'}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-base font-bold text-foreground truncate" title={student.studentName}>
+                                            {student.studentName || 'Unknown Student'}
+                                        </h3>
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                            <i className="fa-solid fa-id-card text-[10px] text-muted"></i>
+                                            <p className="text-xs text-muted font-medium truncate">
+                                                {student.srId || 'N/A'}
+                                            </p>
                                         </div>
                                     </div>
-                                    <Button
+                                </div>
+
+                                {/* Bottom half: Context & Action */}
+                                <div className="px-5 py-4 bg-background/50 border-t border-border flex items-center justify-between mt-auto gap-2">
+
+                                    {/* Academic Badges */}
+                                    <div className="flex items-center gap-2 overflow-hidden">
+                                        {student.classId?.className && (
+                                            <span className="px-2 py-1 bg-surface border border-border rounded-md text-[10px] font-bold text-foreground uppercase tracking-wider truncate">
+                                                {student.classId.className}
+                                            </span>
+                                        )}
+                                        {student.sectionId?.name && (
+                                            <span className="px-2 py-1 bg-surface border border-border rounded-md text-[10px] font-bold text-foreground uppercase tracking-wider truncate">
+                                                {student.sectionId.name}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* View Button - Sets the target student ID */}
+                                    {/* <Button
                                         variant="outline"
-                                        className="py-2 px-4 text-xs shrink-0"
-                                        onClick={() => handleFilterChange('studentId', report.studentId?._id)}
+                                        className="py-1.5 px-3 text-xs shrink-0 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-colors"
+                                        onClick={() => handleFilterChange('studentId', student._id)}
                                     >
                                         View Grid
+                                    </Button> */}
+
+                                    <Button
+                                        variant="primary"
+                                        leftIcon="fas fa-external-link-alt"
+                                        className="py-1.5 px-3 text-xs shrink-0 group-hover:shadow-md transition-all"
+                                        onClick={() => {
+                                            // Pass the student ID in the path, and the context in the URL query string
+                                            navigate(`single/${student._id}?academicYear=${filters.academicYear}&classId=${student.classId?._id || filters.classId}&sectionId=${student.sectionId?._id || filters.sectionId}`);
+                                        }}
+                                    >
+                                        Detailed Sheet
                                     </Button>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                ) : !activeReport ? (
-                    <div className="flex-1 flex flex-col items-center justify-center p-6 text-muted">
-                        <i className="fas fa-folder-open text-4xl mb-3 opacity-30"></i>
-                        <p className="text-base font-bold">No Records Found</p>
-                    </div>
-                ) : (
-                    /* Detailed Spreadsheet Grid-Based Marksheet View */
-                    <div className="flex-1 flex flex-col h-full overflow-hidden animate-in fade-in duration-200">
-
-                        {/* Summary Header */}
-                        <div className="px-6 py-5 border-b border-border bg-sub-header/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
-                            <div>
-                                <h3 className="text-xl font-bold text-foreground">{activeReport.studentId?.studentName}</h3>
-                                <p className="text-sm text-muted mt-1 font-medium">
-                                    Class {activeReport.classId?.name || 'Unassigned'} — Section {activeReport.sectionId?.name || 'N/A'}
-                                </p>
                             </div>
-                            <div className="flex gap-3">
-                                <Button variant="outline" leftIcon="fas fa-arrow-left" className="text-sm py-2" onClick={() => setFilters(p => ({ ...p, studentId: '' }))}>
-                                    All Students
-                                </Button>
-                                <Button variant="primary" leftIcon="fas fa-external-link-alt" className="text-sm py-2" onClick={() => navigate(`single/${activeReport._id}`)}>
-                                    Detailed Sheet
-                                </Button>
-                            </div>
-                        </div>
+                        ))}
 
-                        {/* Marksheet Grid (Timetable Matrix Style) */}
-                        {/* <div className="flex-1 overflow-x-auto custom-scrollbar">
-                            <table className="w-full text-left border-collapse min-w-[36rem]">
-                                <thead>
-                                    <tr className="border-b border-border bg-sub-header text-xs font-bold text-muted uppercase tracking-wider">
-                                        <th className="px-6 py-4">Subject Heading</th>
-                                        <th className="px-6 py-4 text-center">Marks Obtained</th>
-                                        <th className="px-6 py-4 text-center">Min Passing</th>
-                                        <th className="px-6 py-4 text-center">Max Aggregate</th>
-                                        <th className="px-6 py-4 text-center">Grade</th>
-                                        <th className="px-6 py-4 text-center">Result Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-border text-sm">
-                                    {activeReport.isAbsent ? (
-                                        <tr>
-                                            <td colSpan={6} className="px-6 py-16 text-center text-danger font-semibold bg-danger/5">
-                                                <i className="fas fa-user-times mr-2 text-xl mb-2 block"></i> Student was marked ABSENT for this examination timeline.
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        activeReport.subjects.map((sub: any) => {
-                                            const isFailed = sub.marksObtained < sub.minPassingMarks;
-                                            return (
-                                                <tr key={sub._id} className="hover:bg-sub-header/30 transition-colors">
-                                                    <td className="px-6 py-5 font-semibold text-foreground">{sub.subject}</td>
-                                                    <td className={`px-6 py-5 text-center font-bold text-base ${isFailed ? 'text-danger' : 'text-foreground'}`}>
-                                                        {sub.marksObtained}
-                                                    </td>
-                                                    <td className="px-6 py-5 text-center text-muted font-medium">{sub.minPassingMarks}</td>
-                                                    <td className="px-6 py-5 text-center text-muted font-medium">{sub.maxMarks}</td>
-                                                    <td className="px-6 py-5 text-center font-bold text-primary text-base">{sub.grade || '--'}</td>
-                                                    <td className="px-6 py-5 text-center">
-                                                        <span className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border ${isFailed ? 'bg-danger/10 text-danger border-danger/20' : 'bg-success/10 text-success border-success/20'
-                                                            }`}>
-                                                            {isFailed ? 'Fail' : 'Pass'}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
-                                    )}
-                                </tbody>
-                            </table>
-                        </div> */}
-
-
-                        {/* Consolidated Marksheet Matrix (Real World Rank Card Style) */}
-                        <div className="flex-1 overflow-x-auto custom-scrollbar">
-                            <table className="w-full text-left border-collapse min-w-[40rem]">
-                                <thead>
-                                    <tr className="border-b border-border bg-sub-header text-xs font-bold text-muted uppercase tracking-wider">
-                                        <th className="px-6 py-4 border-r border-border/50 w-1/3">Subject</th>
-                                        <th className="px-6 py-4 text-center">Quarterly</th>
-                                        <th className="px-6 py-4 text-center">Mid Term</th>
-                                        <th className="px-6 py-4 text-center">Half Yearly</th>
-                                        <th className="px-6 py-4 text-center">Annual</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-border text-sm">
-                                    {activeReport.isAbsent ? (
-                                        <tr>
-                                            <td colSpan={5} className="px-6 py-16 text-center text-danger font-semibold bg-danger/5">
-                                                <i className="fas fa-user-times mr-2 text-xl mb-2 block"></i> Student was marked ABSENT for this examination timeline.
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        <>
-                                            {/* --- Subject Rows --- */}
-                                            {activeReport.subjects.map((sub: any) => {
-                                                const passThreshold = sub.minPassingMarks || 35;
-                                                
-                                                // Map standard data or fallback to new matrix fields
-                                                // (Currently maps marksObtained to Quarterly so UI doesn't break)
-                                                const qMark = sub.quarterly ?? sub.marksObtained;
-                                                const mMark = sub.midTerm ?? null;
-                                                const hMark = sub.halfYearly ?? null;
-                                                const aMark = sub.annual ?? null;
-
-                                                // Helper to color marks safely
-                                                const getMarkColor = (mark: number | null | undefined) => {
-                                                    if (mark === null || mark === undefined || (mark as any) === '') return 'text-muted/40';
-                                                    return Number(mark) < passThreshold ? 'text-danger font-black' : 'text-foreground font-bold';
-                                                };
-
-                                                return (
-                                                    <tr key={sub._id || sub.subject} className="hover:bg-sub-header/30 transition-colors">
-                                                        <td className="px-6 py-4 font-semibold text-foreground border-r border-border/50">
-                                                            {sub.subject}
-                                                        </td>
-                                                        <td className={`px-6 py-4 text-center text-base ${getMarkColor(qMark)}`}>{qMark ?? '--'}</td>
-                                                        <td className={`px-6 py-4 text-center text-base ${getMarkColor(mMark)}`}>{mMark ?? '--'}</td>
-                                                        <td className={`px-6 py-4 text-center text-base ${getMarkColor(hMark)}`}>{hMark ?? '--'}</td>
-                                                        <td className={`px-6 py-4 text-center text-base ${getMarkColor(aMark)}`}>{aMark ?? '--'}</td>
-                                                    </tr>
-                                                );
-                                            })}
-
-                                            {/* --- Overall Status Footer Row --- */}
-                                            <tr className="bg-sub-header/20 border-t-2 border-border">
-                                                <td className="px-6 py-4 font-bold text-muted uppercase tracking-wider border-r border-border/50 text-right text-[11px]">
-                                                    Overall Result
-                                                </td>
-                                                {/* Iterate over column keys to calculate pass/fail vertically */}
-                                                {['quarterly', 'midTerm', 'halfYearly', 'annual'].map((examKey, idx) => {
-                                                    let hasData = false;
-                                                    let isFail = false;
-
-                                                    activeReport.subjects.forEach((sub: any) => {
-                                                        const passThreshold = sub.minPassingMarks || 35;
-                                                        // Check new fields, fallback to marksObtained for Quarterly
-                                                        const mark = sub[examKey] ?? (examKey === 'quarterly' ? sub.marksObtained : null);
-                                                        
-                                                        if (mark !== null && mark !== undefined && mark !== '') {
-                                                            hasData = true;
-                                                            if (Number(mark) < passThreshold) {
-                                                                isFail = true;
-                                                            }
-                                                        }
-                                                    });
-
-                                                    if (!hasData) {
-                                                        return <td key={idx} className="px-6 py-4 text-center font-medium text-muted/40">--</td>;
-                                                    }
-
-                                                    return (
-                                                        <td key={idx} className="px-6 py-4 text-center">
-                                                            <span className={`px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider border ${
-                                                                isFail ? 'bg-danger/10 text-danger border-danger/20' : 'bg-success/10 text-success border-success/20'
-                                                            }`}>
-                                                                {isFail ? 'Fail' : 'Pass'}
-                                                            </span>
-                                                        </td>
-                                                    );
-                                                })}
-                                            </tr>
-                                        </>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Sticky Grid Summary Aggregates */}
-                        {marksSummary && (
-                            <div className="px-6 py-5 border-t border-border bg-sub-header/30 grid grid-cols-2 sm:grid-cols-4 gap-6 shrink-0">
-                                <div>
-                                    <p className="text-[11px] text-muted font-bold uppercase tracking-wider">Total Marks</p>
-                                    <p className="text-lg font-bold text-foreground mt-1">{marksSummary.obtained} <span className="text-sm text-muted">/ {marksSummary.totalMax}</span></p>
-                                </div>
-                                <div>
-                                    <p className="text-[11px] text-muted font-bold uppercase tracking-wider">Percentage</p>
-                                    <p className="text-lg font-bold text-primary mt-1">{marksSummary.percentage}%</p>
-                                </div>
-                                <div>
-                                    <p className="text-[11px] text-muted font-bold uppercase tracking-wider">Aggregated Status</p>
-                                    <span className={`inline-block text-xs font-bold uppercase tracking-wider mt-1.5 px-3 py-1 rounded-md border ${marksSummary.status === 'FAIL' ? 'bg-danger/10 text-danger border-danger/20' : 'bg-success/10 text-success border-success/20'
-                                        }`}>
-                                        {marksSummary.status}
-                                    </span>
-                                </div>
-                                {activeReport.remarks && (
-                                    <div className="col-span-2 sm:col-span-1 border-l border-border pl-4">
-                                        <p className="text-[11px] text-muted font-bold uppercase tracking-wider">Teacher Remarks</p>
-                                        <p className="text-sm font-semibold text-foreground mt-1 line-clamp-2" title={activeReport.remarks}>
-                                            "{activeReport.remarks}"
-                                        </p>
-                                    </div>
-                                )}
+                        {/* Empty State */}
+                        {(!studentsList || studentsList.length === 0) && (
+                            <div className="col-span-full py-12 text-center text-muted flex flex-col items-center">
+                                <i className="fa-solid fa-users-slash text-4xl mb-3 opacity-50"></i>
+                                <p className="font-medium">No students found.</p>
+                                <p className="text-xs mt-1">Select a valid Class and Section to view the roster.</p>
                             </div>
                         )}
                     </div>
-                )}
+                ) 
+                
+                : (
+
+                    <></>
+                )
+                // : !activeReport ? (
+                //     <div className="flex-1 flex flex-col items-center justify-center p-6 text-muted">
+                //         <i className="fas fa-folder-open text-4xl mb-3 opacity-30"></i>
+                //         <p className="text-base font-bold">No Records Found</p>
+                //     </div>
+                // ) : (
+                //     <div className="flex-1 flex flex-col h-full overflow-hidden animate-in fade-in duration-200">
+
+
+
+                //         <div className="px-6 py-5 border-b border-border bg-sub-header/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
+                //             <div>
+                //                 <h3 className="text-xl font-bold text-foreground">{activeReport.studentId?.studentName}</h3>
+                //                 <p className="text-sm text-muted mt-1 font-medium">
+                //                     Class {activeReport.classId?.name || 'Unassigned'} — Section {activeReport.sectionId?.name || 'N/A'}
+                //                 </p>
+                //             </div>
+                //             <div className="flex gap-3">
+                //                 <Button variant="outline" leftIcon="fas fa-arrow-left" className="text-sm py-2" onClick={() => setFilters(p => ({ ...p, studentId: '' }))}>
+                //                     All Students
+                //                 </Button>
+                //                 <Button variant="primary" leftIcon="fas fa-external-link-alt" className="text-sm py-2" onClick={() => navigate(`single/${activeReport._id}`)}>
+                //                     Detailed Sheet
+                //                 </Button>
+                //             </div>
+                //         </div>
+
+                        
+
+                //         <div className="overflow-x-auto rounded-xl border border-border shadow-sm bg-surface">
+                //             <table className="w-full text-left border-collapse min-w-max">
+                //                 <thead>
+                //                     <tr className="text-[11px] font-bold text-muted uppercase tracking-wider border-b-2 border-border bg-mainBg">
+                //                         <th className="p-4 border-r border-border/50 sticky left-0 z-10 bg-mainBg shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-64">
+                //                             Subjects
+                //                         </th>
+                //                         {/* DYNAMIC EXAM HEADERS */}
+                //                         {exams.map((exam, eIdx) => (
+                //                             <th key={eIdx} className="p-4 border-r border-border/50 text-center min-w-[140px]">
+                //                                 <div className="font-bold text-foreground text-sm">{exam.examName}</div>
+                //                                 <div className="text-[10px] mt-1 font-normal opacity-70">
+                //                                     Max {exam.maxMarks} • Pass {exam.passingMarks}
+                //                                 </div>
+                //                             </th>
+                //                         ))}
+                //                     </tr>
+                //                 </thead>
+
+                //                 <tbody className="divide-y divide-border/50">
+                //                     {activeReport?.isAbsent ? (
+                //                         <tr>
+                //                             <td colSpan={exams.length + 1} className="px-6 py-16 text-center text-danger font-semibold bg-danger/5">
+                //                                 <i className="fas fa-user-times mr-2 text-xl mb-2 block"></i>
+                //                                 Student was marked ABSENT for this examination timeline.
+                //                             </td>
+                //                         </tr>
+                //                     ) : (
+                //                         /* DYNAMIC SUBJECT ROWS */
+                //                         subjects.map((sub, sIdx) => (
+                //                             <tr key={sIdx} className="hover:bg-sub-header/30 transition-colors group">
+
+                //                                 {/* Subject Name Column (Sticky) */}
+                //                                 <td className="p-4 font-semibold text-foreground border-r border-border/50 sticky left-0 z-10 bg-surface group-hover:bg-sub-header/50 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                //                                     {sub.subjectName}
+                //                                     {sub.subjectCode && (
+                //                                         <span className="block text-[10px] text-muted font-normal mt-0.5">
+                //                                             {sub.subjectCode}
+                //                                         </span>
+                //                                     )}
+                //                                 </td>
+
+                //                                 {/* Exam Mark Columns */}
+                //                                 {exams.map((exam, eIdx) => {
+                //                                     const mark = getMark(sub.subjectName, exam.examName);
+
+                //                                     // Check for null, undefined, and empty string
+                //                                     const hasMark = mark !== null && mark !== undefined && mark !== '';
+                //                                     const isFail = hasMark && Number(mark) < (exam?.passingMarks || 35);
+
+                //                                     return (
+                //                                         <td key={eIdx} className="p-3 border-r border-border/50 text-center">
+                //                                             {hasMark ? (
+                //                                                 <span className={`font-bold text-lg ${isFail ? 'text-danger' : 'text-foreground'}`}>
+                //                                                     {mark}
+                //                                                 </span>
+                //                                             ) : (
+                //                                                 <span className="text-muted/40 font-medium">--</span>
+                //                                             )}
+                //                                         </td>
+                //                                     );
+                //                                 })}
+                //                             </tr>
+                //                         ))
+                //                     )}
+                //                 </tbody>
+                //             </table>
+                //         </div>
+
+                //         {marksSummary && (
+                //             <div className="px-6 py-5 border-t border-border bg-sub-header/30 grid grid-cols-2 sm:grid-cols-4 gap-6 shrink-0">
+                //                 <div>
+                //                     <p className="text-[11px] text-muted font-bold uppercase tracking-wider">Total Marks</p>
+                //                     <p className="text-lg font-bold text-foreground mt-1">{marksSummary.obtained} <span className="text-sm text-muted">/ {marksSummary.totalMax}</span></p>
+                //                 </div>
+                //                 <div>
+                //                     <p className="text-[11px] text-muted font-bold uppercase tracking-wider">Percentage</p>
+                //                     <p className="text-lg font-bold text-primary mt-1">{marksSummary.percentage}%</p>
+                //                 </div>
+                //                 <div>
+                //                     <p className="text-[11px] text-muted font-bold uppercase tracking-wider">Aggregated Status</p>
+                //                     <span className={`inline-block text-xs font-bold uppercase tracking-wider mt-1.5 px-3 py-1 rounded-md border ${marksSummary.status === 'FAIL' ? 'bg-danger/10 text-danger border-danger/20' : 'bg-success/10 text-success border-success/20'
+                //                         }`}>
+                //                         {marksSummary.status}
+                //                     </span>
+                //                 </div>
+                //                 {activeReport.remarks && (
+                //                     <div className="col-span-2 sm:col-span-1 border-l border-border pl-4">
+                //                         <p className="text-[11px] text-muted font-bold uppercase tracking-wider">Teacher Remarks</p>
+                //                         <p className="text-sm font-semibold text-foreground mt-1 line-clamp-2" title={activeReport.remarks}>
+                //                             "{activeReport.remarks}"
+                //                         </p>
+                //                     </div>
+                //                 )}
+                //             </div>
+                //         )}
+                //     </div>
+                // )
+                }
             </div>
         </div>
     );

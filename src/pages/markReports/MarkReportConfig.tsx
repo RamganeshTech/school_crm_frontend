@@ -1,17 +1,26 @@
-import  { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthData } from '../../hooks/useAuthData';
 import {
-    useGetMarkReportById,
+    // useGetMarkReportById,
     useCreateMarkReport,
-    useUpdateMarkReport
+    useUpdateMarkReport,
+    useGetMarkReportByIdV1
 } from '../../api_services/markReport_api/markReportApi'; // Adjust path
 import { useGetSchoolById } from '../../api_services/schoolConfig_api/schoolapi'; // Adjust path
 import MarkReportSingle from './MarkReportSingle';
+import { toast } from '../../shared/ui/ToastContext';
 
 export default function MarkReportConfig() {
-    const { id } = useParams();
+    const { id: studentId } = useParams();
+    const [searchParams] = useSearchParams();
+
+    const academicYear = searchParams.get('academicYear') || '';
+    const classId = searchParams.get('classId') || '';
+    const sectionId = searchParams.get('sectionId') || '';
     const navigate = useNavigate();
+
+
     const { currentRole, schoolId } = useAuthData();
 
     // --- Queries & Mutations ---
@@ -19,28 +28,49 @@ export default function MarkReportConfig() {
     const currentAcademicYear = schoolData?.currentAcademicYear || "";
 
     // 1. Security & Permissions
-    const isRestrictedRole = ['parent', 'student'].includes(currentRole || '');
+    const isRestrictedRole = ['parent'].includes(currentRole || '');
     const isEditable = !isRestrictedRole; // Admins, Correspondents, Principals, Teachers can edit
 
     // 2. Local Mode State 
-    const [mode, setMode] = useState<'view' | 'edit' | 'create'>(id ? 'view' : 'create');
+    const [mode, setMode] = useState<'view' | 'edit' | 'create'>(studentId ? 'view' : 'create');
 
     // Reset mode to view/create if the ID changes in the URL
-    useEffect(() => {
-        if (!id) setMode('create');
-        else if (id && mode === 'create') setMode('view');
-    }, [id, mode]);
+    // useEffect(() => {
+    //     if (!studentId) setMode('create');
+    //     else if (studentId && mode === 'create') setMode('view');
+    // }, [studentId, mode]);
 
+   
     // Security Failsafe: Parents/Students cannot access the /create route
-    useEffect(() => {
-        if (!id && isRestrictedRole) {
-            // Redirect back to the main list if they try to manually enter the creation URL
-            navigate('/dashboard/mark-report', { replace: true });
-        }
-    }, [id, isRestrictedRole, navigate]);
-
+   
     // 3. Fetch Data (Only runs if ID exists)
-    const { data: markReport, isLoading: isFetching } = useGetMarkReportById(id);
+    const { data: reportPayload, isLoading: isFetching } = useGetMarkReportByIdV1({
+        studentId:studentId!,
+        academicYear,
+        classId,
+        sectionId
+    });
+
+    const markReport = reportPayload?.data || null;
+    const isNewReport = reportPayload?.isNew || false;
+
+     useEffect(() => {
+        // if (isNewReport) {
+        if (isNewReport && isRestrictedRole) {
+            setMode('create');
+        } else if (!isNewReport && markReport) {
+            setMode('view');
+        }
+    }, [isNewReport, markReport]);
+
+     useEffect(() => {
+        if (!isNewReport && isRestrictedRole) {
+            // Redirect back to the main list if they try to manually enter the creation URL
+            navigate('/dashboard/markreport', { replace: true });
+        }
+    }, [isNewReport, isRestrictedRole, navigate]);
+
+
 
     // 4. Mutations
     const createMutation = useCreateMarkReport();
@@ -57,16 +87,19 @@ export default function MarkReportConfig() {
                 sectionId: formDataState.sectionId || null,
                 studentId: formDataState.studentId,
                 subjects: formDataState.subjects || [],
+                examRecords: formDataState.examRecords || [],
                 remarks: formDataState.remarks || "",
                 isAbsent: formDataState.isAbsent || false,
             };
 
             if (mode === 'create') {
                 await createMutation.mutateAsync(payload);
-                navigate('/dashboard/mark-report');
-            } 
-            else if (mode === 'edit' && id) {
-                await updateMutation.mutateAsync({ reportId: id, ...payload });
+                toast.success("Mark Sheet Created Successfully")
+                // navigate('/dashboard/markreport');
+            }
+            else if (mode === 'edit' && studentId) {
+                await updateMutation.mutateAsync({ reportId: markReport?._id, ...payload });
+                toast.success("Mark Sheet updated Successfully")
                 // Return to view mode seamlessly after saving
                 setMode('view');
             }
@@ -76,7 +109,7 @@ export default function MarkReportConfig() {
     };
 
     // Full Page Loading State
-    if (id && isFetching) {
+    if (studentId && isFetching) {
         return (
             <div className="w-full h-full flex justify-center items-center bg-mainBg">
                 <i className="fas fa-circle-notch fa-spin text-primary text-3xl"></i>
@@ -95,7 +128,7 @@ export default function MarkReportConfig() {
             onCancel={() => {
                 // If canceling an edit, just go back to view mode. Otherwise, navigate to the main list.
                 if (mode === 'edit') setMode('view');
-                else navigate('/dashboard/mark-report');
+                else navigate('/dashboard/markreport');
             }}
         />
     );

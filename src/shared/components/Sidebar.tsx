@@ -417,28 +417,20 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
 
     return (
         <aside
-            // onMouseEnter={() => setIsHovered(true)}
-            // onMouseLeave={() => {
-            //     setIsHovered(false)
-            //     setIsManuallyExpanded(false)
-            // }
-
-
-            // }
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             className={`h-full bg-surface border-r border-border transition-all duration-300 ease-in-out flex flex-col shadow-sm shrink-0
-        ${isExpanded ? 'w-64' : 'w-20'}`}
+        ${isExpanded ? 'w-36 md:w-64' : 'w-10 md:w-20'}`}
         >
             {/* --- HEADER --- */}
-            <div className="h-20 flex items-center px-5 border-b border-border border-opacity-50 shrink-0">
-                <Link to={schoolPath} className="flex items-center gap-4 overflow-hidden w-full">
-                    <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
-                        <span className="text-inverse font-bold text-lg">
+            <div className="h-14 flex items-center px-5 border-b border-border border-opacity-50 shrink-0">
+                <Link to={schoolPath} className="flex outline-none items-center gap-4 overflow-hidden w-full">
+                    <div className="w-7 h-7 md:w-10 md:h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
+                        <span className="text-inverse  font-bold text-md md:text-lg">
                             {schoolName.charAt(0)}
                         </span>
                     </div>
-                    <span className={`font-poppins font-semibold text-foreground truncate transition-all duration-300 overflow-hidden
+                    <span className={`font-poppins font-semibold text-foreground text-[12px] md:text-lg truncate transition-all duration-300 overflow-hidden
             ${isExpanded ? 'opacity-100 max-w-[150px]' : 'opacity-0 max-w-0'}`}>
                         {schoolName}
                     </span>
@@ -446,7 +438,7 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
             </div>
 
             {/* --- MAIN NAVIGATION --- */}
-            <nav className="flex-1 overflow-y-auto px-3 pl-4 py-6 space-y-2 no-scrollbar">
+            <nav className="flex-1 overflow-y-auto md:px-3 pl-2 md:pl-4 py-3 md:py-6 space-y-2 no-scrollbar">
                 {menuItems.map((item) => {
                     const isParentActive = item.path === '/dashboard'
                         ? location.pathname === '/dashboard'
@@ -459,17 +451,18 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
                         <div key={item.name} className="flex flex-col">
                             <button
                                 onClick={() => hasSubMenu ? toggleSubMenu(item.name) : handleNav(item.path)}
-                                className={`${isExpanded ? 'w-full' : 'w-fit'} cursor-pointer flex items-center justify-between p-3 rounded-xl transition-all duration-200 group
+                                className={`${isExpanded ? 'w-full' : 'w-fit'} cursor-pointer flex items-center justify-between p-1.5 md:p-3 rounded-xl transition-all duration-200 group
                   ${isParentActive
                                         ? 'bg-primary text-inverse shadow-md shadow-primary/20'
                                         : 'text-muted hover:bg-primary-soft hover:text-primary'}`}
                             >
-                                <div className={`${isExpanded ? 'gap-3' : ''} flex items-center  overflow-hidden`}>
-                                    <i className={`${item.icon} text-xl shrink-0 transition-colors w-6 text-center ${isParentActive ? 'text-inverse' : 'group-hover:text-primary'}`}></i>
+                                <div className={` flex items-center  overflow-hidden ${isExpanded ? 'gap-3' : ''}`}>
+                                    <i className={`${item.icon} text-xl shrink-0 transition-colors w-6 md:w-6 text-left md:text-center ${isParentActive ? 'text-inverse' : 'group-hover:text-primary'}`}></i>
 
-                                    <span className={`font-medium whitespace-nowrap overflow-hidden transition-all duration-300
-                    ${isExpanded ? 'opacity-100 max-w-[120px]' : 'opacity-0 max-w-0'}`}>
+                                    <span className={`font-medium whitespace-nowrap overflow-hidden text-[13px] md:text-[16px] transition-all duration-300
+                    ${isExpanded ? 'opacity-100 ' : 'opacity-0 max-w-0'}`}>
                                         {item.name}
+                                        {/* {item.name.length > 12 ? `${item.name.slice(0, 12)}...` : item.name} */}
                                     </span>
                                 </div>
 
@@ -513,24 +506,24 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
             </nav>
 
             {/* --- FOOTER --- */}
-            <div className={`p-4 border-t border-border shrink-0 flex items-center transition-all duration-300 ${isExpanded ? 'flex-row gap-2 justify-between' : 'flex-col gap-4'}`}>
+            <div className={`p-1 md:p-2 border-t border-border shrink-0 flex items-center transition-all duration-300 ${isExpanded ? 'flex-row gap-2 justify-between' : 'flex-col gap-2 md:gap-4'}`}>
 
                 <button
                     onClick={toggleSidebar} // 🛑 Using the new fixed toggle function here
-                    className="flex items-center justify-center p-3 rounded-xl text-muted hover:bg-primary-soft hover:text-primary transition-colors shrink-0"
+                    className="flex items-center justify-center p-1.5 md:p-3 rounded-xl text-muted hover:bg-primary-soft hover:text-primary transition-colors shrink-0"
                     title="Toggle Sidebar"
                 >
-                    <i className={`text-xl w-6 text-center transition-transform duration-300 ${isManuallyExpanded ? 'fas fa-angle-double-left' : 'fas fa-angle-double-right'}`}></i>
+                    <i className={`text-md md:text-xl w-3 md:w-6 text-center transition-transform duration-300 ${isManuallyExpanded ? 'fas fa-angle-double-left' : 'fas fa-angle-double-right'}`}></i>
                 </button>
 
                 <button
                     onClick={onLogout}
-                    className={`flex items-center justify-center p-3 rounded-xl text-danger hover:bg-danger/10 transition-colors group ${isExpanded ? 'flex-1' : 'w-full'}`}
+                    className={`flex items-center justify-center gap-2 md:gap-1 p-1.5 md:p-3 rounded-xl text-danger hover:bg-danger/10 transition-colors group ${isExpanded ? 'flex-1' : 'w-full'}`}
                     title="Logout"
                 >
-                    <i className="fas fa-sign-out-alt text-xl shrink-0 w-6 text-center group-hover:text-danger"></i>
+                    <i className="fas fa-sign-out-alt text-xl shrink-0 w-3 md:w-6 text-center group-hover:text-danger"></i>
 
-                    <span className={`font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${isExpanded ? 'opacity-100 max-w-[100px] ml-2' : 'opacity-0 max-w-0 ml-0'}`}>
+                    <span className={`text-sm md:text-lg font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${isExpanded ? 'opacity-100 max-w-[100px] ml-2' : 'opacity-0 max-w-0 ml-0'}`}>
                         Logout
                     </span>
                 </button>

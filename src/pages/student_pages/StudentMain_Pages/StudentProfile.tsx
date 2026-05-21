@@ -411,6 +411,7 @@ import { Input, Label } from '../../../shared/ui/Input';
 import { Button } from '../../../shared/ui/Button';
 import { SearchSelect } from '../../../shared/ui/SearchSelect';
 import { useAuthData } from '../../../hooks/useAuthData';
+import { toast } from '../../../shared/ui/ToastContext';
 
 // ==========================================
 // 1. EXACT TYPES (Mapped from Backend Schema)
@@ -628,9 +629,13 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
             }
 
             await updateStudentMutation.mutateAsync({ id: studentId!, formData });
+            toast.success("Updated Successfully!");
+
             setIsEditing(false);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to save:", error);
+            toast.error(error.message || "Failed to update");
+
         }
     };
 

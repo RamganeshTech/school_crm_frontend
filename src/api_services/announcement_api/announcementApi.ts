@@ -77,22 +77,29 @@ export const useGetAllAnnouncementsInfinite = (params: Omit<GetAllAnnouncementsP
         queryKey: ['announcements-infinite', params],
         initialPageParam: 1,
         queryFn: async ({ pageParam = 1 }) => {
+            try {
+
             checkPermission(currentRole, ["correspondent", "principal", "viceprincipal", "teacher", "parent", "administrator"]);
-            
-            const { data } = await Api.get<BaseResponse<IAnnouncement[]>>('/api/announcement/getall', { 
-                params: { ...params, page: pageParam } 
+
+            const { data } = await Api.get<BaseResponse<IAnnouncement[]>>('/api/announcement/getall', {
+                params: { ...params, page: pageParam }
             });
 
             if (data.ok) {
-                return data; 
+                return data;
             } else {
                 throw new Error(data.message || 'Failed to fetch announcements');
+            }
+             } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
             }
         },
         getNextPageParam: (lastPage) => {
             const currentPage = Number(lastPage?.pagination?.page) || 1;
             const totalPages = Number(lastPage?.pagination?.totalPages) || 1;
-            
+
             if (currentPage < totalPages) {
                 return currentPage + 1;
             }
@@ -109,14 +116,22 @@ export const useGetAnnouncementById = (announcementId: string | undefined) => {
     return useQuery({
         queryKey: ['announcement-single', announcementId],
         queryFn: async () => {
-            checkPermission(currentRole, ["correspondent", "administrator", "viceprincipal", "principal", "teacher", "parent"]);
+            try {
 
-            const { data } = await Api.get<BaseResponse<IAnnouncement>>(`/api/announcement/get/${announcementId}`);
+                checkPermission(currentRole, ["correspondent", "administrator", "viceprincipal", "principal", "teacher", "parent"]);
 
-            if (data.ok) {
-                return data.data;
-            } else {
-                throw new Error(data.message || 'Failed to fetch announcement details');
+
+                const { data } = await Api.get<BaseResponse<IAnnouncement>>(`/api/announcement/get/${announcementId}`);
+
+                if (data.ok) {
+                    return data.data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch announcement details');
+                }
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
             }
         },
         enabled: !!announcementId,
@@ -133,14 +148,21 @@ export const useCreateAnnouncement = () => {
 
     return useMutation({
         mutationFn: async (formData: FormData) => {
-            checkPermission(currentRole, ["correspondent", "principal", "administrator"]);
-            
-            const { data } = await Api.post<BaseResponse<IAnnouncement>>('/api/announcement/create', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            
-            if (!data.ok) throw new Error(data.message || 'Failed to create announcement');
-            return data;
+            try {
+
+                checkPermission(currentRole, ["correspondent", "principal", "administrator"]);
+
+                const { data } = await Api.post<BaseResponse<IAnnouncement>>('/api/announcement/create', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+
+                if (!data.ok) throw new Error(data.message || 'Failed to create announcement');
+                return data;
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['announcements-infinite'] });
@@ -154,12 +176,19 @@ export const useUpdateAnnouncement = () => {
 
     return useMutation({
         mutationFn: async ({ id, payload }: { id: string; payload: UpdateAnnouncementPayload }) => {
-            checkPermission(currentRole, ["correspondent", "principal", "administrator"]);
-            
-            const { data } = await Api.put<BaseResponse<IAnnouncement>>(`/api/announcement/update/${id}`, payload);
-            
-            if (!data.ok) throw new Error(data.message || 'Failed to update announcement');
-            return data;
+            try {
+
+                checkPermission(currentRole, ["correspondent", "principal", "administrator"]);
+
+                const { data } = await Api.put<BaseResponse<IAnnouncement>>(`/api/announcement/update/${id}`, payload);
+
+                if (!data.ok) throw new Error(data.message || 'Failed to update announcement');
+                return data;
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['announcements-infinite'] });
@@ -174,14 +203,21 @@ export const useAddAnnouncementAttachment = () => {
 
     return useMutation({
         mutationFn: async ({ id, formData }: { id: string; formData: FormData }) => {
-            checkPermission(currentRole, ["correspondent", "principal", "administrator"]);
-            
-            const { data } = await Api.put<BaseResponse>(`/api/announcement/addattachment/${id}`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            
-            if (!data.ok) throw new Error(data.message || 'Failed to add attachments');
-            return data;
+            try {
+
+                checkPermission(currentRole, ["correspondent", "principal", "administrator"]);
+
+                const { data } = await Api.put<BaseResponse>(`/api/announcement/addattachment/${id}`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+
+                if (!data.ok) throw new Error(data.message || 'Failed to add attachments');
+                return data;
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['announcement-single', variables.id] });
@@ -195,12 +231,19 @@ export const useDeleteAnnouncementAttachment = () => {
 
     return useMutation({
         mutationFn: async ({ announcementId, fileId }: { announcementId: string; fileId: string }) => {
-            checkPermission(currentRole, ["correspondent", "principal", "administrator"]);
-            
-            const { data } = await Api.delete<BaseResponse>(`/api/announcement/deleteattachment/${announcementId}/${fileId}`);
-            
-            if (!data.ok) throw new Error(data.message || 'Failed to delete attachment');
-            return data;
+            try {
+
+                checkPermission(currentRole, ["correspondent", "principal", "administrator"]);
+
+                const { data } = await Api.delete<BaseResponse>(`/api/announcement/deleteattachment/${announcementId}/${fileId}`);
+
+                if (!data.ok) throw new Error(data.message || 'Failed to delete attachment');
+                return data;
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['announcement-single', variables.announcementId] });
@@ -214,12 +257,19 @@ export const useDeleteAnnouncement = () => {
 
     return useMutation({
         mutationFn: async (announcementId: string) => {
-            checkPermission(currentRole, ["correspondent", "principal", "administrator"]);
-            
-            const { data } = await Api.delete<BaseResponse>(`/api/announcement/delete/${announcementId}`);
-            
-            if (!data.ok) throw new Error(data.message || 'Failed to delete announcement');
-            return data;
+            try {
+
+                checkPermission(currentRole, ["correspondent", "principal", "administrator"]);
+
+                const { data } = await Api.delete<BaseResponse>(`/api/announcement/delete/${announcementId}`);
+
+                if (!data.ok) throw new Error(data.message || 'Failed to delete announcement');
+                return data;
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['announcements-infinite'] });

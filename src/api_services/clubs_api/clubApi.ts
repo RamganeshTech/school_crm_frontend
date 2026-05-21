@@ -109,14 +109,21 @@ export const useGetAllClubsInfinite = (params: Omit<GetAllClubsParams, 'page'>) 
         queryKey: ['clubs-infinite', params],
         initialPageParam: 1,
         queryFn: async ({ pageParam = 1 }) => {
-            checkPermission(currentRole, VIEW_ROLES);
+            try {
 
-            const { data } = await Api.get<BaseResponse<IClub[]>>('/api/club/getall', {
-                params: { ...params, page: pageParam }
-            });
+                checkPermission(currentRole, VIEW_ROLES);
 
-            if (data.ok) return data;
-            throw new Error(data.message || 'Failed to fetch clubs');
+                const { data } = await Api.get<BaseResponse<IClub[]>>('/api/club/getall', {
+                    params: { ...params, page: pageParam }
+                });
+
+                if (data.ok) return data;
+                throw new Error(data.message || 'Failed to fetch clubs');
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         getNextPageParam: (lastPage) => {
             const currentPage = Number(lastPage?.pagination?.currentPage) || 1;
@@ -134,10 +141,17 @@ export const useGetClubById = (clubId: string | undefined) => {
     return useQuery({
         queryKey: ['club-single', clubId],
         queryFn: async () => {
-            checkPermission(currentRole, VIEW_ROLES);
-            const { data } = await Api.get<BaseResponse<IClub>>(`/api/club/get/${clubId}`);
-            if (data.ok) return data.data;
-            throw new Error(data.message || 'Failed to fetch club details');
+            try {
+
+                checkPermission(currentRole, VIEW_ROLES);
+                const { data } = await Api.get<BaseResponse<IClub>>(`/api/club/get/${clubId}`);
+                if (data.ok) return data.data;
+                throw new Error(data.message || 'Failed to fetch club details');
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         enabled: !!clubId,
     });
@@ -149,12 +163,18 @@ export const useCreateClub = () => {
 
     return useMutation({
         mutationFn: async (formData: FormData) => {
-            checkPermission(currentRole, ADMIN_ROLES);
-            const { data } = await Api.post<BaseResponse<IClub>>('/api/club/create', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            if (!data.ok) throw new Error(data.message || 'Failed to create club');
-            return data;
+            try {
+                checkPermission(currentRole, ADMIN_ROLES);
+                const { data } = await Api.post<BaseResponse<IClub>>('/api/club/create', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                if (!data.ok) throw new Error(data.message || 'Failed to create club');
+                return data;
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clubs-infinite'] }),
     });
@@ -166,10 +186,17 @@ export const useUpdateClubText = () => {
 
     return useMutation({
         mutationFn: async ({ id, payload }: { id: string; payload: UpdateClubTextPayload }) => {
-            checkPermission(currentRole, ADMIN_ROLES);
-            const { data } = await Api.put<BaseResponse<IClub>>(`/api/club/updatetext/${id}`, payload);
-            if (!data.ok) throw new Error(data.message || 'Failed to update club details');
-            return data;
+            try {
+
+                checkPermission(currentRole, ADMIN_ROLES);
+                const { data } = await Api.put<BaseResponse<IClub>>(`/api/club/updatetext/${id}`, payload);
+                if (!data.ok) throw new Error(data.message || 'Failed to update club details');
+                return data;
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['clubs-infinite'] });
@@ -184,12 +211,19 @@ export const useUpdateClubThumbnail = () => {
 
     return useMutation({
         mutationFn: async ({ id, formData }: { id: string; formData: FormData }) => {
-            checkPermission(currentRole, ADMIN_ROLES);
-            const { data } = await Api.put<BaseResponse<IClub>>(`/api/club/updatethumbnail/${id}`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            if (!data.ok) throw new Error(data.message || 'Failed to update club thumbnail');
-            return data;
+            try {
+
+                checkPermission(currentRole, ADMIN_ROLES);
+                const { data } = await Api.put<BaseResponse<IClub>>(`/api/club/updatethumbnail/${id}`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                if (!data.ok) throw new Error(data.message || 'Failed to update club thumbnail');
+                return data;
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['clubs-infinite'] });
@@ -203,11 +237,19 @@ export const useDeleteClub = () => {
     const { currentRole } = useAuthData();
 
     return useMutation({
+
         mutationFn: async (id: string) => {
-            checkPermission(currentRole, ADMIN_ROLES);
-            const { data } = await Api.delete<BaseResponse>(`/api/club/delete/${id}`);
-            if (!data.ok) throw new Error(data.message || 'Failed to delete club');
-            return data;
+            try {
+
+                checkPermission(currentRole, ADMIN_ROLES);
+                const { data } = await Api.delete<BaseResponse>(`/api/club/delete/${id}`);
+                if (!data.ok) throw new Error(data.message || 'Failed to delete club');
+                return data;
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clubs-infinite'] }),
     });
@@ -219,10 +261,17 @@ export const useAddStudentToClub = () => {
 
     return useMutation({
         mutationFn: async (payload: StudentClubPayload) => {
-            checkPermission(currentRole, ADMIN_ROLES);
-            const { data } = await Api.put<BaseResponse>('/api/club/addtoclub', payload);
-            if (!data.ok) throw new Error(data.message || 'Failed to add student');
-            return data;
+            try {
+
+                checkPermission(currentRole, ADMIN_ROLES);
+                const { data } = await Api.put<BaseResponse>('/api/club/addtoclub', payload);
+                if (!data.ok) throw new Error(data.message || 'Failed to add student');
+                return data;
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: (_, variables) => queryClient.invalidateQueries({ queryKey: ['club-single', variables.clubId] }),
     });
@@ -234,10 +283,17 @@ export const useRemoveStudentFromClub = () => {
 
     return useMutation({
         mutationFn: async (payload: StudentClubPayload) => {
-            checkPermission(currentRole, ADMIN_ROLES);
-            const { data } = await Api.put<BaseResponse>('/api/club/removefromclub', payload);
-            if (!data.ok) throw new Error(data.message || 'Failed to remove student');
-            return data;
+            try {
+
+                checkPermission(currentRole, ADMIN_ROLES);
+                const { data } = await Api.put<BaseResponse>('/api/club/removefromclub', payload);
+                if (!data.ok) throw new Error(data.message || 'Failed to remove student');
+                return data;
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: (_, variables) => queryClient.invalidateQueries({ queryKey: ['club-single', variables.clubId] }),
     });
@@ -249,10 +305,17 @@ export const useToggleClassStudentsToClub = () => {
 
     return useMutation({
         mutationFn: async (payload: ToggleClassClubPayload) => {
-            checkPermission(currentRole, ADMIN_ROLES);
-            const { data } = await Api.put<BaseResponse>('/api/club/toggleclub/student', payload);
-            if (!data.ok) throw new Error(data.message || 'Failed to toggle class students');
-            return data;
+            try {
+
+                checkPermission(currentRole, ADMIN_ROLES);
+                const { data } = await Api.put<BaseResponse>('/api/club/toggleclub/student', payload);
+                if (!data.ok) throw new Error(data.message || 'Failed to toggle class students');
+                return data;
+            } catch (error: any) {
+                // This extracts the specific message from the server or falls back to a generic one
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         onSuccess: (_, variables) => queryClient.invalidateQueries({ queryKey: ['club-single', variables.clubId] }),
     });

@@ -96,6 +96,36 @@ export const useGetAllStudents = (params: GetAllStudentsParams) => {
   });
 };
 
+export const useGetAllStudentsV1 = (params: Omit<GetAllStudentsParams, "page" | "limit">) => {
+  const { currentRole } = useAuthData();
+
+
+  return useQuery({
+    queryKey: ['students', "wihtout-pagination", params],
+    queryFn: async () => {
+      try {
+        checkPermission(currentRole, [
+          "correspondent", "administrator", "principal", "viceprincipal", "accountant", "teacher", "parent"
+        ]);
+
+        const { data } = await Api.get<ApiResponse>(`/api/student/v1/without-pagination/getall`, {
+          params: params
+        });
+
+        if (data.ok) {
+          return data.data; // Returning JUST the array of students
+        } else {
+          throw new Error(data.message || 'Failed to fetch students');
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage);
+      }
+    },
+    enabled: true,
+  });
+};
+
 // ==========================================
 // 2. GET SINGLE STUDENT BY ID
 // ==========================================

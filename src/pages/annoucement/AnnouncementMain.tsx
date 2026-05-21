@@ -9,6 +9,7 @@ import { Label } from '../../shared/ui/Input';
 import { Button } from '../../shared/ui/Button';
 import { SearchSelect } from '../../shared/ui/SearchSelect';
 import { TableContainer, THead, Th, TBody, Tr, Td } from '../../shared/ui/TableLayout';
+import { toast } from '../../shared/ui/ToastContext';
 
 // --- Filter Options ---
 const TYPE_OPTIONS = [
@@ -85,8 +86,12 @@ export default function AnnouncementMain() {
         if (window.confirm("Are you sure you want to delete this announcement? This action will move it to the archive.")) {
             try {
                 await deleteMutation.mutateAsync(id);
-            } catch (error) {
+                toast.success("Successfully Deleted")
+            } catch (error: any) {
                 console.error("Failed to delete announcement", error);
+                toast.error(error.message || "Failed to Delete.");
+
+
             }
         }
     };
@@ -106,17 +111,17 @@ export default function AnnouncementMain() {
 
     const isAdminLevel = ["correspondent", "administrator", "principal", "viceprincipal"].includes(currentRole);
 
-    
+
     const isChild = location.pathname.includes("single") || location.pathname.includes("create")
     if (isChild) {
         return <Outlet />
     }
 
     return (
-        <div className="w-full h-full flex flex-col bg-background overflow-hidden">
+        <div className="w-full h-full flex flex-col gap-3 bg-background overflow-hidden">
 
             {/* HEADER */}
-            <header className="shrink-0 px-6 py-5 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface z-10 shadow-sm">
+            <header className="shrink-0 px-6 py-3 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface z-10 shadow-sm">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                         <i className="fas fa-bullhorn text-primary"></i>
@@ -136,7 +141,7 @@ export default function AnnouncementMain() {
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
 
                 {/* 20% LEFT: FILTERS PANE */}
-                <aside className="w-full lg:w-[20%] min-w-[250px] shrink-0 border-r border-border bg-surface/50 p-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
+                <aside className="w-full lg:w-[20%] min-w-[250px] shrink-0 border-r border-border bg-surface/50 p-3 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
                     <h2 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
                         <i className="fas fa-filter text-primary"></i> Filter Notices
                     </h2>

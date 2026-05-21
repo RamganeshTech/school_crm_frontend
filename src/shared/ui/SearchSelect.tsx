@@ -96,7 +96,7 @@
 //         leftIcon="fa-solid fa-magnifying-glass"
 //         rightIcon={isOpen ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}
 //       />
-      
+
 //       {isOpen && (
 //         <div className="absolute z-50 w-full mt-1 bg-surface border border-divider rounded-lg shadow-lg max-h-60 overflow-y-auto">
 //           {filteredOptions.length > 0 ? (
@@ -209,6 +209,13 @@ export const SearchSelect: React.FC<SearchSelectProps> = ({
     }
   };
 
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevents the dropdown from opening when clicking X
+    setSearch('');
+    onChange({ label: '', value: '' }); // Clear the value
+    setIsOpen(false);
+  };
+
   const handleSelect = (option: SelectOption) => {
     setSearch(option.label);
     onChange(option);
@@ -226,16 +233,26 @@ export const SearchSelect: React.FC<SearchSelectProps> = ({
           setIsOpen(true);
           setHighlightedIndex(0);
         }}
+
+        // Replace your existing rightIcon line with this logic:
+        rightIcon={
+          value
+            ? "fa-solid fa-xmark cursor-pointer hover:text-red-500"
+            : (isOpen ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down")
+        }
+
+        onRightIconClick={value ? handleClear : () => setIsOpen(!isOpen)}
+
         onFocus={(e) => {
-            setIsOpen(true);
-            // Optional UX Polish: Highlight the text when clicked so they can easily type over it
-            e.target.select(); 
+          setIsOpen(true);
+          // Optional UX Polish: Highlight the text when clicked so they can easily type over it
+          e.target.select();
         }}
         onKeyDown={handleKeyDown}
         leftIcon="fa-solid fa-magnifying-glass"
-        rightIcon={isOpen ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}
+        // rightIcon={isOpen ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}
       />
-      
+
       {isOpen && (
         <div className="absolute z-50 w-full mt-1 bg-surface border border-divider rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {filteredOptions.length > 0 ? (
@@ -245,9 +262,8 @@ export const SearchSelect: React.FC<SearchSelectProps> = ({
                   key={opt.value}
                   onClick={() => handleSelect(opt)}
                   onMouseEnter={() => setHighlightedIndex(index)}
-                  className={`px-4 py-2 text-sm cursor-pointer transition-colors ${
-                    index === highlightedIndex ? 'bg-primary-soft text-primary' : 'text-content hover:bg-background'
-                  }`}
+                  className={`px-4 py-2 text-sm cursor-pointer transition-colors ${index === highlightedIndex ? 'bg-primary-soft text-primary' : 'text-content hover:bg-background'
+                    }`}
                 >
                   {opt.label}
                 </li>

@@ -80,22 +80,27 @@ export const useGetAllTransactionsInfinite = (params: Omit<GetAllTransactionsPar
         queryKey: ['finance-transactions-infinite', params],
         initialPageParam: 1,
         queryFn: async ({ pageParam = 1 }) => {
-            checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
-            
-            const { data } = await Api.get<BaseResponse<ITransaction[]>>('/api/financeledger/getall', { 
-                params: { ...params, page: pageParam } 
-            });
+            try {
+                checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
 
-            if (data.ok) {
-                return data; 
-            } else {
-                throw new Error(data.message || 'Failed to fetch transactions');
+                const { data } = await Api.get<BaseResponse<ITransaction[]>>('/api/financeledger/getall', {
+                    params: { ...params, page: pageParam }
+                });
+
+                if (data.ok) {
+                    return data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch transactions');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
             }
         },
         getNextPageParam: (lastPage) => {
             const currentPage = Number(lastPage?.pagination?.currentPage) || 1;
             const totalPages = Number(lastPage?.pagination?.totalPages) || 1;
-            
+
             if (currentPage < totalPages) {
                 return currentPage + 1;
             }
@@ -112,14 +117,19 @@ export const useGetTransactionById = (transactionId: string | undefined) => {
     return useQuery({
         queryKey: ['finance-transaction', transactionId],
         queryFn: async () => {
-            checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+            try {
+                checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
 
-            const { data } = await Api.get<BaseResponse<ITransaction>>(`/api/financeledger/get/${transactionId}`);
+                const { data } = await Api.get<BaseResponse<ITransaction>>(`/api/financeledger/get/${transactionId}`);
 
-            if (data.ok) {
-                return data.data;
-            } else {
-                throw new Error(data.message || 'Failed to fetch transaction details');
+                if (data.ok) {
+                    return data.data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch transaction details');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
             }
         },
         enabled: !!transactionId,
@@ -134,12 +144,23 @@ export const useGetFinanceStats = (params: FinanceStatsParams) => {
     return useQuery({
         queryKey: ['finance-stats', params],
         queryFn: async () => {
-            checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+            try {
+                checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
 
-            // Backend returns data directly or inside a wrapper, adjusting based on your controller
-            const { data } = await Api.get(`/api/financeledger/stats`, { params });
+                // Backend returns data directly or inside a wrapper, adjusting based on your controller
+                const { data } = await Api.get(`/api/financeledger/stats`, { params });
 
-            return data.data || data; 
+                // return data.data || data;
+
+                if (data?.ok) {
+                    return data.data || data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch transaction details');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         enabled: !!params.schoolId,
     });
@@ -152,11 +173,21 @@ export const useGetFinanceTimeline = (params: FinanceStatsParams) => {
     return useQuery({
         queryKey: ['finance-timeline', params],
         queryFn: async () => {
-            checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+            try {
+                checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
 
-            const { data } = await Api.get(`/api/financeledger/timeline`, { params });
+                const { data } = await Api.get(`/api/financeledger/timeline`, { params });
 
-            return data.data || [];
+                // return data.data || [];
+                 if (data?.ok) {
+                    return data.data || data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch transaction details');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         enabled: !!params.schoolId,
     });
@@ -169,11 +200,21 @@ export const useGetOutstandingStats = (params: OutstandingStatsParams) => {
     return useQuery({
         queryKey: ['finance-outstanding', params],
         queryFn: async () => {
-            checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+            try {
+                checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
 
-            const { data } = await Api.get(`/api/financeledger/outstanding`, { params });
+                const { data } = await Api.get(`/api/financeledger/outstanding`, { params });
 
-            return data.data || data;
+                // return data.data || data;
+                 if (data?.ok) {
+                    return data.data || data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch transaction details');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
         enabled: !!params.schoolId && !!params.academicYear,
     });

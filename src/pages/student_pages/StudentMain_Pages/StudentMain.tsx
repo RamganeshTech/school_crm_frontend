@@ -20,6 +20,7 @@ import { useGetClasses } from '../../../api_services/schoolConfig_api/classApi';
 import { useGetSections } from '../../../api_services/schoolConfig_api/sectionApi'; // Adjust path as needed
 import useDebounce from '../../../hooks/useDebounce';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { toast } from '../../../shared/ui/ToastContext';
 
 
 export default function StudentMain() {
@@ -179,12 +180,12 @@ export default function StudentMain() {
     };
 
     const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Specifically target the newOld property in formData
-    setFormData(prev => ({ 
-        ...prev, 
-        newOld: e.target.value 
-    }));
-};
+        // Specifically target the newOld property in formData
+        setFormData(prev => ({
+            ...prev,
+            newOld: e.target.value
+        }));
+    };
 
     const handleGenderChange = (option: SelectOption) => {
         setFormData(prev => ({ ...prev, gender: String(option.value) }));
@@ -213,13 +214,19 @@ export default function StudentMain() {
         try {
             if (editingId) {
                 await updateStudentMutation.mutateAsync({ id: editingId, formData: payload });
+                toast.success("Updated Successfully!");
+
             } else {
                 await createStudentMutation.mutateAsync(payload);
+                toast.success("Created Successfully!");
+
             }
             refetch();
             closeForm();
-        } catch (error) {
+        } catch (error:any) {
             console.error("Failed to save student", error);
+            toast.error(error.message || "Operation Failed");
+
         }
     };
 
@@ -227,9 +234,14 @@ export default function StudentMain() {
         if (window.confirm(`Are you sure you want to delete student "${name}"?`)) {
             try {
                 await deleteStudentMutation.mutateAsync(id);
+
                 refetch();
-            } catch (error) {
+                toast.success("Deleted Successfully!");
+
+            } catch (error:any) {
                 console.error("Failed to delete student", error);
+                toast.error(error.message || "Failed to delete student");
+
             }
         }
     };
