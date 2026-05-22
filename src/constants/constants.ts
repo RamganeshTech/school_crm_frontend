@@ -36,7 +36,7 @@ export const AUTH_CHECK_ROLES: ValidUserRole[] = [
     "viceprincipal"
 ];
 
-export const STAFF_ONLY: UserRole[] = [
+export const STAFF_ALL: UserRole[] = [
     "correspondent",
     "teacher",
     "principal",
@@ -44,6 +44,18 @@ export const STAFF_ONLY: UserRole[] = [
     "administrator",
     "viceprincipal"
 ]
+
+// Only the Correspondent
+export const SUPER_ADMIN_ONLY: UserRole[] = ["correspondent"];
+
+// Top-level management (No Teachers, No Accountants)
+export const MANAGEMENT_ONLY: UserRole[] = ["correspondent", "administrator", "principal", "viceprincipal"];
+
+// Staff handling money + Management
+export const FINANCE_ACCESS: UserRole[] = ["correspondent", "administrator", "principal", "viceprincipal", "accountant"];
+
+// Staff handling classes/grading + Management
+export const ACADEMIC_ACCESS: UserRole[] = ["correspondent", "administrator", "principal", "viceprincipal", "teacher"];
 
 export interface SubMenuItem {
     name: string;
@@ -87,6 +99,62 @@ export const principalMenu: MenuItem[] = [
     { name: 'Subscription', path: "/dashboard/subscription", icon: 'fas fa-crown' },
 ];
 
+// --- NEW: ACCOUNTANT MENU ---
+export const accountantMenu: MenuItem[] = [
+    { name: 'Dashboard', path: "/dashboard/dashboard-main", icon: 'fas fa-chart-pie' },
+    { name: 'Profile', path: "/dashboard/profile", icon: 'fas fa-user' },
+    { name: 'Class', path: "/dashboard/class", icon: 'fas fa-chalkboard' },
+    { name: 'Section', path: "/dashboard/section", icon: 'fas fa-box' },
+    { name: 'Students', path: "/dashboard/student", icon: 'fas fa-user-group' },
+    { name: 'Records', path: "/dashboard/student-record", icon: 'fas fa-user-group' },
+    { name: 'Expense', path: "/dashboard/expense", icon: 'fas fa-file-invoice-dollar' },
+    { name: 'Finance', path: "/dashboard/finance", icon: 'fas fa-book-open' },
+    { name: 'Fee Structure', path: "/dashboard/fee-structure", icon: 'fas fa-coins' },
+    { name: 'Subscription', path: "/dashboard/subscription", icon: 'fas fa-crown' },
+];
+
+// --- NEW: TEACHER MENU ---
+export const teacherMenu: MenuItem[] = [
+    { name: 'Dashboard', path: "/dashboard/dashboard-main", icon: 'fas fa-chart-pie' }, // Usually needed for home route
+    { name: 'Profile', path: "/dashboard/profile", icon: 'fas fa-user' },
+    { name: 'Records', path: "/dashboard/student-record", icon: 'fas fa-user-group' },
+    { name: 'Attendance', path: "/dashboard/attendance", icon: 'fas fa-clipboard' },
+    { name: 'Assignments', path: "/dashboard/teacher-assignment", icon: 'fas fa-user' },
+    { name: 'Homework', path: "/dashboard/homework", icon: 'fas fa-calendar-check' },
+    { name: 'Mark report', path: "/dashboard/markreport", icon: 'fas fa-file-invoice' },
+    { name: 'Mark report Configuration', path: "/dashboard/markreport-config", icon: 'fas fa-file-invoice' },
+];
+
+export const getParentInitialMenu = (): MenuItem[] => [
+    {
+        name: "Parent Profile",
+        path: "/dashboard/parent/profile",
+        icon: "fas fa-user",
+    },
+    {
+        name: "Profile Selection",
+        path: "/dashboard/profile-selection",
+        icon: "fas fa-user-group",
+    },
+];
+
+// export const getParentMenu = (studentId: string | null): MenuItem[] => {
+//     // Base path. If studentId exists, append it as a query parameter.
+//     const queryStr = studentId ? `?studentId=${studentId}` : '';
+
+//     return [
+//         { name: 'Profile', path: `/dashboard/profile-selection/parent/profile`, icon: 'fas fa-user' },
+//         { name: 'My Homework Submissions', path: `/dashboard/profile-selection/student/homework-submission${queryStr}`, icon: 'fas fa-check-circle' },
+//         { name: 'Profile Selection', path: "/dashboard/profile-selection", icon: 'fas fa-user-group' },
+//         { name: 'Student Profile', path: `/dashboard/profile-selection/student/record-profile/${studentId}`, icon: 'fas fa-user-group' },
+//         { name: 'Student Main', path: `/dashboard/profile-selection/student/main-profile/${studentId}`, icon: 'fas fa-user-group' },
+//         { name: 'Attedance', path: `/dashboard/profile-selection/student/attendace/${studentId}`, icon: 'fas fa-clipboard' },
+//         { name: 'Mark report', path: `/dashboard/profile-selection/student/markreport/${studentId}`, icon: 'fas fa-file-invoice' },
+//         { name: 'Annoucement', path: "/dashboard/profile-selection/student/announcement", icon: 'fas fa-bullhorn' },
+//         { name: 'Clubs', path: "/dashboard/profile-selection/student/club", icon: 'fas fa-layer-group' },
+//     ];
+// };
+
 
 
 export const getParentMenu = (studentId: string | null): MenuItem[] => {
@@ -94,15 +162,14 @@ export const getParentMenu = (studentId: string | null): MenuItem[] => {
     const queryStr = studentId ? `?studentId=${studentId}` : '';
 
     return [
-        { name: 'Profile', path: `/dashboard/profile`, icon: 'fas fa-user' },
-        // { name: 'Homework', path: `/dashboard/homework${queryStr}`, icon: 'fas fa-book' },
-        { name: 'My Homework Submissions', path: `/dashboard/homework-submission${queryStr}`, icon: 'fas fa-check-circle' },
         { name: 'Profile Selection', path: "/dashboard/profile-selection", icon: 'fas fa-user-group' },
-        { name: 'Student Profile', path: `/dashboard/profile-selection/student/record-profile//${studentId}`, icon: 'fas fa-user-group' },
-        { name: 'Student Main', path: `/dashboard/profile-selection/student/main-profile/${studentId}`, icon: 'fas fa-user-group' },
-        { name: 'Attedance', path: `/dashboard/profile-selection/student/attendace/${studentId}`, icon: 'fas fa-clipboard' },
-        { name: 'Mark report', path: "/dashboard/markreport", icon: 'fas fa-file-invoice' },
-        { name: 'Annoucement', path: "/dashboard/profile-selection/student/announcement", icon: 'fas fa-bullhorn' },
-        { name: 'Clubs', path: "/dashboard/profile-selection/student/club", icon: 'fas fa-layer-group' },
+        { name: 'Profile', path: `/dashboard/parent/profile`, icon: 'fas fa-user' },
+        { name: 'My Homework Submissions', path: `/dashboard/student/homework-submission${queryStr}`, icon: 'fas fa-check-circle' },
+        { name: 'Student Profile', path: `/dashboard/student/record-profile/${studentId}`, icon: 'fas fa-user-group' },
+        { name: 'Student Main', path: `/dashboard/student/main-profile/${studentId}`, icon: 'fas fa-user-group' },
+        { name: 'Attedance', path: `/dashboard/student/attendace/${studentId}`, icon: 'fas fa-clipboard' },
+        { name: 'Mark report', path: `/dashboard/student/markreport/${studentId}`, icon: 'fas fa-file-invoice' },
+        { name: 'Annoucement', path: "/dashboard/student/announcement", icon: 'fas fa-bullhorn' },
+        { name: 'Clubs', path: "/dashboard/student/club", icon: 'fas fa-layer-group' },
     ];
 };

@@ -163,7 +163,7 @@ export default function HomeworkMain() {
 
     const handleDeleteSubject = async ({ homeworkId, subjectId }: { homeworkId: string, subjectId: string }) => {
 
-        
+
         if (window.confirm("Are you sure you want to delete this? This action cannot be undone.")) {
             try {
                 deleteMutation.mutateAsync({ homeworkId: homeworkId, subjectId: subjectId })
@@ -171,7 +171,6 @@ export default function HomeworkMain() {
 
             } catch (error: any) {
                 toast.error(error.message || "Failed to Delete.");
-                console.error("Failed to delete expense", error);
             }
         }
     };
@@ -404,23 +403,36 @@ export default function HomeworkMain() {
 
                                                     <div className="flex gap-2 items-center">
                                                         <Button
-                                                            variant="ghost"
+                                                            variant="outline"
                                                             size="sm"
-                                                            className="text-xs bg-primary-soft text-primary h-6 px-2"
+                                                            className="text-xs !border-border text-primary h-6 px-2"
                                                             onClick={() => setSubmissionViewSubject(sub)}
                                                         >
                                                             View Submissions
                                                         </Button>
 
                                                         {!isPastActiveDate && (
-                                                            <button
-                                                                className="w-6 h-6 flex items-center justify-center rounded bg-danger/10 text-danger opacity-0 group-hover:opacity-100 transition-opacity hover:bg-danger hover:text-inverse"
-                                                                // onClick={() => deleteMutation.mutate({ homeworkId: activeDayData._id, subjectId: sub._id })}
+                                                            // <button
+                                                            //     className="w-6 h-6 flex items-center justify-center rounded bg-danger/10 text-danger hover:bg-danger hover:text-inverse"
+                                                            //     // onClick={() => deleteMutation.mutate({ homeworkId: activeDayData._id, subjectId: sub._id })}
+                                                            //     onClick={() => handleDeleteSubject({ homeworkId: activeDayData._id, subjectId: sub._id })}
+                                                            //     title="Delete Subject"
+                                                            // >
+                                                            //     <i className="fas fa-trash-alt text-[10px]"></i>
+                                                            // </button>
+
+                                                            <Button
+                                                                variant="danger"
+                                                                size='sm'
+                                                                // Adjust size if your custom component supports icon/sm sizing layouts
+                                                                className="rounded bg-danger"
                                                                 onClick={() => handleDeleteSubject({ homeworkId: activeDayData._id, subjectId: sub._id })}
+                                                                isLoading={deleteMutation.isPending && deleteMutation.variables.subjectId === sub?._id}
                                                                 title="Delete Subject"
                                                             >
+                                                                {/* Only render the icon if the mutation isn't currently loading */}
                                                                 <i className="fas fa-trash-alt text-[10px]"></i>
-                                                            </button>
+                                                            </Button>
                                                         )}
                                                     </div>
                                                 </div>

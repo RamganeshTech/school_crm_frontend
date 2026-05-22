@@ -55,211 +55,6 @@ export interface UserProfileData {
     studentId?: Student | Student[]; // Can be one or multiple children
 }
 
-// interface UserProfileProps {
-//     user: UserProfileData;
-// }
-
-// export default function UserProfile() {
-//     // Toggle state for assignments (hidden by default)
-
-//     const { _id, role } = useSelector((state: RootState) => state.auth)
-
-//     console.log("_id from teu user profile", _id)
-
-//     const { data: user, isLoading, isError } = useGetSingleUser(_id!)
-//     const [showAssignments, setShowAssignments] = useState(false);
-
-
-//     // 2. Add a guard clause BEFORE your main return statement
-//     if (isLoading) {
-//         return <div className="p-4">Loading profile...</div>;
-//     }
-
-//     if (isError) {
-//         return <div className="p-4 text-red-500">Failed to load profile.</div>;
-//     }
-
-//     console.log("data", user)
-
-//     const isParent = role === 'parent';
-//     const hasAssignments = user?.assignments && user?.assignments?.length > 0;
-
-//     // Normalize students to an array for easier mapping
-//     const students: Student[] = Array.isArray(user?.studentId)
-//         ? user?.studentId
-//         : user?.studentId
-//             ? [user?.studentId]
-//             : [];
-
-//     return (
-//         <div className="w-full max-w-5xl mx-auto space-y-6 p-4 md:p-6">
-
-//             {/* --- Main Profile & School Grid --- */}
-//             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-//                 {/* 1. Basic User Info Card */}
-//                 <div className="lg:col-span-1 bg-surface border border-border rounded-xl p-6 shadow-sm flex flex-col items-center text-center">
-//                     <div className="w-24 h-24 rounded-full bg-primary-soft text-primary flex items-center justify-center text-3xl mb-4 shadow-sm">
-//                         <i className="fas fa-user"></i>
-//                     </div>
-//                     <h2 className="text-xl font-semibold text-foreground mb-1">{user?.userName}</h2>
-//                     <span className="px-3 py-1 bg-primary-soft text-primary text-sm font-medium rounded-full uppercase tracking-wide mb-4">
-//                         {user?.role}
-//                     </span>
-
-//                     <div className="w-full space-y-3 mt-2 text-left border-t border-border pt-4">
-//                         <div className="flex items-center gap-3 text-muted text-sm">
-//                             <i className="fas fa-envelope w-4 text-center"></i>
-//                             <span className="text-foreground truncate">{user.email || 'N/A'}</span>
-//                         </div>
-//                         <div className="flex items-center gap-3 text-muted text-sm">
-//                             <i className="fas fa-phone w-4 text-center"></i>
-//                             <span className="text-foreground">{user.phoneNo || 'N/A'}</span>
-//                         </div>
-//                     </div>
-//                 </div>
-
-//                 {/* 2. School Information Card */}
-//                 {user.schoolId && (
-//                     <div className="lg:col-span-2 bg-surface border border-border rounded-xl p-6 shadow-sm">
-//                         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-//                             <i className="fas fa-school text-primary"></i>
-//                             School Details
-//                         </h3>
-
-//                         <div className="flex flex-col md:flex-row gap-6 items-start">
-//                             {user.schoolId.logo ? (
-//                                 <img
-//                                     src={user.schoolId.logo.url || user.schoolId.logo.path}
-//                                     alt="School Logo"
-//                                     className="w-20 h-20 rounded-lg object-cover border border-border"
-//                                 />
-//                             ) : (
-//                                 <div className="w-20 h-20 rounded-lg bg-primary-soft flex items-center justify-center text-primary text-2xl shrink-0">
-//                                     <i className="fas fa-building"></i>
-//                                 </div>
-//                             )}
-
-//                             <div className="flex-1 space-y-3 w-full">
-//                                 <div>
-//                                     <p className="text-sm text-muted mb-1">Institution Name</p>
-//                                     <p className="font-medium text-foreground">{user.schoolId.name}</p>
-//                                 </div>
-
-//                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//                                     <div>
-//                                         <p className="text-sm text-muted mb-1">Academic Year</p>
-//                                         <p className="font-medium text-foreground">{user.schoolId.currentAcademicYear || 'N/A'}</p>
-//                                     </div>
-//                                     <div>
-//                                         <p className="text-sm text-muted mb-1">Contact Number</p>
-//                                         <p className="font-medium text-foreground">{user.schoolId.phoneNo || 'N/A'}</p>
-//                                     </div>
-//                                 </div>
-
-//                                 <div>
-//                                     <p className="text-sm text-muted mb-1">Address</p>
-//                                     <p className="text-sm text-foreground flex items-start gap-2">
-//                                         <i className="fas fa-map-marker-alt mt-1 text-muted"></i>
-//                                         {user.schoolId.address || 'N/A'}
-//                                     </p>
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 )}
-//             </div>
-
-//             {/* --- Conditional: Parent's Students Section --- */}
-//             {isParent && students.length > 0 && (
-//                 <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
-//                     <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-//                         <i className="fas fa-child text-primary"></i>
-//                         Enrolled Students
-//                     </h3>
-
-//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//                         {students.map((student) => {
-//                             // Safely extract populated names if they exist, otherwise use the ID string
-//                             const className = typeof student.currentClassId === 'object' ? student.currentClassId?.name : 'N/A';
-//                             const sectionName = typeof student.currentSectionId === 'object' ? student.currentSectionId?.name : 'N/A';
-
-//                             return (
-//                                 <div key={student._id} className="flex items-center gap-4 p-4 border border-border rounded-lg bg-background">
-//                                     {/* Student Avatar */}
-//                                     {student.studentImage ? (
-//                                         <img
-//                                             src={student.studentImage.url || student.studentImage.path}
-//                                             alt={student.studentName}
-//                                             className="w-14 h-14 rounded-full object-cover border border-border"
-//                                         />
-//                                     ) : (
-//                                         <div className="w-14 h-14 rounded-full bg-primary-soft text-primary flex items-center justify-center text-xl shrink-0">
-//                                             <i className="fas fa-user-graduate"></i>
-//                                         </div>
-//                                     )}
-
-//                                     {/* Student Details */}
-//                                     <div className="flex-1 overflow-hidden">
-//                                         <p className="font-medium text-foreground truncate">{student.studentName}</p>
-//                                         <div className="flex gap-2 mt-1">
-//                                             <span className="px-2 py-0.5 bg-surface border border-border text-xs text-muted rounded">
-//                                                 Class: {className}
-//                                             </span>
-//                                             <span className="px-2 py-0.5 bg-surface border border-border text-xs text-muted rounded">
-//                                                 Sec: {sectionName}
-//                                             </span>
-//                                         </div>
-//                                         <p className="text-xs text-muted mt-2 font-mono">ID: {student._id}</p>
-//                                     </div>
-//                                 </div>
-//                             );
-//                         })}
-//                     </div>
-//                 </div>
-//             )}
-
-//             {/* --- Conditional: Teacher/Staff Assignments (Hidden by Default) --- */}
-//             {!isParent && hasAssignments && (
-//                 <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
-//                     <div className="flex items-center justify-between mb-2">
-//                         <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-//                             <i className="fas fa-chalkboard-teacher text-primary"></i>
-//                             Class Assignments
-//                         </h3>
-//                         <button
-//                             onClick={() => setShowAssignments(!showAssignments)}
-//                             className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary-soft rounded-lg transition-colors border border-transparent hover:border-border"
-//                         >
-//                             {showAssignments ? 'Hide Assignments' : 'View Assignments'}
-//                         </button>
-//                     </div>
-
-//                     {/* Toggleable Content Area */}
-//                     {showAssignments && (
-//                         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 border-t border-border pt-4">
-//                             {user.assignments!.map((assignment: any, index: number) => (
-//                                 <div key={assignment._id || index} className="flex items-center justify-between p-3 border border-border rounded-lg bg-background">
-//                                     <div className="flex items-center gap-3">
-//                                         <div className="w-8 h-8 rounded bg-primary-soft flex items-center justify-center text-primary text-sm">
-//                                             <i className="fas fa-book"></i>
-//                                         </div>
-//                                         <div>
-//                                             <p className="text-sm font-medium text-foreground">{assignment.classId?.name || 'Unknown Class'}</p>
-//                                             <p className="text-xs text-muted">Section {assignment.sectionId?.name || 'N/A'}</p>
-//                                         </div>
-//                                     </div>
-//                                 </div>
-//                             ))}
-//                         </div>
-//                     )}
-//                 </div>
-//             )}
-
-//         </div>
-//     );
-// }
-
 
 export default function UserProfile() {
     const { _id, role } = useSelector((state: RootState) => state.auth);
@@ -311,6 +106,7 @@ export default function UserProfile() {
     }
 
     const isParent = role === 'parent';
+    const isTeacher = role === "teacher"
     const hasAssignments = user?.assignments && user?.assignments?.length > 0;
 
     const students: Student[] = Array.isArray(user?.studentId)
@@ -562,7 +358,7 @@ export default function UserProfile() {
             )}
 
             {/* --- Conditional: Teacher/Staff Assignments --- */}
-            {!isParent && hasAssignments && (
+            {isTeacher && hasAssignments && (
                 <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                         <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">

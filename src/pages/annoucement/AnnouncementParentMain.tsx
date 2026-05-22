@@ -1,13 +1,14 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useAuthData } from '../../hooks/useAuthData';
-import { 
-    useGetAllAnnouncementsInfinite, 
-    useGetAnnouncementById 
+import {
+    useGetAllAnnouncementsInfinite,
+    useGetAnnouncementById
 } from '../../api_services/announcement_api/announcementApi'; // Adjust path
 import { Button } from '../../shared/ui/Button'; // Adjust path
 import { Label } from '../../shared/ui/Input'; // Adjust path
 import { SideModal } from '../../shared/ui/SideModal'; // Adjust path
 import { TableContainer, THead, Th, TBody, Tr, Td } from '../../shared/ui/TableLayout'; // Adjust path
+import { ImageGallery } from '../../shared/components/ImageGallery';
 
 export default function AnnouncementParentMain() {
     const { schoolId } = useAuthData();
@@ -59,7 +60,7 @@ export default function AnnouncementParentMain() {
         <div className="w-full h-full flex flex-col bg-mainBg overflow-hidden">
 
             {/* FLAT HEADER */}
-            <header className="shrink-0 p-3 border-b border-border flex flex-col justify-center bg-mainBg z-10">
+            <header className="shrink-0 p-2 border-b border-border flex flex-col justify-center bg-mainBg z-10">
                 <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                     <i className="fas fa-bullhorn text-primary"></i>
                     Announcement
@@ -68,7 +69,7 @@ export default function AnnouncementParentMain() {
             </header>
 
             {/* FULL WIDTH TABLE LIST PANE */}
-            <main className="flex-1 w-full  py-4 flex flex-col overflow-hidden bg-mainBg">
+            <main className="flex-1 w-full  py-2 flex flex-col overflow-hidden bg-mainBg">
                 <div className="flex-1 bg-surface border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col">
                     {isListLoading ? (
                         <div className="flex flex-1 justify-center items-center">
@@ -84,6 +85,7 @@ export default function AnnouncementParentMain() {
                         <TableContainer onScroll={handleScroll} className="h-full custom-scrollbar overscroll-none">
                             <THead className="sticky top-0 z-10 shadow-sm bg-sub-header">
                                 <tr>
+                                    <Th className="text-center">S.No</Th>
                                     <Th>Date</Th>
                                     <Th>Title & Description</Th>
                                     <Th>Type</Th>
@@ -93,9 +95,15 @@ export default function AnnouncementParentMain() {
                             </THead>
                             <TBody>
                                 <>
-                                    {allAnnouncements.map((item: any) => (
+                                    {allAnnouncements.map((item: any, index: number) => (
                                         <Tr key={item._id} className="hover:bg-sub-header/30 transition-colors">
 
+
+                                            <Td className="align-top pt-5 text-center">
+                                                {/* <span className={`px-2.5 py-1 text-[10px] rounded uppercase font-bold tracking-wider inline-flex border ${getTypeColor(item.type)}`}> */}
+                                                {index + 1}
+                                                {/* </span> */}
+                                            </Td>
                                             <Td className="whitespace-nowrap align-top pt-5">
                                                 <div className="flex flex-col">
                                                     <span className="font-bold text-foreground">
@@ -142,7 +150,7 @@ export default function AnnouncementParentMain() {
                                                         leftIcon="fas fa-eye"
                                                         onClick={() => handleView(item._id)}
                                                     >
-                                                        Review
+                                                        View
                                                     </Button>
                                                 </div>
                                             </Td>
@@ -165,9 +173,9 @@ export default function AnnouncementParentMain() {
             </main>
 
             {/* SIDE MODAL FOR VIEWING ANNOUNCEMENT */}
-            <SideModal 
-                isOpen={isModalOpen} 
-                onClose={() => setIsModalOpen(false)} 
+            <SideModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
                 title="Announcement Details"
             >
                 {selectedId && <AnnouncementViewContent id={selectedId} getTypeColor={getTypeColor} />}
@@ -207,7 +215,7 @@ function AnnouncementViewContent({ id, getTypeColor }: { id: string, getTypeColo
 
     return (
         <div className="flex flex-col h-full overflow-y-auto custom-scrollbar pr-2 pb-6 space-y-6">
-            
+
             {/* 1. Header Info */}
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -235,24 +243,37 @@ function AnnouncementViewContent({ id, getTypeColor }: { id: string, getTypeColo
 
             {/* 3. Image Gallery */}
             {images.length > 0 && (
+                // <div className="space-y-3">
+                //     <Label className="text-xs font-bold text-muted uppercase tracking-wider">Image Attachments</Label>
+                //     <div className="grid grid-cols-2 gap-3">
+                //         {images.map((file: any) => (
+                //             <div key={file._id} className="relative group rounded-xl overflow-hidden border border-border aspect-square block bg-surface shadow-sm cursor-pointer">
+                //                 <a href={file.url} target="_blank" rel="noreferrer" className="block w-full h-full">
+                //                     <img
+                //                         src={file.url}
+                //                         alt={file.originalName}
+                //                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                //                     />
+                //                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
+                //                         <i className="fas fa-expand text-white text-2xl drop-shadow-md"></i>
+                //                     </div>
+                //                 </a>
+                //             </div>
+                //         ))}
+                //     </div>
+                // </div>
                 <div className="space-y-3">
-                    <Label className="text-xs font-bold text-muted uppercase tracking-wider">Image Attachments</Label>
-                    <div className="grid grid-cols-2 gap-3">
-                        {images.map((file: any) => (
-                            <div key={file._id} className="relative group rounded-xl overflow-hidden border border-border aspect-square block bg-surface shadow-sm cursor-pointer">
-                                <a href={file.url} target="_blank" rel="noreferrer" className="block w-full h-full">
-                                    <img
-                                        src={file.url}
-                                        alt={file.originalName}
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                    />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
-                                        <i className="fas fa-expand text-white text-2xl drop-shadow-md"></i>
-                                    </div>
-                                </a>
-                            </div>
-                        ))}
-                    </div>
+                    <Label className="text-xs font-bold text-muted uppercase tracking-wider">
+                        Attachments
+                    </Label>
+
+                    <ImageGallery
+                        images={images}
+                        // If you don't want deletion here, simply omit the handleDelete prop
+                        // handleDelete={(img) => console.log("Delete clicked:", img)} 
+                        heightClass="h-24 sm:h-32 md:h-40" // Adjust height for your specific view
+                        widthClass="w-24 sm:w-32 md:w-36" // Adjust height for your specific view
+                    />
                 </div>
             )}
 
@@ -262,11 +283,11 @@ function AnnouncementViewContent({ id, getTypeColor }: { id: string, getTypeColo
                     <Label className="text-xs font-bold text-muted uppercase tracking-wider">Attached Documents</Label>
                     <div className="flex flex-col gap-3">
                         {documents.map((file: any) => (
-                            <a 
-                                key={file._id} 
-                                href={file.url} 
-                                target="_blank" 
-                                rel="noreferrer" 
+                            <a
+                                key={file._id}
+                                href={file.url}
+                                target="_blank"
+                                rel="noreferrer"
                                 className="flex items-center justify-between p-4 bg-surface border border-border rounded-xl hover:border-primary/50 transition-colors group shadow-sm"
                             >
                                 <div className="flex items-center gap-4 flex-1 overflow-hidden">

@@ -490,7 +490,7 @@ const Login = () => {
             </div>
 
             {/* Remember Me / Forgot Password */}
-            <div className="flex items-center justify-between mt-2">
+            {/* <div className="flex items-center justify-between mt-2">
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -504,7 +504,7 @@ const Login = () => {
               <a href="#" className="text-sm font-semibold text-teal-700 hover:text-teal-800 transition-colors">
                 Forgot password?
               </a>
-            </div>
+            </div> */}
 
             {/* Submit Button */}
             <Button

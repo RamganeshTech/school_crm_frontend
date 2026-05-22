@@ -9,7 +9,7 @@ import { checkPermission } from '../../utils/utils';
 
 // --- Constants for Role Arrays ---
 const CORRESPONDENT_ONLY: UserRole[] = ["correspondent"];
-const GENERAL_READ_ROLES: UserRole[] = ["correspondent", "teacher", "principal", "administrator", "viceprincipal", "accountant"];
+const GENERAL_READ_ROLES: UserRole[] = ["correspondent", "teacher", "principal", "administrator", "viceprincipal", "accountant", "parent"];
 const SOCIAL_WRITE_ROLES: UserRole[] = ["correspondent", "administrator"];
 const SOCIAL_READ_ROLES: UserRole[] = ["correspondent", "teacher", "parent", "principal", "administrator", "viceprincipal", "accountant"];
 

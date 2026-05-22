@@ -1,23 +1,32 @@
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Outlet, useNavigate } from 'react-router-dom';
 import type { RootState } from '../../../features/store/store';
 import { useGetParentStudents } from '../../../api_services/auth_api/authApi';
 import { useGetStudentById } from '../../../api_services/student_api/studentMainApi';
+import { clearCurrentstudent, setStudentId } from '../../../features/slices/activeStudentSlice';
+import { useEffect } from 'react';
 
 export default function ParentProfileSelection() {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
-    const parentName = useSelector((state: RootState) => state.auth.userName) || 'Parent';
+    const { userName:parentName, _id } = useSelector((state: RootState) => state.auth);
 
-    // Dynamic Fetch: Pull student array directly from specialized endpoint
-    const { data: studentIds, isLoading: isListLoading, isError } = useGetParentStudents();
+    // Dynamic Fetch: Pull student array directly from specialized
+    const { data: studentIds, isLoading: isListLoading, isError } = useGetParentStudents({ userId: _id! });
 
     const handleProfileSelect = (studentId: string) => {
-        navigate(`/dashboard/student-record/single/${studentId}`);
+        dispatch(setStudentId(studentId));
+
+        navigate(`/dashboard/student/record-profile/${studentId}`);
     };
 
 
-    const isChild = location.pathname.includes("student")
+    useEffect(() => {
+        dispatch(clearCurrentstudent());
+    }, [dispatch]);
+
+    const isChild = location.pathname.includes("student") || location.pathname.includes("parent")
 
     if (isChild) {
         return <Outlet />

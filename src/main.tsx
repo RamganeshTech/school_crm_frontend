@@ -7,22 +7,28 @@ import App from './App.tsx'
 import { Provider } from 'react-redux';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient.ts';
-import { store } from './features/store/store.ts';
+import { persistor, store } from './features/store/store.ts';
+import { PersistGate } from 'redux-persist/integration/react';
+
 // import { store } from './New_Version/features/store/store.ts';
 // import { queryClient } from './New_Version/lib/queryClient.ts';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store} >
-      <QueryClientProvider client={queryClient}>
-        {/* <AuthProvider> */}
+      <PersistGate loading={null} persistor={persistor}>
+
+        <QueryClientProvider client={queryClient}>
+          {/* <AuthProvider> */}
           {/* <SchoolContextProvider> */}
 
-            <App />
+          <App />
 
           {/* </SchoolContextProvider> */}
-        {/* </AuthProvider> */}
-      </QueryClientProvider>
+          {/* </AuthProvider> */}
+        </QueryClientProvider>
+      </PersistGate>
+
     </Provider>
   </StrictMode>,
 )

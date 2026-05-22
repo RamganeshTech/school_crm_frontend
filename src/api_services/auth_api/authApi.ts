@@ -327,15 +327,15 @@ export interface AssociatedStudentsResponse {
   data: any[];
 }
 
-export const useGetParentStudents = () => {
-  const { userId, currentRole } = useAuthData();
+export const useGetParentStudents = ({userId}:{userId:string}) => {
+  const { currentRole } = useAuthData();
 
   return useQuery({
     // Unique cache key tied to the parent's user ID
     queryKey: ['parent-associated-students', userId],
     queryFn: async () => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator"]);
+        checkPermission(currentRole, ["correspondent", "administrator", "parent"]);
 
         const { data } = await Api.get<AssociatedStudentsResponse>(
           `/api/user/associated-students/get/${userId}`
@@ -348,8 +348,8 @@ export const useGetParentStudents = () => {
       }
     },
     // Performance optimization: Only execute if user is logged in as a parent
-    enabled: !!userId && currentRole === 'parent',
-    staleTime: 10 * 60 * 1000, // Cache student links for 10 minutes (it rarely changes)
+    enabled: !!userId,
+    // staleTime: 10 * 60 * 1000, // Cache student links for 10 minutes (it rarely changes)
   });
 };
 

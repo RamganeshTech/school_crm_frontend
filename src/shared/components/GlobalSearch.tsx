@@ -112,11 +112,11 @@ export const GlobalSearch = () => {
         <>
             {/* 🛑 DARK OVERLAY: Renders behind the search bar but over the rest of the app */}
             {isOpen && (
-                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[25] transition-opacity duration-200" />
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[50] transition-opacity duration-200" />
             )}
 
             {/* SEARCH CONTAINER */}
-            <div className="relative z-40 w-full max-w-lg" ref={wrapperRef}>
+            <div className="relative z-[99] w-full max-w-lg" ref={wrapperRef}>
 
                 {/* Input Field */}
                 <div

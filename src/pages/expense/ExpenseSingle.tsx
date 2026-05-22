@@ -7,6 +7,8 @@ import { Input, Label } from '../../shared/ui/Input';
 import { SearchSelect } from '../../shared/ui/SearchSelect';
 import { useDeleteExpenseProof, useGetExpenseById, useUpdateExpense } from '../../api_services/expense_api/expenseApi';
 import { toast } from '../../shared/ui/ToastContext';
+import { ImageGallery } from '../../shared/components/ImageGallery';
+import { downloadImageUtil } from '../../api_services/download_api/downloadApi';
 
 const CATEGORY_OPTIONS = [
     { label: 'Maintenance', value: 'Maintenance' },
@@ -33,8 +35,8 @@ export default function ExpenseSingle() {
     const [editForm, setEditForm] = useState<any>({});
 
     // File upload states
-    const [newBillProof, setNewBillProof] = useState<File | null>(null);
-    const [newWorkProof, setNewWorkProof] = useState<File | null>(null);
+    const [newBillProof, setNewBillProof] = useState<File[]>([]);
+    const [newWorkProof, setNewWorkProof] = useState<File[]>([]);
 
     // --- Queries & Mutations ---
     const { data: expense, isLoading, isError } = useGetExpenseById(id);
@@ -54,8 +56,8 @@ export default function ExpenseSingle() {
                 remarks: expense.remarks || '',
             });
             // Reset file inputs when entering edit mode
-            setNewBillProof(null);
-            setNewWorkProof(null);
+            setNewBillProof([]);
+            setNewWorkProof([]);
         }
     }, [expense, isEditing]);
 
@@ -82,8 +84,22 @@ export default function ExpenseSingle() {
             }
 
             // Append new files if the user selected them
-            if (newBillProof) formData.append('billProof', newBillProof);
-            if (newWorkProof) formData.append('workProof', newWorkProof);
+            // if (newBillProof) formData.append('billProof', newBillProof);
+            // if (newWorkProof) formData.append('workProof', newWorkProof);
+
+
+            // FIX: Loop through the file arrays and append each file individually
+            if (newBillProof && newBillProof.length > 0) {
+                newBillProof.forEach(file => {
+                    formData.append('billProof', file);
+                });
+            }
+
+            if (newWorkProof && newWorkProof.length > 0) {
+                newWorkProof.forEach(file => {
+                    formData.append('workProof', file);
+                });
+            }
 
             await updateExpenseMutation.mutateAsync({ id, formData });
             setIsEditing(false); // Switch back to view mode on success
@@ -111,37 +127,107 @@ export default function ExpenseSingle() {
         }
     };
 
-    // --- UI Helpers ---
-    const renderProofDisplay = (proofs: any[], type: 'bill' | 'workPhoto') => {
-        if (!proofs || proofs.length === 0) return <p className="text-sm text-muted italic">No proof uploaded.</p>;
+    const renderProofDisplay = (proofs: any[], sectionType: 'bill' | 'workPhoto') => {
+        if (!proofs || proofs.length === 0) {
+            return <p className="text-sm text-muted italic">No proof uploaded.</p>;
+        }
+
+        // 1. Strictly filter based on your backend database 'type' field
+        const imageProofs = proofs.filter((proof: any) => proof.type === 'image');
+        const pdfProofs = proofs.filter((proof: any) => proof.type === 'pdf');
+
+        // 2. Map ONLY the images for the ImageGallery component
+        const galleryImages: any[] = imageProofs.map((proof: any) => ({
+            type: 'image',
+            key: proof._id,
+            url: proof.url,
+            originalName: proof.originalName || `${sectionType} photo`,
+            uploadedAt: proof.uploadedAt || new Date()
+        }));
+
+        const handleGalleryDelete = (img: any) => {
+            if (img.key) handleDeleteProof(img.key, sectionType);
+        };
 
         return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {proofs.map((proof: any) => (
-                    <div key={proof._id} className="relative group border border-border rounded-lg overflow-hidden bg-surface">
-                        {proof.url?.toLowerCase().endsWith('.pdf') ? (
-                            <div className="flex flex-col items-center justify-center h-40 bg-background/50">
-                                <i className="fas fa-file-pdf text-4xl text-danger mb-2"></i>
-                                <a href={proof.url} target="_blank" rel="noreferrer" className="text-sm text-primary hover:underline font-medium">View PDF Document</a>
-                            </div>
-                        ) : (
-                            <a href={proof.url} target="_blank" rel="noreferrer" className="block h-40">
-                                <img src={proof.url} alt="Proof" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                            </a>
-                        )}
+            <div className="space-y-4">
 
-                        {/* Delete Proof Button (Only visible in Edit Mode) */}
-                        {isEditing && (
-                            <button
-                                onClick={() => handleDeleteProof(proof._id, type)}
-                                className="absolute top-2 right-2 w-8 h-8 bg-danger text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-danger/90"
-                                title="Delete this proof"
+                {/* --- 1. RENDER IMAGES IN GALLERY --- */}
+                {galleryImages.length > 0 && (
+                    <ImageGallery
+                        images={galleryImages}
+                        handleDelete={isEditing ? handleGalleryDelete : undefined}
+                        heightClass="h-32 sm:h-40"
+                        widthClass="w-full sm:w-48 md:w-56"
+                    />
+                )}
+
+                {/* --- 2. RENDER PDFS SEPARATELY --- */}
+                {/* --- 2. RENDER PDFS SEPARATELY (LIST LAYOUT) --- */}
+                {pdfProofs.length > 0 && (
+                    <div className="flex flex-col gap-3 mt-4">
+                        {pdfProofs.map((pdf: any) => (
+                            <div
+                                key={pdf._id}
+                                className="flex items-center justify-between p-3 sm:p-4 rounded-xl border border-danger/20 bg-danger/5 hover:bg-danger/10 transition-colors shadow-sm"
                             >
-                                <i className="fas fa-trash-alt text-xs"></i>
-                            </button>
-                        )}
+                                {/* Left: Icon & Details */}
+                                <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
+                                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-danger/10 text-danger flex items-center justify-center shrink-0">
+                                        <i className="fas fa-file-pdf text-lg sm:text-xl"></i>
+                                    </div>
+                                    <div className="truncate">
+                                        <p className="text-sm font-bold text-foreground truncate" title={pdf.originalName}>
+                                            {pdf.originalName || `${sectionType} Document`}
+                                        </p>
+                                        <p className="text-[10px] sm:text-xs text-muted font-semibold uppercase tracking-wider mt-0.5">
+                                            PDF Document
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Right: Action Buttons */}
+                                <div className="flex items-center gap-2 pl-2 shrink-0">
+
+                                    {/* View Button (Opens in new tab) */}
+                                    <a
+                                        href={pdf.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center bg-surface border border-border text-primary hover:bg-primary/10 transition-colors"
+                                        title="View PDF"
+                                    >
+                                        <i className="fas fa-eye text-xs sm:text-sm"></i>
+                                    </a>
+
+                                    {/* Download Button (Triggers background download utility) */}
+                                    <button
+                                        onClick={() => downloadImageUtil({
+                                            fileKey: pdf.key, // Ensure this matches what your backend expects (ID vs S3 Key) 
+                                            originalName: pdf.originalName || 'document.pdf'
+                                        })}
+                                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center bg-surface border border-border text-primary hover:bg-primary/10 transition-colors"
+                                        title="Download PDF"
+                                    >
+                                        <i className="fas fa-download text-xs sm:text-sm"></i>
+                                    </button>
+
+                                    {/* Delete Button (Only visible in Edit Mode) */}
+                                    <Button
+                                        variant='danger'
+                                        isLoading={deleteProofMutation.isPending}
+                                        onClick={() => handleDeleteProof(pdf._id, sectionType)}
+                                        // className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center bg-danger/10 text-danger hover:bg-danger hover:text-white transition-colors border border-transparent hover:border-danger/20 ml-1 sm:ml-2"
+                                        title="Delete PDF"
+                                    >
+                                        <i className="fas fa-trash-alt text-xs sm:text-sm"></i>
+                                    </Button>
+
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                ))}
+                )}
             </div>
         );
     };
@@ -301,14 +387,20 @@ export default function ExpenseSingle() {
 
                             {isEditing && (
                                 <div className="mt-4 pt-4 border-t border-border border-dashed">
-                                    <Label className="!text-xs">Upload New Bill (Overrides existing)</Label>
+                                    <Label className="!text-xs">Upload New Bill(s) (Overrides existing)</Label>
                                     <input
                                         type="file"
+                                        multiple
                                         accept="image/*,.pdf"
-                                        onChange={(e) => setNewBillProof(e.target.files?.[0] || null)}
+                                        // Convert FileList to an array
+                                        onChange={(e) => setNewBillProof(e.target.files ? Array.from(e.target.files) : [])}
                                         className="mt-1 block w-full text-xs text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-colors"
                                     />
-                                    {newBillProof && <p className="text-[10px] text-success font-medium mt-1">Ready to upload: {newBillProof.name}</p>}
+                                    {newBillProof.length > 0 && (
+                                        <p className="text-[10px] text-success font-medium mt-1">
+                                            Ready to upload: {newBillProof.length} file(s) selected
+                                        </p>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -324,14 +416,20 @@ export default function ExpenseSingle() {
 
                             {isEditing && (
                                 <div className="mt-4 pt-4 border-t border-border border-dashed">
-                                    <Label className="!text-xs">Upload New Work Photo (Overrides existing)</Label>
+                                    <Label className="!text-xs">Upload New Work Photo(s) (Overrides existing)</Label>
                                     <input
                                         type="file"
+                                        multiple
                                         accept="image/*,.pdf"
-                                        onChange={(e) => setNewWorkProof(e.target.files?.[0] || null)}
+                                        // Convert FileList to an array
+                                        onChange={(e) => setNewWorkProof(e.target.files ? Array.from(e.target.files) : [])}
                                         className="mt-1 block w-full text-xs text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-colors"
                                     />
-                                    {newWorkProof && <p className="text-[10px] text-success font-medium mt-1">Ready to upload: {newWorkProof.name}</p>}
+                                    {newWorkProof.length > 0 && (
+                                        <p className="text-[10px] text-success font-medium mt-1">
+                                            Ready to upload: {newWorkProof.length} file(s) selected
+                                        </p>
+                                    )}
                                 </div>
                             )}
                         </div>

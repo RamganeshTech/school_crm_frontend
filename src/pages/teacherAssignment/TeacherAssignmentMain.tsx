@@ -51,7 +51,7 @@ export default function TeacherAssignmentMain() {
             </header>
 
             {/* FULL WIDTH LIST (Using Custom Table Components) */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-2 md:p-6">
                 {isLoading ? (
                     <div className="flex justify-center py-20"><i className="fas fa-circle-notch fa-spin text-3xl text-primary"></i></div>
                 ) : isError ? (
@@ -64,13 +64,13 @@ export default function TeacherAssignmentMain() {
                         <p>No teachers found.</p>
                     </div>
                 ) : (
-<TableContainer className="h-full relative overflow-y-auto custom-scrollbar"><THead className="sticky top-0 z-10 shadow-sm">                            <tr>
-                                <Th className="w-16">S.No</Th>
-                                <Th>Teacher Name</Th>
-                                <Th>Total Assignments</Th>
-                                <Th className="text-right">Action</Th>
-                            </tr>
-                        </THead>
+                    <TableContainer className="h-full relative overflow-y-auto custom-scrollbar"><THead className="sticky top-0 z-10 shadow-sm">                            <tr>
+                        <Th className="w-16">S.No</Th>
+                        <Th>Teacher Name</Th>
+                        <Th>Total Assignments</Th>
+                        <Th className="text-right">Action</Th>
+                    </tr>
+                    </THead>
                         <TBody>
                             {filteredTeachers.map((teacher: any, index: number) => (
                                 <Tr key={teacher._id}>

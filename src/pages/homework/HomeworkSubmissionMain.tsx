@@ -24,7 +24,7 @@ export default function HomeworkSubmissionMain() {
 
     // Submission Form State
     const [remarks, setRemarks] = useState('');
-    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    // const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
     // --- Queries ---
     // 1. Fetch Student Info to get Class and Section
@@ -101,7 +101,7 @@ export default function HomeworkSubmissionMain() {
     const handleOpenSubmitForm = (subject: any) => {
         setSelectedSubject(subject);
         setRemarks('');
-        setSelectedFiles([]);
+        // setSelectedFiles([]);
     };
 
     const handleSubmitWork = async () => {
@@ -303,7 +303,7 @@ export default function HomeworkSubmissionMain() {
                                     />
                                 </div>
 
-                                <div className="flex flex-col gap-1.5">
+                                {/* <div className="flex flex-col gap-1.5">
                                     <Label>Upload Work (Proof)</Label>
                                     <input
                                         type="file"
@@ -312,7 +312,7 @@ export default function HomeworkSubmissionMain() {
                                         className="block w-full text-xs text-muted file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-primary-soft file:text-primary font-bold cursor-pointer"
                                         onChange={(e) => setSelectedFiles(Array.from(e.target.files || []))}
                                     />
-                                </div>
+                                </div> */}
                             </div>
 
                             <div className="pt-4 border-t border-border flex justify-end gap-3 bg-surface shrink-0">

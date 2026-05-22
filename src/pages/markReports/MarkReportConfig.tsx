@@ -34,14 +34,6 @@ export default function MarkReportConfig() {
     // 2. Local Mode State 
     const [mode, setMode] = useState<'view' | 'edit' | 'create'>(studentId ? 'view' : 'create');
 
-    // Reset mode to view/create if the ID changes in the URL
-    // useEffect(() => {
-    //     if (!studentId) setMode('create');
-    //     else if (studentId && mode === 'create') setMode('view');
-    // }, [studentId, mode]);
-
-   
-    // Security Failsafe: Parents/Students cannot access the /create route
    
     // 3. Fetch Data (Only runs if ID exists)
     const { data: reportPayload, isLoading: isFetching } = useGetMarkReportByIdV1({
@@ -54,22 +46,51 @@ export default function MarkReportConfig() {
     const markReport = reportPayload?.data || null;
     const isNewReport = reportPayload?.isNew || false;
 
-     useEffect(() => {
-        // if (isNewReport) {
-        if (isNewReport && isRestrictedRole) {
-            setMode('create');
-        } else if (!isNewReport && markReport) {
-            setMode('view');
-        }
-    }, [isNewReport, markReport]);
+    //  useEffect(() => {
+    //     // if (isNewReport) {
+    //     if (isNewReport && isRestrictedRole) {
+    //         setMode('create');
+    //     } else if (!isNewReport && markReport) {
+    //         setMode('view');
+    //     }
+    // }, [isNewReport, markReport]);
 
-     useEffect(() => {
-        if (!isNewReport && isRestrictedRole) {
-            // Redirect back to the main list if they try to manually enter the creation URL
-            navigate('/dashboard/markreport', { replace: true });
-        }
-    }, [isNewReport, isRestrictedRole, navigate]);
+    //  useEffect(() => {
+    //     if (!isNewReport && isRestrictedRole) {
+    //         // Redirect back to the main list if they try to manually enter the creation URL
+    //         navigate('/dashboard/markreport', { replace: true });
+    //     }
+    // }, [isNewReport, isRestrictedRole, navigate]);
 
+
+    // --- UNIFIED MODE & PERMISSION HANDLER ---
+    useEffect(() => {
+        // 1. DO NOTHING if the API is still loading. This prevents the instant-redirect bug!
+        if (isFetching) return;
+
+        if (isRestrictedRole) {
+            // PARENT LOGIC
+            if (isNewReport) {
+                // If no report exists yet, a parent cannot create one.
+                // We should NOT send them to the staff '/dashboard/markreport' list.
+                // Instead, send them back to the previous page safely.
+                toast.error("No mark report is available for this student yet.");
+                navigate(-1); 
+            } else if (markReport) {
+                // If the report exists, let the parent view it
+                setMode('view');
+            }
+        } else {
+            // STAFF LOGIC
+            if (isNewReport) {
+                // Staff viewing an empty record should be put into create mode
+                setMode('create');
+            } else if (markReport) {
+                // Staff viewing an existing record
+                setMode('view');
+            }
+        }
+    }, [isFetching, isNewReport, markReport, isRestrictedRole, navigate]);
 
 
     // 4. Mutations
@@ -128,7 +149,8 @@ export default function MarkReportConfig() {
             onCancel={() => {
                 // If canceling an edit, just go back to view mode. Otherwise, navigate to the main list.
                 if (mode === 'edit') setMode('view');
-                else navigate('/dashboard/markreport');
+                // else navigate('/dashboard/markreport');
+                else navigate(-1);
             }}
         />
     );

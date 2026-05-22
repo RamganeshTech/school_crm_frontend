@@ -60,6 +60,7 @@ export default function StudentMain() {
         newOld: 'New',
     });
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
     // --- API Hooks ---
     const { data: classesData } = useGetClasses(schoolId!);
@@ -223,7 +224,7 @@ export default function StudentMain() {
             }
             refetch();
             closeForm();
-        } catch (error:any) {
+        } catch (error: any) {
             console.error("Failed to save student", error);
             toast.error(error.message || "Operation Failed");
 
@@ -238,7 +239,7 @@ export default function StudentMain() {
                 refetch();
                 toast.success("Deleted Successfully!");
 
-            } catch (error:any) {
+            } catch (error: any) {
                 console.error("Failed to delete student", error);
                 toast.error(error.message || "Failed to delete student");
 
@@ -276,7 +277,8 @@ export default function StudentMain() {
         <div className="w-full h-full flex flex-col p-2 space-y-4 overflow-hidden">
 
             {/* --- Header Section --- */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
+            {/* <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
+            
                 <div>
                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                         <i className="fas fa-user-graduate text-primary"></i>
@@ -287,13 +289,44 @@ export default function StudentMain() {
                 <Button onClick={openCreateForm} leftIcon="fas fa-plus" variant="primary">
                     Register Student
                 </Button>
+            </div> */}
+
+
+            {/* --- Header Section --- */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 px-2">
+                <div>
+                    <h1 className="text-xl lg:text-2xl font-bold text-foreground flex items-center gap-3">
+                        <i className="fas fa-user-graduate text-primary"></i>
+                        Student Directory
+                    </h1>
+                    <p className="text-xs lg:text-sm text-muted mt-1">Manage and filter all registered students across the school.</p>
+                </div>
+
+                {/* Mobile Filter Toggle */}
+                <div className='flex gap-2 justify-between items-center'>
+
+                    <div className="w-full sm:w-auto lg:hidden">
+                        <Button variant="outline" className="w-full justify-center" leftIcon="fas fa-filter" onClick={() => setIsMobileFilterOpen(true)}>
+                            Filters
+                        </Button>
+                    </div>
+
+                    <div className="block">
+                        <Button onClick={openCreateForm} leftIcon="fas fa-plus" variant="primary">
+                            <span className='hidden md:block'>Create Student</span>
+                            <span className='block md:hidden'> Create</span>
+                        </Button>
+                    </div>
+                </div>
             </div>
 
             {/* --- Main Content Layout (Responsive 30% Filters / 70% Table) --- */}
-            <div className="flex flex-col lg:flex-row gap-4 h-[calc(100%-80px)]">
+            {/* <div className="flex flex-col lg:flex-row gap-4 h-[calc(100%-80px)]"> */}
+            <div className="flex-1 flex flex-col lg:flex-row gap-2 h-[calc(100%-80px)] relative">
+
 
                 {/* LEFT PANEL: Filters (Full width on mobile, 30% on Desktop) */}
-                <div className="w-full lg:w-[20%] bg-surface border border-border rounded-xl p-5 flex flex-col gap-5 overflow-y-auto shrink-0 shadow-sm">
+                {/* <div className="w-full lg:w-[20%] bg-surface border border-border rounded-xl p-5 flex flex-col gap-5 overflow-y-auto shrink-0 shadow-sm">
                     <h3 className="font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
                         <i className="fas fa-filter text-muted"></i>
                         Filters
@@ -317,13 +350,6 @@ export default function StudentMain() {
                             placeholder="Select Class..."
                         />
 
-                        {/* <SearchSelect 
-                            label="Section"
-                            options={sectionOptions}
-                            value={filters.sectionId}
-                            onChange={handleSectionFilterChange}
-                            placeholder="Select Section..."
-                        /> */}
 
                         <div className="relative">
                             <SearchSelect
@@ -333,12 +359,10 @@ export default function StudentMain() {
                                 onChange={handleSectionFilterChange}
                                 placeholder={isSectionsLoading ? "Loading sections..." : "Select Section..."}
                             />
-                            {/* Optional small UX indicator if loading */}
                             {isSectionsLoading && <i className="fas fa-spinner fa-spin absolute right-3 top-[38px] text-muted text-sm"></i>}
                         </div>
                     </div>
 
-                    {/* Clear Filters Button pins to bottom */}
                     <div className="mt-auto pt-4 border-t border-border">
                         <Button
                             variant="outline"
@@ -347,6 +371,61 @@ export default function StudentMain() {
                         >
                             Clear Filters
                         </Button>
+                    </div>
+                </div> */}
+
+
+                {/* MOBILE OVERLAY */}
+                {isMobileFilterOpen && (
+                    <div className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity" onClick={() => setIsMobileFilterOpen(false)} />
+                )}
+
+
+                {/* LEFT PANEL: Filters (Drawer on Mobile, Static on Desktop) */}
+                <div className={`
+            fixed inset-y-0 left-0 z-50 w-[280px] bg-surface border border-border rounded-xl p-5 flex flex-col gap-5 shadow-2xl transition-transform duration-300 ease-in-out
+            lg:static lg:w-[25%] lg:min-w-[250px] lg:shrink-0 lg:rounded-xl lg:shadow-sm lg:translate-x-0 lg:border
+            ${isMobileFilterOpen ? 'translate-x-0' : '-translate-x-full'}
+            overflow-y-auto custom-scrollbar
+        `}>
+                    <div className="flex items-center justify-between lg:block border-b border-border pb-2">
+                        <h3 className="font-semibold text-foreground flex items-center gap-2">
+                            <i className="fas fa-filter text-muted"></i> Advanced Filters
+                        </h3>
+                        <button className="lg:hidden text-muted" onClick={() => setIsMobileFilterOpen(false)}><i className="fas fa-xmark"></i></button>
+                    </div>
+
+                    <div className="space-y-4">
+                        {/* <SearchSelect label="Academic Year" options={academicYearOptions} value={filters.academicYear} onChange={(opt) => handleFilterChange('academicYear', String(opt.value))} placeholder="Select Year..." /> */}
+                        <Input id="search" label="Search Records" placeholder="Name or Roll No..." leftIcon="fas fa-search" value={searchInput} onChange={handleSearchChange} />
+
+                        <div className="grid grid-cols-2 gap-3">
+                            {/* <SearchSelect label="Class" options={classOptions} value={filters.classId} onChange={(opt) => { handleFilterChange('classId', String(opt.value)); handleFilterChange('sectionId', ''); }} placeholder="Class..." /> */}
+                            <SearchSelect
+                                label="Class"
+                                options={classOptions}
+                                value={filters.classId}
+                                onChange={handleClassFilterChange}
+                                placeholder="Select Class..."
+                            />
+                            <div className="relative">
+                                {/* <SearchSelect label="Section" options={sectionOptions} value={filters.sectionId} onChange={(opt) => handleFilterChange('sectionId', String(opt.value))} placeholder="Section..." /> */}
+                                <SearchSelect
+                                    label="Section"
+                                    options={sectionOptions}
+                                    value={filters.sectionId}
+                                    onChange={handleSectionFilterChange}
+                                    placeholder={isSectionsLoading ? "Loading sections..." : "Select Section..."}
+                                />
+                                {isSectionsLoading && <i className="fas fa-spinner fa-spin absolute right-3 top-[38px] text-muted text-sm"></i>}
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-auto pt-4 border-t border-border">
+                        <Button variant="outline" className="w-full" onClick={clearFilters}>Clear Filters</Button>
+                        <Button variant="primary" className="w-full lg:hidden mt-2" onClick={() => setIsMobileFilterOpen(false)}>Apply</Button>
                     </div>
                 </div>
 
@@ -499,6 +578,8 @@ export default function StudentMain() {
 
                         </TBody>
                     </TableContainer>
+
+
                 </div>
             </div>
 

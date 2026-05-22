@@ -1,208 +1,5 @@
-// import { useState, useMemo } from 'react';
-// import { useAuthData } from '../../hooks/useAuthData';
-// import { useGetAllUsers, useAssignRole } from '../../api_services/auth_api/authApi';
-// import { Button } from '../../shared/ui/Button';
-// import { SearchSelect } from '../../shared/ui/SearchSelect';
-// import { SideModal } from '../../shared/ui/SideModal';
-// import { TableContainer, THead, Th, TBody, Tr, Td } from '../../shared/ui/TableLayout'; // Adjust path
-// // import { AUTH_CHECK_ROLES, UserRole } from '../../types/authTypes';
-// import { toast } from '../../shared/ui/ToastContext';
-// import type { UserRole } from '../../features/slices/authSlice';
-// import { AUTH_CHECK_ROLES, type ValidUserRole } from '../../constants/constants';
-// import { Input } from '../../shared/ui/Input';
 
-// export default function UserListMain() {
-//     const { schoolId } = useAuthData();
-//     const [roleFilter, setRoleFilter] = useState<Exclude<UserRole, null> | 'all'>('all');
-//     const [selectedUser, setSelectedUser] = useState<any>(null);
-
-//     // 1. Fetch Users
-//     const { data: users, isLoading, refetch } = useGetAllUsers({ role: roleFilter, schoolId: schoolId!, });
-
-//     // 1. Add state for search
-//     const [searchQuery, setSearchQuery] = useState('');
-
-//     // 2. Add filtering logic (use this instead of just 'users' in your TBody map)
-//     const filteredUsers = useMemo(() => {
-//         if (!users) return [];
-//         return users.filter((u: any) =>
-//             u?.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//             (u.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-//             (u.phoneNo || '').includes(searchQuery)
-//         );
-//     }, [users, searchQuery]);
-
-//     // 3. Role Label Helper (First letter uppercase only)
-//     const formatRole = (role: string) => role?.charAt(0)?.toUpperCase() + role?.slice(1);
-
-//     // 2. Role Assignment Mutation
-//     const { mutate: assignRole, isPending: isUpdating } = useAssignRole();
-
-//     // Handle the actual API call
-//     const handleRoleChange = (userId: string, newRole: UserRole) => {
-//         assignRole(
-//             { userId, newRole },
-//             {
-//                 onSuccess: () => {
-//                     toast.success("Role updated successfully");
-//                     setSelectedUser(null);
-//                     refetch(); // Refresh the list
-//                 },
-//                 onError: (err: any) => {
-//                     toast.error(err?.message || "Failed to update role");
-//                 }
-//             }
-//         );
-//     };
-
-//     const roleOptions = useMemo(() => [
-//         { label: 'All Roles', value: 'all' },
-//         ...AUTH_CHECK_ROLES.map(role => ({ label: formatRole((role || '')), value: role }))
-//     ], []);
-
-//     return (
-//         <div className="w-full h-full flex flex-col bg-mainBg">
-
-
-
-//             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b-border ">
-//                 <div>
-//                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-//                         <i className="fa-solid fa-users-gear text-primary"></i>
-//                         Staff Management
-//                     </h1>
-//                     <p className="text-sm text-muted mt-1">Manage system access and roles for all staffs.</p>
-//                 </div>
-
-//                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
-//                     <div className="flex-1">
-//                         <Input
-//                             label="Search Users"
-//                             placeholder="Search by name, email, or phone..."
-//                             onChange={(e) => setSearchQuery(e.target.value)}
-//                         />
-//                     </div>
-//                     <div className="w-64">
-//                         <SearchSelect
-//                             label="Filter by Role"
-//                             options={roleOptions}
-//                             value={roleFilter}
-//                             onChange={(opt) => setRoleFilter(opt.value as ValidUserRole | 'all')}
-//                         />
-//                     </div>
-//                 </div>
-
-//             </header>
-
-
-//             {/* HEADER SECTION */}
-
-
-//             {/* TABLE SECTION */}
-//             <TableContainer>
-//                 {/* <THead> */}
-//                 <THead className="sticky top-0 z-10 bg-background after:absolute after:bottom-0 after:left-0 after:right-0">
-
-//                     <Tr>
-//                         <Th className="w-16">S.NO</Th>
-//                         <Th>User Name</Th>
-//                         <Th>Email / Phone</Th>
-//                         <Th>Current Role</Th>
-//                         <Th className="text-center">Actions</Th>
-//                     </Tr>
-//                 </THead>
-//                 <TBody>
-//                     {isLoading ? (
-//                         <Tr>
-//                             <Td className="text-center text-muted">Loading users...</Td>
-//                         </Tr>
-//                     ) : !users || users.length === 0 ? (
-//                         <Tr>
-//                             <Td className="text-center text-muted">No users found for this selection.</Td>
-//                         </Tr>
-//                     ) : (
-//                         filteredUsers?.map((user: any, index: number) => (
-//                             <Tr key={user._id}>
-//                                 <Td>{index + 1}</Td>
-//                                 <Td className="font-semibold">{user.userName}</Td>
-//                                 {/* <Td>{user.email || user.phoneNumber || 'N/A'}</Td> */}
-//                                 <Td>
-//                                     <div>{user.email || 'No email'}</div>
-//                                     <div className="text-xs text-muted">{user.phoneNo || 'No phone'}</div>
-//                                 </Td>
-//                                 {/* <Td>
-//                                     <span className="px-2 py-1 bg-primary-soft text-primary rounded-md text-[10px] font-bold uppercase tracking-wider">
-//                                         {user.role}
-//                                     </span>
-//                                 </Td> */}
-
-//                                 <Td>
-//                                     <span className="px-2 py-1 bg-primary-soft text-primary rounded-md text-[10px] font-bold uppercase tracking-wider">
-//                                         {formatRole(user.role)}
-//                                     </span>
-//                                 </Td>
-//                                 <Td className="text-center">
-//                                     <Button
-//                                         variant="outline"
-//                                         size="sm"
-//                                         onClick={() => setSelectedUser(user)}
-//                                     >
-//                                         Assign Role
-//                                     </Button>
-//                                 </Td>
-//                             </Tr>
-//                         ))
-//                     )}
-//                 </TBody>
-//             </TableContainer>
-
-//             {/* ASSIGN ROLE MODAL */}
-//             <SideModal
-//                 isOpen={!!selectedUser}
-//                 onClose={() => setSelectedUser(null)}
-//                 title="Assign New Role"
-//                 width="w-full sm:w-[400px]"
-//             >
-//                 {selectedUser && (
-//                     <div className="space-y-6">
-//                         <div>
-//                             <p className="text-xs text-muted uppercase font-bold tracking-wider mb-1">Target User</p>
-//                             <p className="font-bold text-foreground text-lg">{selectedUser.userName}</p>
-//                             <p className="text-sm text-muted">Current Role: <span className="font-bold text-primary">{selectedUser.role}</span></p>
-//                         </div>
-
-//                         <SearchSelect
-//                             label="Select New Role"
-//                             options={AUTH_CHECK_ROLES.map(r => ({
-//                                 label: formatRole(r),
-//                                 value: r
-//                             }))}
-//                             value={selectedUser.role}
-//                             onChange={(opt) => handleRoleChange(selectedUser._id, opt.value as UserRole)}
-//                         />
-
-//                         <div className="pt-4 border-t border-border flex justify-end gap-3">
-//                             <Button variant="outline" onClick={() => setSelectedUser(null)}>Cancel</Button>
-//                             <Button
-//                                 variant="primary"
-//                                 isLoading={isUpdating}
-//                                 onClick={() => handleRoleChange(selectedUser._id, selectedUser.role)}
-//                             >
-//                                 Update Role
-//                             </Button>
-//                         </div>
-//                     </div>
-//                 )}
-//             </SideModal>
-//         </div>
-//     );
-// }
-
-
-
-//  SECOND VERSION
-
-import { useState, useMemo, isValidElement } from 'react';
+import { useState, useMemo } from 'react';
 import { useAuthData } from '../../hooks/useAuthData';
 import { useGetAllUsers, useAssignRole, useCreateUser, useDeleteUser } from '../../api_services/auth_api/authApi';
 import { Button } from '../../shared/ui/Button';
@@ -213,6 +10,7 @@ import { toast } from '../../shared/ui/ToastContext';
 import type { UserRole } from '../../features/slices/authSlice';
 import { AUTH_CHECK_ROLES, type ValidUserRole } from '../../constants/constants';
 import { Input } from '../../shared/ui/Input';
+import { ParentStudentManagerModal } from './ParentStudentManagerModal';
 
 // Initial state for the creation form
 const INITIAL_FORM_STATE = {
@@ -232,6 +30,8 @@ export default function UserListMain() {
     // Modal States
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [manageStudentsParent, setManageStudentsParent] = useState<any>(null);
+
     const [formData, setFormData] = useState(INITIAL_FORM_STATE);
     const [showPassword, setShowPassword] = useState<boolean>(false);
 
@@ -279,8 +79,8 @@ export default function UserListMain() {
                 //     }
                 // }
             );
-                        setSelectedUser(null);
-                        // refetch();
+            setSelectedUser(null);
+            // refetch();
 
 
             toast.success("Role updated successfully");
@@ -428,7 +228,20 @@ export default function UserListMain() {
                                 {/* <div className='mx-auto border'> */}
                                 {/* Combined Actions into a Single Column Cell */}
                                 <Td>
-                                    <div className="flex items-center justify-center gap-3">
+                                    <div className="flex items-center justify-center gap-2 sm:gap-3">
+
+                                        {/* ADD THIS BUTTON BLOCK */}
+                                        {user.role === 'parent' && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setManageStudentsParent(user)}
+                                                title="Manage Linked Students"
+                                                className="text-primary hover:bg-primary-soft hover:border-primary"
+                                            >
+                                                <i className="fas fa-child mr-1.5"></i> Students
+                                            </Button>
+                                        )}
                                         <Button
                                             variant="outline"
                                             size="sm"
@@ -579,6 +392,15 @@ export default function UserListMain() {
                     </div>
                 </div>
             </SideModal>
+
+
+            <ParentStudentManagerModal
+                parentUser={manageStudentsParent}
+                onClose={() => setManageStudentsParent(null)}
+            />
+
+
+
 
         </div>
     );

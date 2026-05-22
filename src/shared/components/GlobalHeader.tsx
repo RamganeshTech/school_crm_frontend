@@ -5,7 +5,7 @@ import { GlobalSearch } from './GlobalSearch';
 
 export const GlobalHeader = () => {
     return (
-        <header className="h-14 bg-surface border-b border-border-default flex items-center justify-between px-6 sticky top-0 z-40">
+        <header className="h-14 bg-surface border-b border-border-default flex items-center justify-between px-6 sticky top-0 z-[35]">
             {/* Left side: Global Search (Command Palette) */}
             <div className="flex-1 flex items-center">
                 <GlobalSearch />

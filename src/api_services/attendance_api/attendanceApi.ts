@@ -54,6 +54,7 @@ type ApiResponse<T = any> = {
   ok: boolean;
   message?: string;
   data: T;
+  summary: T;
 };
 
 // ==========================================
@@ -171,7 +172,7 @@ export const useGetStudentAttendanceHistory = (params: GetStudentHistoryParams) 
         });
 
         if (data.ok) {
-          return data.data; 
+          return data; 
         } else {
           throw new Error(data.message || 'Failed to fetch student attendance history');
         }

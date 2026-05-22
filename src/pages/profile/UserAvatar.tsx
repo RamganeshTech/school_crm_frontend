@@ -3,14 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthData } from '../../hooks/useAuthData';
 
 export const UserAvatar = () => {
-  const { userName } = useAuthData();
+  const { userName, currentRole } = useAuthData();
   const navigate = useNavigate();
   const initials = userName?.charAt(0).toUpperCase() || 'U';
 
+
+
+  const handleClick = () => {
+
+    if(currentRole === "parent"){
+      return navigate('/dashboard/profile-selection/parent/profile')
+    }
+    else {
+      return navigate('/dashboard/profile')
+    }
+
+  }
   return (
-    <div 
+    <div
       className="flex items-center gap-3 cursor-pointer hover:bg-sub-header/50 p-2 rounded-xl transition-colors"
-      onClick={() => navigate('/dashboard/profile')}
+      onClick={handleClick}
     >
       <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-inverse font-bold text-sm shadow-sm">
         {initials}
