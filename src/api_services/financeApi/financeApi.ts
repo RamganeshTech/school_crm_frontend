@@ -62,6 +62,16 @@ export interface FinanceStatsParams {
     section?: string;
 }
 
+export interface FinanceStatsParamsV1 {
+    schoolId: string;
+    range?: "all" | "30d" | "month" | "year" | "custom";
+    startDate?: string;
+    endDate?: string;
+    section?: string;
+}
+
+// Your hook remains the same! Just make sure it receives these params.
+
 export interface OutstandingStatsParams {
     schoolId: string;
     academicYear: string;
@@ -81,7 +91,7 @@ export const useGetAllTransactionsInfinite = (params: Omit<GetAllTransactionsPar
         initialPageParam: 1,
         queryFn: async ({ pageParam = 1 }) => {
             try {
-                checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+                checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal"]);
 
                 const { data } = await Api.get<BaseResponse<ITransaction[]>>('/api/financeledger/getall', {
                     params: { ...params, page: pageParam }
@@ -118,7 +128,7 @@ export const useGetTransactionById = (transactionId: string | undefined) => {
         queryKey: ['finance-transaction', transactionId],
         queryFn: async () => {
             try {
-                checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+                checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal"]);
 
                 const { data } = await Api.get<BaseResponse<ITransaction>>(`/api/financeledger/get/${transactionId}`);
 
@@ -145,7 +155,7 @@ export const useGetFinanceStats = (params: FinanceStatsParams) => {
         queryKey: ['finance-stats', params],
         queryFn: async () => {
             try {
-                checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+                checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal","administrator"]);
 
                 // Backend returns data directly or inside a wrapper, adjusting based on your controller
                 const { data } = await Api.get(`/api/financeledger/stats`, { params });
@@ -174,7 +184,7 @@ export const useGetFinanceTimeline = (params: FinanceStatsParams) => {
         queryKey: ['finance-timeline', params],
         queryFn: async () => {
             try {
-                checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+                checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal","administrator"]);
 
                 const { data } = await Api.get(`/api/financeledger/timeline`, { params });
 
@@ -193,6 +203,36 @@ export const useGetFinanceTimeline = (params: FinanceStatsParams) => {
     });
 };
 
+
+
+// --- Hook: Get Finance Timeline (Charts) ---
+export const useGetFinanceTimelineV1 = (params: FinanceStatsParamsV1) => {
+    const { currentRole } = useAuthData();
+
+    return useQuery({
+        queryKey: ['finance-timeline-v1', params],
+        queryFn: async () => {
+            try {
+                checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal","administrator"]);
+
+                const { data } = await Api.get(`/api/financeledger/v1/timeline`, { params });
+
+                // return data.data || [];
+                 if (data?.ok) {
+                    return data.data || data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch transaction details');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
+        },
+        enabled: !!params.schoolId,
+    });
+};
+
+
 // --- Hook: Get Outstanding Stats (Dues) ---
 export const useGetOutstandingStats = (params: OutstandingStatsParams) => {
     const { currentRole } = useAuthData();
@@ -201,7 +241,7 @@ export const useGetOutstandingStats = (params: OutstandingStatsParams) => {
         queryKey: ['finance-outstanding', params],
         queryFn: async () => {
             try {
-                checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+                checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal","administrator"]);
 
                 const { data } = await Api.get(`/api/financeledger/outstanding`, { params });
 
@@ -217,5 +257,51 @@ export const useGetOutstandingStats = (params: OutstandingStatsParams) => {
             }
         },
         enabled: !!params.schoolId && !!params.academicYear,
+    });
+};
+
+
+// api_services/financeApi/financeApi.ts
+export const useGetCollectedFeesStats = (params: { schoolId: string, academicYear: string }) => {
+    return useQuery({
+        queryKey: ['collected-fees', params],
+        queryFn: async () => {
+            try {
+                // Change the URL to match whatever route you assign the controller to!
+                const { data } = await Api.get(`/api/financeledger/v1/collected`, { params });
+                if (data?.ok) {
+                    return data.data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch collected fees');
+                }
+            } catch (error: any) {
+                throw new Error(error.response?.data?.message || 'An error occurred');
+            }
+        },
+        enabled: !!params.schoolId && !!params.academicYear,
+    });
+};
+
+
+// api_services/financeApi/financeApi.ts
+export const useGetRecentFeeActivity = (schoolId: string | undefined) => {
+    return useQuery({
+        queryKey: ['recent-fee-activity', schoolId],
+        queryFn: async () => {
+            try {
+                // Adjust the route to match your Express router setup
+                const { data } = await Api.get(`/api/financeledger/v1/student/recent-activity`, { 
+                    params: { schoolId } 
+                });
+                if (data?.ok) {
+                    return data.data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch recent activity');
+                }
+            } catch (error: any) {
+                throw new Error(error.response?.data?.message || 'An error occurred');
+            }
+        },
+        enabled: !!schoolId,
     });
 };

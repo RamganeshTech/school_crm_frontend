@@ -131,6 +131,7 @@ export const useGetAllClubsInfinite = (params: Omit<GetAllClubsParams, 'page'>) 
             return currentPage < totalPages ? currentPage + 1 : undefined;
         },
         enabled: !!params.schoolId,
+        retry: false
     });
 };
 

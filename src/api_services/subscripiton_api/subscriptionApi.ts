@@ -5,6 +5,34 @@ import { checkPermission } from '../../utils/utils';
 import { Api } from '../../lib/api';
 // import { checkPermission } from '../../utils/permissions'; // Adjust path
 
+
+
+// PRE-DEFINED PACKAGES (Optional helper)
+export const PACKAGES:any = {
+    basic: {
+        studentRecord: true,
+        attendance: false,
+        expense: false,
+        club: false,
+        announcement: false
+    },
+    standard: {
+        studentRecord: true,
+        attendance: true,
+        expense: true,
+        club: false,
+        announcement: false
+    },
+    premium: {
+        studentRecord: true,
+        attendance: true,
+        expense: true,
+        club: true,
+        announcement: true
+    }
+};
+
+
 // --- Types ---
 export interface SubscriptionFeatures {
     studentRecord?: boolean;

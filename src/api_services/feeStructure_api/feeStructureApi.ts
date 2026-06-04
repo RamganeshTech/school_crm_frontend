@@ -48,7 +48,7 @@ export interface SetFeeStructurePayload {
 
 // Role Arrays
 const ADMIN_ROLES: UserRole[] = ["correspondent", "administrator"];
-const VIEW_ROLES: UserRole[] = ["correspondent", "administrator", "principal", "accountant", "teacher", "parent"];
+const VIEW_ROLES: UserRole[] = ["correspondent", "administrator", "principal", "viceprincipal", "accountant", "teacher", "parent"];
 
 // ====================================================================
 // REACT QUERY HOOKS

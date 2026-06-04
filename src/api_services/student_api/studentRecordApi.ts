@@ -51,9 +51,15 @@ export interface UpdateConcessionParams {
   concessionValue: number | string;
 }
 
+export interface VerifyConcessionParams {
+  studentId: string;
+  academicYear: string;
+}
+
 export interface ToggleStatusParams {
-  id: string;
+  studentId: string;
   isActive: boolean;
+  academicYear: string; // 🌟 Added academicYear parameter
 }
 
 export interface RevertReceiptParams {
@@ -86,13 +92,13 @@ export const useGetAllStudentRecords = (params: GetAllStudentRecordsParams) => {
           "correspondent", "accountant", "principal", "administrator", "viceprincipal", "teacher", "parent"
         ]);
 
-        const { data } = await Api.get<any>('/api/studentrecord/getall', { 
-            params: { ...params, page: pageParam, limit: params.limit || 10 } 
+        const { data } = await Api.get<any>('/api/studentrecord/getall', {
+          params: { ...params, page: pageParam, limit: params.limit || 10 }
         });
 
         if (data.ok) {
           // Return the full object so we have access to data.data AND data.pagination
-          return data; 
+          return data;
         } else {
           throw new Error(data.message || 'Failed to fetch student records');
         }
@@ -109,7 +115,7 @@ export const useGetAllStudentRecords = (params: GetAllStudentRecordsParams) => {
       }
       return undefined; // No more pages
     },
-    enabled: true, 
+    enabled: true,
   });
 };
 
@@ -127,13 +133,13 @@ export const useGetAllStudentRecordsV1 = (params: GetAllStudentRecordsParams) =>
           "correspondent", "accountant", "principal", "administrator", "viceprincipal", "teacher", "parent"
         ]);
 
-        const { data } = await Api.get<any>('/api/studentrecord/v1/getall', { 
-            params: { ...params, page: pageParam, limit: params.limit || 10 } 
+        const { data } = await Api.get<any>('/api/studentrecord/v1/getall', {
+          params: { ...params, page: pageParam, limit: params.limit || 10 }
         });
 
         if (data.ok) {
           // Return the full object so we have access to data.data AND data.pagination
-          return data; 
+          return data;
         } else {
           throw new Error(data.message || 'Failed to fetch student records');
         }
@@ -150,7 +156,7 @@ export const useGetAllStudentRecordsV1 = (params: GetAllStudentRecordsParams) =>
       }
       return undefined; // No more pages
     },
-    enabled: true, 
+    enabled: true,
   });
 };
 
@@ -185,18 +191,26 @@ export const useGetAllStudentRecordsV1 = (params: GetAllStudentRecordsParams) =>
 // };
 
 
-export const useGetStudentRecordByIdV1 = (schoolId: string | undefined, studentId: string | undefined) => {
+export const useGetStudentRecordByIdV1 = (schoolId: string | undefined, studentId: string | undefined, academicYear?: string) => {
   const { currentRole } = useAuthData();
 
   return useQuery({
-    queryKey: ['studentRecords', 'detail', schoolId, studentId],
+    queryKey: ['studentRecords', 'detail', schoolId, studentId, academicYear],
     queryFn: async () => {
       try {
         checkPermission(currentRole, [
           "administrator", "correspondent", "principal", "viceprincipal", "accountant", "teacher", "parent"
         ]);
 
-        const { data } = await Api.get<ApiResponse>(`/api/studentrecord/v1/getrecord/${schoolId}/${studentId}`);
+        // Build URL. Append query parameter if academicYear has a valid string value
+        let url = `/api/studentrecord/v1/getrecord/${schoolId}/${studentId}`;
+        if (academicYear) {
+          url += `?academicYear=${encodeURIComponent(academicYear)}`;
+        }
+
+        const { data } = await Api.get<ApiResponse>(url);
+
+        // const { data } = await Api.get<ApiResponse>(`/api/studentrecord/v1/getrecord/${schoolId}/${studentId}`);
 
         if (data.ok) {
           return data.data;
@@ -298,6 +312,34 @@ export const useUploadConcessionProof = () => {
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
         throw new Error(errorMessage);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['studentRecords'] });
+    },
+  });
+};
+
+export const useVerifyConcession = () => {
+  const queryClient = useQueryClient();
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async ({ studentId, academicYear }: VerifyConcessionParams) => {
+      try {
+        checkPermission(currentRole, [
+            "correspondent", "principal", "administrator", "viceprincipal"
+        ]);
+
+        // 🌟 PASS academicYear as a query parameter
+        const { data } = await Api.patch<ApiResponse>(
+            `/api/studentrecord/v1/verify-concession/${studentId}?academicYear=${academicYear}`
+        );
+
+        if (data.ok) return data;
+        throw new Error(data.message || 'Failed to approve concession');
+      } catch (error: any) {
+        throw new Error(error.response?.data?.message || error.message);
       }
     },
     onSuccess: () => {
@@ -437,12 +479,12 @@ export const useToggleStudentRecordStatus = () => {
   const { currentRole } = useAuthData();
 
   return useMutation({
-    mutationFn: async ({ id, isActive }: ToggleStatusParams) => {
+    mutationFn: async ({ studentId, isActive, academicYear }: ToggleStatusParams) => {
       try {
         // Note: backend lists "administrator" twice in multiRoleAuth.
         checkPermission(currentRole, ["administrator", "correspondent", "accountant"]);
 
-        const { data } = await Api.patch<ApiResponse>(`/api/studentrecord/togglestatus/${id}`, { isActive });
+        const { data } = await Api.patch<ApiResponse>(`/api/studentrecord/v1/togglestatus/${studentId}`, { isActive, academicYear });
 
         if (data.ok) {
           return data;

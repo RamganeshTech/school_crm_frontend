@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useGetSingleUser, useUpdateUser } from '../../api_services/auth_api/authApi';
 import { useSelector } from 'react-redux';
@@ -62,7 +62,7 @@ export default function UserProfile() {
     const { data: user, isLoading, isError } = useGetSingleUser(_id!);
     const updateUserMutation = useUpdateUser();
 
-    const [showAssignments, setShowAssignments] = useState(false);
+    const [showAssignments, setShowAssignments] = useState(true);
 
     // const { showToast } = useToast();
 
@@ -78,13 +78,25 @@ export default function UserProfile() {
     // ✅ THE FIX: Sync directly in the component body
     // This runs whenever 'user' or 'isEditing' changes, 
     // but it doesn't trigger the "cascading render" error.
-    if (user && (formData.email !== user.email || formData.userName !== user.userName)) {
-        setFormData({
-            userName: user.userName || '',
-            email: user.email || '',
-            phoneNo: user.phoneNo || ''
-        });
-    }
+    // if (user && (formData.email !== user.email || formData.userName !== user.userName)) {
+    //     setFormData({
+    //         userName: user.userName || '',
+    //         email: user.email || '',
+    //         phoneNo: user.phoneNo || ''
+    //     });
+    // }
+
+
+    // Place this inside your component, below your state definitions:
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                userName: user.userName || '',
+                email: user.email || '',
+                phoneNo: user.phoneNo || ''
+            });
+        }
+    }, [user, isEditing]);
 
     // Populate form data when edit mode opens or user data changes
     // useEffect(() => {
@@ -117,8 +129,14 @@ export default function UserProfile() {
 
     // --- Handlers ---
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { id, value } = e.target;
-        setFormData(prev => ({ ...prev, [id]: value }));
+        const { name, id, value } = e.target;
+        const targetKey = name || id; // Fallback to id if name isn't found
+
+        if (!targetKey) {
+            toast.error("Input element is missing both 'name' and 'id' properties.");
+            return;
+        }
+        setFormData(prev => ({ ...prev, [targetKey]: value }));
     };
 
     const handleSaveProfile = async () => {
@@ -212,6 +230,7 @@ export default function UserProfile() {
                             <Input
                                 id="userName"
                                 label="Full Name"
+                                name='userName'
                                 leftIcon="fas fa-user"
                                 value={formData.userName}
                                 onChange={handleInputChange}
@@ -220,6 +239,7 @@ export default function UserProfile() {
                             <Input
                                 id="email"
                                 type="email"
+                                name='email'
                                 label="Email Address"
                                 leftIcon="fas fa-envelope"
                                 value={formData.email}
@@ -229,6 +249,7 @@ export default function UserProfile() {
                             <Input
                                 id="phoneNo"
                                 type="tel"
+                                name='phoneNo'
                                 label="Phone Number"
                                 leftIcon="fas fa-phone"
                                 value={formData.phoneNo}

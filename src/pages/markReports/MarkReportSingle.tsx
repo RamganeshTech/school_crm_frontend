@@ -1,471 +1,3 @@
-// import React, { useState, useEffect, useMemo } from 'react';
-// import { Button } from '../../shared/ui/Button';
-// import { Input } from '../../shared/ui/Input';
-// import { SearchSelect } from '../../shared/ui/SearchSelect';
-// import { Toggle } from '../../shared/ui/Toggle';
-// import { SideModal } from '../../shared/ui/SideModal';
-// import { useAuthData } from '../../hooks/useAuthData';
-// import { useGetMarkReportConfigByClass } from '../../api_services/markReport_api/markReportConfigApi';
-// // Adjust these imports based on your actual file paths
-// import { useGetClasses } from '../../api_services/schoolConfig_api/classApi';
-// import { useGetSections } from '../../api_services/schoolConfig_api/sectionApi';
-// import { useGetAllStudents } from '../../api_services/student_api/studentMainApi';
-// // import { useGetAllStudents } from '../../api_services/student_api/studentApi';
-
-// interface MarkReportSingleProps {
-//     mode: 'view' | 'edit' | 'create';
-//     initialData?: any;
-//     onSubmit: (data: any) => void;
-//     isSubmitting: boolean;
-//     isEditable: boolean;
-//     onEdit: () => void;
-//     onCancel: () => void;
-// }
-
-// type MarksDictionary = Record<string, Record<string, number | null>>;
-
-// export default function MarkReportSingle({
-//     mode,
-//     initialData,
-//     onSubmit,
-//     isSubmitting,
-//     isEditable,
-//     onEdit,
-//     onCancel
-// }: MarkReportSingleProps) {
-//     const { schoolId } = useAuthData();
-//     const isViewMode = mode === 'view';
-
-//     // --- Form & Filter State ---
-//     const [formData, setFormData] = useState({
-//         academicYear: '',
-//         classId: '',
-//         sectionId: '',
-//         studentId: '',
-//         remarks: '',
-//         isAbsent: false,
-//     });
-
-//     const [marksDict, setMarksDict] = useState<MarksDictionary>({});
-
-//     // --- SideModal State ---
-//     const [cellEditor, setCellEditor] = useState<{
-//         examName: string;
-//         subjectName: string;
-//         maxMarks: number;
-//         passingMarks: number;
-//         currentVal: string;
-//     } | null>(null);
-
-//     // --- Populate Initial Data ---
-//     useEffect(() => {
-//         if (initialData) {
-//             setFormData({
-//                 academicYear: initialData.academicYear || '',
-//                 classId: initialData.classId?._id || initialData.classId || '',
-//                 sectionId: initialData.sectionId?._id || initialData.sectionId || '',
-//                 studentId: initialData.studentId?._id || initialData.studentId || '',
-//                 remarks: initialData.remarks || '',
-//                 isAbsent: initialData.isAbsent || false,
-//             });
-
-//             if (initialData.examRecords && Array.isArray(initialData.examRecords)) {
-//                 const loadedDict: MarksDictionary = {};
-//                 initialData.examRecords.forEach((exam: any) => {
-//                     loadedDict[exam.examName] = {};
-//                     exam.subjects.forEach((sub: any) => {
-//                         loadedDict[exam.examName][sub.subject] = sub.marksObtained;
-//                     });
-//                 });
-//                 setMarksDict(loadedDict);
-//             }
-//         }
-//     }, [initialData]);
-
-//     // ==========================================
-//     // LIVE API HOOKS & OPTIONS MAPPING
-//     // ==========================================
-
-//     // 1. Fetch Classes
-//     const { data: classesData, isLoading: isClassesLoading } = useGetClasses(schoolId!);
-//     const classOptions = useMemo(() => {
-//         return classesData?.map((cls: any) => ({
-//             label: cls.name || cls.className,
-//             value: cls._id
-//         })) || [];
-//     }, [classesData]);
-
-//     // 2. Fetch Sections (Dependent on Class)
-//     const { data: sectionsData, isLoading: isSectionsLoading } = useGetSections({
-//         schoolId: schoolId!,
-//         classId: formData.classId
-//     });
-//     const sectionOptions = useMemo(() => {
-//         return sectionsData?.map((sec: any) => ({
-//             label: sec.name || sec.sectionName,
-//             value: sec._id
-//         })) || [];
-//     }, [sectionsData]);
-
-//     // 3. Fetch Students (Dependent on Class & Section)
-//     const { data: studentsResponse, isLoading: isStudentsLoading } = useGetAllStudents({
-//         schoolId: schoolId!,
-//         classId: formData.classId,
-//         sectionId: formData.sectionId,
-//         limit: 100 // High limit to populate the dropdown
-//     });
-
-
-
-//     const students = studentsResponse?.pages?.flat() || [];
-
-//     const studentOptions = useMemo(() => {
-//         // Handle both paginated (infinite query) and standard array responses
-//         const studentList = students
-
-//         return studentList.map((stu: any) => ({
-//             label: stu?.studentName || stu?.name,
-//             value: stu._id
-//         }));
-//     }, [students]);
-
-//     // 4. Fetch Configuration Matrix
-//     const { data: configData, isLoading: isConfigLoading } = useGetMarkReportConfigByClass({
-//         schoolId: schoolId!,
-//         academicYear: formData.academicYear,
-//         classId: formData.classId
-//     });
-
-//     const exams = useMemo(() => {
-//         return [...(configData?.exams || [])].sort((a, b) => (a.order || 0) - (b.order || 0));
-//     }, [configData]);
-
-//     const subjects = useMemo(() => {
-//         return [...(configData?.subjects || [])].sort((a, b) => (a.order || 0) - (b.order || 0));
-//     }, [configData]);
-
-
-//     // ==========================================
-//     // HANDLERS
-//     // ==========================================
-
-//     const handleFilterChange = (key: string, value: string) => {
-//         setFormData(prev => ({
-//             ...prev,
-//             [key]: value,
-//             // Reset dependencies if parent changes
-//             ...(key === 'classId' ? { sectionId: '', studentId: '' } : {}),
-//             ...(key === 'sectionId' ? { studentId: '' } : {})
-//         }));
-//     };
-
-//     const openCellEditor = (exam: any, subject: any) => {
-//         if (isViewMode || formData.isAbsent) return;
-
-//         const existingMark = marksDict[exam.examName]?.[subject.subjectName];
-
-//         setCellEditor({
-//             examName: exam.examName,
-//             subjectName: subject.subjectName,
-//             maxMarks: exam.maxMarks || 100,
-//             passingMarks: exam.passingMarks || 35,
-//             currentVal: existingMark !== undefined && existingMark !== null ? String(existingMark) : ''
-//         });
-//     };
-
-//     const saveCellMark = () => {
-//         if (!cellEditor) return;
-
-//         setMarksDict(prev => {
-//             const updated = { ...prev };
-//             if (!updated[cellEditor.examName]) {
-//                 updated[cellEditor.examName] = {};
-//             }
-//             updated[cellEditor.examName][cellEditor.subjectName] =
-//                 cellEditor.currentVal === '' ? null : Number(cellEditor.currentVal);
-//             return updated;
-//         });
-
-//         setCellEditor(null);
-//     };
-
-//     const handleFormSubmit = (e: React.FormEvent) => {
-//         e.preventDefault();
-
-//         // 1. Compile the modern matrix data (examRecords)
-//         const compiledExamRecords = exams.map(exam => {
-//             const examMarks = marksDict[exam.examName] || {};
-
-//             return {
-//                 examName: exam.examName,
-//                 isAbsent: false,
-//                 remarks: "",
-//                 subjects: subjects.map(sub => ({
-//                     subject: sub.subjectName,
-//                     // Ensure we don't pass null if empty, pass 0 to be safe for DB
-//                     marksObtained: examMarks[sub.subjectName] !== undefined && examMarks[sub.subjectName] !== null 
-//                         ? examMarks[sub.subjectName] 
-//                         : 0,
-//                     maxMarks: exam.maxMarks || 100,
-//                     minPassingMarks: exam.passingMarks || 35,
-//                 }))
-//             };
-//         });
-
-//         // 2. THE FIX: Compile a flat subjects array just to satisfy your backend's strict validation rule!
-//         const legacySubjects = subjects.map(sub => ({
-//             subject: sub.subjectName,
-//             marksObtained: 0, // Fallback value
-//             maxMarks: 100,
-//             minPassingMarks: 35
-//         }));
-
-//         // 3. Send both to the backend
-//         onSubmit({
-//             ...formData,
-//             markReportConfigId: configData?._id,
-//             examRecords: compiledExamRecords,
-//             subjects: legacySubjects // <--- This guarantees the backend validation passes!
-//         });
-//     };
-
-//     return (
-//         <div className="w-full h-full flex flex-col bg-mainBg overflow-hidden animate-in fade-in duration-300 relative">
-
-//             {/* --- SIDE MODAL FOR CELL EDITING --- */}
-//             <SideModal
-//                 isOpen={!!cellEditor}
-//                 onClose={() => setCellEditor(null)}
-//                 title={`${cellEditor?.examName || 'Exam'} Marks`}
-//                 width="w-full sm:w-[400px]"
-//             >
-//                 {cellEditor && (
-//                     <div className="space-y-6">
-//                         <div className="bg-surface border border-border rounded-xl p-4 shadow-sm">
-//                             <h4 className="text-sm font-bold text-foreground mb-1">{cellEditor.subjectName}</h4>
-//                             <p className="text-xs text-muted mb-4">Enter the marks obtained by the student for this specific evaluation.</p>
-
-//                             <label className="text-xs font-bold text-muted uppercase tracking-wider mb-2 block">
-//                                 Marks Obtained
-//                             </label>
-//                             <Input
-//                                 autoFocus
-//                                 type="number"
-//                                 min="0"
-//                                 max={cellEditor.maxMarks}
-//                                 value={cellEditor.currentVal}
-//                                 onChange={(e) => setCellEditor({ ...cellEditor, currentVal: e.target.value })}
-//                                 placeholder={`Max: ${cellEditor.maxMarks}`}
-//                                 className="text-lg py-3 font-bold"
-//                             />
-
-//                             <div className="flex justify-between items-center text-[11px] text-muted mt-3 bg-mainBg p-3 rounded-lg border border-border">
-//                                 <span>Max Marks: <strong className="text-foreground">{cellEditor.maxMarks}</strong></span>
-//                                 <span>Pass Threshold: <strong className="text-warning">{cellEditor.passingMarks}</strong></span>
-//                             </div>
-//                         </div>
-
-//                         <div className="flex justify-end gap-3 pt-4 border-t border-border">
-//                             <Button variant="outline" onClick={() => setCellEditor(null)}>Cancel</Button>
-//                             <Button variant="primary" onClick={saveCellMark}>Update Subject Mark</Button>
-//                         </div>
-//                     </div>
-//                 )}
-//             </SideModal>
-
-//             <form onSubmit={handleFormSubmit} className="flex flex-col h-full w-full">
-
-//                 {/* --- TOP HEADER & CONTEXT FILTERS BAR --- */}
-//                 <div className="border-b border-border bg-surface shrink-0 z-10 shadow-sm">
-//                     {/* Title & Actions */}
-//                     <div className="p-4 md:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-//                         <div>
-//                             <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
-//                                 <i className={`fas ${isViewMode ? 'fa-file-certificate text-primary' : 'fa-edit text-warning'}`}></i>
-//                                 {isViewMode ? 'Academic Mark Report' : mode === 'edit' ? 'Edit Mark Report' : 'Student Marking Panel'}
-//                             </h2>
-//                         </div>
-
-//                         <div className="flex items-center gap-3">
-//                             <Button type="button" variant="outline" onClick={onCancel}>
-//                                 {isViewMode ? 'Go Back' : 'Cancel'}
-//                             </Button>
-//                             {!isViewMode && formData.studentId && (
-//                                 <Button type="submit" variant="primary" isLoading={isSubmitting} leftIcon="fas fa-save">
-//                                     Save Report
-//                                 </Button>
-//                             )}
-//                         </div>
-//                     </div>
-
-//                     {/* Integrated Live API Filters */}
-//                     <div className="bg-mainBg border-t border-border p-4 md:px-6">
-//                         {isViewMode ? (
-//                             <div className="flex flex-wrap gap-6">
-//                                 <div>
-//                                     <p className="text-[10px] text-muted font-bold uppercase tracking-wider">Academic Year</p>
-//                                     <p className="text-sm font-semibold text-foreground mt-0.5">{formData.academicYear || 'N/A'}</p>
-//                                 </div>
-//                                 <div>
-//                                     <p className="text-[10px] text-muted font-bold uppercase tracking-wider">Student ID</p>
-//                                     <p className="text-sm font-semibold text-foreground mt-0.5">{formData.studentId || 'N/A'}</p>
-//                                 </div>
-//                             </div>
-//                         ) : (
-//                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-//                                 <Input
-//                                     id="academicYear" label="Academic Year" placeholder="e.g. 2025-2026"
-//                                     value={formData.academicYear}
-//                                     onChange={(e) => handleFilterChange('academicYear', e.target.value)}
-//                                 />
-//                                 <SearchSelect
-//                                     label="Class" options={classOptions}
-//                                     placeholder={isClassesLoading ? "Loading..." : "Select Class..."}
-//                                     value={formData.classId} onChange={(opt) => handleFilterChange('classId', String(opt.value))}
-//                                 />
-//                                 <SearchSelect
-//                                     label="Section" options={sectionOptions}
-//                                     placeholder={isSectionsLoading ? "Loading..." : "Select Section..."}
-//                                     value={formData.sectionId} onChange={(opt) => handleFilterChange('sectionId', String(opt.value))}
-//                                 />
-//                                 <SearchSelect
-//                                     label="Student" options={studentOptions}
-//                                     placeholder={isStudentsLoading ? "Loading..." : "Select Student..."}
-//                                     value={formData.studentId} onChange={(opt) => handleFilterChange('studentId', String(opt.value))}
-//                                 />
-//                             </div>
-//                         )}
-//                     </div>
-//                 </div>
-
-//                 {/* --- MAIN WORKSPACE (Full Width Matrix) --- */}
-//                 <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 bg-mainBg">
-
-//                     {!formData.studentId ? (
-//                         <div className="h-full w-full flex flex-col items-center justify-center text-muted border-2 border-dashed border-border rounded-2xl">
-//                             <i className="fas fa-user-graduate text-5xl mb-4 opacity-50"></i>
-//                             <h3 className="text-lg font-bold text-foreground">No Student Selected</h3>
-//                             <p className="text-sm mt-1">Please select a class, section, and student from the header to load the marking matrix.</p>
-//                         </div>
-//                     ) : (
-//                         <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300 max-w-7xl mx-auto">
-
-//                             {/* Absent Toggle & Remarks Row */}
-//                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-//                                 <div className="lg:col-span-1 bg-surface border border-border rounded-2xl p-5 shadow-sm flex flex-col justify-center">
-//                                     <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-2">Attendance Status</h3>
-//                                     <Toggle
-//                                         checked={formData.isAbsent}
-//                                         onChange={(val) => setFormData({ ...formData, isAbsent: val })}
-//                                         label="Mark Student as Absent"
-//                                         description="Locks matrix and excludes from aggregates."
-//                                     />
-//                                 </div>
-//                                 <div className="lg:col-span-2 bg-surface border border-border rounded-2xl p-5 shadow-sm">
-//                                     <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-3">Overall Remarks</h3>
-//                                     <Input
-//                                         placeholder="Enter overall evaluation remarks, areas of improvement, or general feedback..."
-//                                         value={formData.remarks}
-//                                         onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-//                                         disabled={isViewMode}
-//                                     />
-//                                 </div>
-//                             </div>
-
-//                             {/* The Full-Width Marking Matrix */}
-//                             <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col">
-//                                 <div className="p-4 border-b border-border bg-sub-header/50 flex justify-between items-center">
-//                                     <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">
-//                                         <i className="fas fa-table-cells text-primary mr-2"></i>
-//                                         Academic Marking Matrix
-//                                     </h3>
-//                                 </div>
-
-//                                 <div className="overflow-x-auto custom-scrollbar">
-//                                     {isConfigLoading ? (
-//                                         <div className="p-12 flex items-center justify-center">
-//                                             <i className="fas fa-circle-notch fa-spin text-primary text-3xl"></i>
-//                                         </div>
-//                                     ) : !configData || subjects.length === 0 ? (
-//                                         <div className="p-12 text-center text-danger">
-//                                             <i className="fas fa-exclamation-triangle text-3xl mb-3 opacity-50"></i>
-//                                             <p className="font-bold">Missing Configuration</p>
-//                                             <p className="text-sm opacity-80 mt-1">The report card structure for this class has not been set up yet.</p>
-//                                         </div>
-//                                     ) : (
-//                                         <table className="w-full text-left border-collapse min-w-max">
-//                                             <thead>
-//                                                 <tr className="text-[11px] font-bold text-muted uppercase tracking-wider border-b-2 border-border bg-mainBg">
-//                                                     <th className="p-4 border-r border-border/50 sticky left-0 z-10 bg-mainBg shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-64">
-//                                                         Subjects
-//                                                     </th>
-//                                                     {exams.map((exam, eIdx) => (
-//                                                         <th key={eIdx} className="p-4 border-r border-border/50 text-center min-w-[140px]">
-//                                                             <div className="font-bold text-foreground text-sm">{exam.examName}</div>
-//                                                             <div className="text-[10px] mt-1 font-normal opacity-70">
-//                                                                 Max {exam.maxMarks} • Pass {exam.passingMarks}
-//                                                             </div>
-//                                                         </th>
-//                                                     ))}
-//                                                 </tr>
-//                                             </thead>
-//                                             <tbody className="divide-y divide-border/50">
-//                                                 {subjects.map((sub, sIdx) => (
-//                                                     <tr key={sIdx} className="hover:bg-sub-header/30 transition-colors group">
-
-//                                                         <td className="p-4 font-semibold text-foreground border-r border-border/50 sticky left-0 z-10 bg-surface group-hover:bg-sub-header/50 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
-//                                                             {sub.subjectName}
-//                                                             {sub.subjectCode && <span className="block text-[10px] text-muted font-normal mt-0.5">{sub.subjectCode}</span>}
-//                                                         </td>
-
-//                                                         {exams.map((exam, eIdx) => {
-//                                                             const mark = marksDict[exam.examName]?.[sub.subjectName];
-//                                                             const hasMark = mark !== undefined && mark !== null;
-//                                                             const isFail = hasMark && Number(mark) < (exam.passingMarks || 35);
-
-//                                                             return (
-//                                                                 <td
-//                                                                     key={eIdx}
-//                                                                     className={`p-3 border-r border-border/50 transition-colors ${formData.isAbsent || isViewMode
-//                                                                             ? 'bg-mainBg/30 cursor-not-allowed'
-//                                                                             : 'cursor-pointer hover:bg-primary/5'
-//                                                                         }`}
-//                                                                     onClick={() => openCellEditor(exam, sub)}
-//                                                                 >
-//                                                                     {hasMark ? (
-//                                                                         <div className="flex flex-col items-center justify-center">
-//                                                                             <span className={`font-bold text-lg ${isFail ? 'text-danger' : 'text-foreground'}`}>
-//                                                                                 {mark}
-//                                                                             </span>
-//                                                                             {isFail && <span className="text-[9px] text-danger uppercase tracking-wider mt-0.5 font-bold">Fail</span>}
-//                                                                         </div>
-//                                                                     ) : (
-//                                                                         <div className="w-full max-w-[80px] h-9 mx-auto bg-mainBg border border-border/50 border-dashed rounded flex items-center justify-center group-hover:border-primary/50 group-hover:bg-primary/5 transition-colors">
-//                                                                             <span className="text-[10px] text-muted opacity-50 group-hover:text-primary group-hover:opacity-100">Empty</span>
-//                                                                         </div>
-//                                                                     )}
-//                                                                 </td>
-//                                                             );
-//                                                         })}
-//                                                     </tr>
-//                                                 ))}
-//                                             </tbody>
-//                                         </table>
-//                                     )}
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     )}
-//                 </div>
-//             </form>
-//         </div>
-//     );
-// }
-
-
-
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '../../shared/ui/Button';
 import { Input } from '../../shared/ui/Input';
@@ -478,10 +10,12 @@ import { useGetSections } from '../../api_services/schoolConfig_api/sectionApi';
 import { useGetAllStudents } from '../../api_services/student_api/studentMainApi';
 import { toast } from '../../shared/ui/ToastContext'; // Make sure to import toast for feedback
 import { getAcademicYears } from '../../utils/utils';
+import { useRoleCheck } from '../../hooks/useRoleCheck';
 
 interface MarkReportSingleProps {
     mode: 'view' | 'edit' | 'create';
     initialData?: any;
+    currentAcademicYear: string
     onSubmit: (data: any) => void;
     isSubmitting: boolean;
     isEditable?: boolean; // Kept for interface compatibility but relying on 'mode'
@@ -494,6 +28,7 @@ type MarksDictionary = Record<string, Record<string, number | null>>;
 export default function MarkReportSingle({
     mode,
     initialData,
+    currentAcademicYear,
     onSubmit,
     isSubmitting,
     isEditable,
@@ -503,8 +38,13 @@ export default function MarkReportSingle({
     const { schoolId } = useAuthData();
     const isViewMode = mode === 'view';
 
+    const { isCorrespondent, isAdmin, isTeacher } = useRoleCheck();
+
+    const canModify = isCorrespondent || isAdmin || isTeacher
+
+
     const [formData, setFormData] = useState({
-        academicYear: '2026-2027',
+        academicYear: currentAcademicYear,
         classId: '',
         sectionId: '',
         studentId: '',
@@ -512,6 +52,7 @@ export default function MarkReportSingle({
         isAbsent: false,
     });
 
+    const [isUnSaved, setIsUnSaved] = useState(false);
     const [marksDict, setMarksDict] = useState<MarksDictionary>({});
 
     const [cellEditor, setCellEditor] = useState<{
@@ -599,6 +140,7 @@ export default function MarkReportSingle({
                 remarks: initialData.remarks || '',
                 isAbsent: initialData.isAbsent || false,
             });
+            setIsUnSaved(false); // 🌟 ADD THIS: Reset dirty flag
         }
     }, [initialData]);
 
@@ -615,6 +157,7 @@ export default function MarkReportSingle({
             });
 
             setMarksDict(loadedDict);
+            setIsUnSaved(false); // 🌟 ADD THIS: Reset dirty flag
         }
     }, [initialData, exams]);
 
@@ -658,6 +201,7 @@ export default function MarkReportSingle({
             return updated;
         });
         setCellEditor(null);
+        setIsUnSaved(true); // 🌟 ADD THIS: Mark as dirty when a cell is saved
     };
 
     // ==========================================
@@ -751,9 +295,28 @@ export default function MarkReportSingle({
                                 autoFocus
                                 type="number"
                                 min="0"
+
                                 max={cellEditor.maxMarks}
                                 value={cellEditor.currentVal}
-                                onChange={(e) => setCellEditor({ ...cellEditor, currentVal: e.target.value })}
+                                // onChange={(e) => setCellEditor({ ...cellEditor, currentVal: e.target.value })}
+                                onChange={(e) => {
+                                    const enteredVal = e.target.value;
+                                    const maxLimit = Number(cellEditor.maxMarks);
+
+                                    // 🌟 Allow empty input so users can hit backspace completely
+                                    if (enteredVal === '') {
+                                        setCellEditor({ ...cellEditor, currentVal: '' });
+                                        return;
+                                    }
+
+                                    // Convert input to a numeric representation for evaluation
+                                    const numericVal = Number(enteredVal);
+
+                                    // 🌟 Enforce bounds check: Don't allow negative numbers or values exceeding maxMarks
+                                    if (numericVal >= 0 && numericVal <= maxLimit) {
+                                        setCellEditor({ ...cellEditor, currentVal: enteredVal });
+                                    }
+                                }}
                                 placeholder={`Max: ${cellEditor.maxMarks}`}
                                 className="text-lg py-3 font-bold"
                                 onKeyDown={(e) => {
@@ -784,13 +347,19 @@ export default function MarkReportSingle({
                 <div className="border-b border-border bg-surface shrink-0 z-10 shadow-sm">
                     <div className="p-4 md:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
-                                <i className={`fas ${isViewMode ? 'fa-file-certificate text-primary' : 'fa-edit text-warning'}`}></i>
+                            <h2 className="text-2xl font-bold text-     foreground flex items-center gap-3">
+                                <i className={`fas ${isViewMode ? 'fa-file-certificate text-primary' : 'fa-edit text-primary'}`}></i>
                                 {isViewMode ? 'Academic Mark Report' : mode === 'edit' ? 'Edit Mark Report' : 'Student Marking Panel'}
                             </h2>
                         </div>
 
                         <div className="flex items-center gap-3">
+                            {/* 🌟 ADD THIS: Static text indicator for unsaved changes */}
+                            {isUnSaved && !isViewMode && (
+                                <span className="text-xs font-bold text-warning px-2 tracking-wide">
+                                    Unsaved Changes *
+                                </span>
+                            )}
                             <Button type="button" variant="outline" onClick={onCancel}>
                                 {isViewMode ? 'Go Back' : 'Cancel'}
                             </Button>
@@ -799,7 +368,7 @@ export default function MarkReportSingle({
                                     Edit Report
                                 </Button>
                             )}
-                            {!isViewMode && formData.studentId && (
+                            {(canModify && !isViewMode && formData.studentId) && (
                                 <Button type="submit" variant="primary" isLoading={isSubmitting} leftIcon="fas fa-save">
                                     Save Report
                                 </Button>

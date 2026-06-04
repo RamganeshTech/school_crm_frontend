@@ -13,59 +13,68 @@
 // import Login from './pages/auth/Login';
 // import { ToastProvider } from './shared/ui/ToastContext';
 
-
-import UserProfile from './pages/profile/UserProfile';
-import DashboardChildrens from './pages/Dashboard/DashboardChildrens';
-import { useAuthCheck } from './hooks/useAuthCheck';
-import ClassConfiguration from './pages/class/ClassConfiguration';
-import SectionConfiguration from './pages/section/SectionConfiguration';
-import SchoolListMain from './pages/school/SchoolListMain';
-import SchoolConfiguration from './pages/school/SchoolConfiguration';
-import { Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import Login from './pages/auth/Login';
-import PrivacyPolicy from './pages/confidentials/PrivacyPolicy';
-import AccountDeletion from './pages/confidentials/AccountDeletion/AccountDeletion';
-import NotFound from './pages/Not Found/NotFound';
-import StudentMain from './pages/student_pages/StudentMain_Pages/StudentMain';
-import AttendanceMain from './pages/attendance/AttendanceMain';
-import StudentRecordMain from './pages/student_pages/StudentRecord_Pages/StudentRecordMain';
-import StudentRecordSingle from './pages/student_pages/StudentRecord_Pages/StudentRecordSingle';
 import { ToastContainer } from './shared/ui/ToastContext';
-import FeeTransactionMain from './pages/feeTransaction/FeeTransactionMain';
-import StudentSingle from './pages/student_pages/StudentMain_Pages/StudentSingle';
-import TeacherAssignmentMain from './pages/teacherAssignment/TeacherAssignmentMain';
-import TeacherAssignmentSingle from './pages/teacherAssignment/TeacherAssignmentSingle';
-import TimeTableMain from './pages/timetable/TimeTableMain';
-import ExpenseMain from './pages/expense/ExpenseMain';
-import ExpenseSingle from './pages/expense/ExpenseSingle';
-import HomeworkMain from './pages/homework/HomeWorkMain';
-import HomeworkSubmissionMain from './pages/homework/HomeworkSubmissionMain';
-import FinanceLedgerMain from './pages/finance/FinanceLedgerMain';
-import DeleteArchiveMain from './pages/deleteArchieve/DeleteArchiveMain';
-import AuditMain from './pages/audit/AuditMain';
-import AnnouncementMain from './pages/annoucement/AnnouncementMain';
-import AnnouncementConfig from './pages/annoucement/AnnouncementConfig';
-import ClubMain from './pages/clubs/clubs_main/ClubMain';
-import ClubSingle from './pages/clubs/clubs_main/ClubSingle';
-import FeeStructureMain from './pages/feeStructure/FeeStructureMain';
-import FeeStructureSingle from './pages/feeStructure/FeeStructureSingle';
-import ProtectedRoute from './shared/components/ProtectedRoute';
-import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
-import ParentProfileSelection from './pages/parentPages/parentProfileSelection/ParentProfileSelection';
-import AttendanceSingleStudent from './pages/attendance/AttendanceSingleStudent';
-import MarkReportMain from './pages/markReports/MarkReportMain';
-import MarkReportConfig from './pages/markReports/MarkReportConfig';
-import AnnouncementParentMain from './pages/annoucement/AnnouncementParentMain';
+import { useAuthCheck } from './hooks/useAuthCheck';
+import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
-import FinanceDashboardMain from './pages/reports/FinanceDashboardMain';
-import MarkReportConfigMain from './pages/markReports/markReportConfig/MarkReportConfigMain';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
-import Home from './pages/landing_page/Home';
-import UserListMain from './pages/userList/UserListMain';
+import AttendanceAnalyticsDashboard from './pages/attendance/AttendanceAnalyticsDashboard';
+import AttendanceSchoolWideYearlyAnalytics from './pages/attendance/components/AttendaceSchoolWideYearlyAnalytics';
+import AttendanceClassSpecificYearlyAnalytics from './pages/attendance/components/AttendanceClassSpecificYearlyAnalytics';
+
+
+const UserProfile = lazy(() => import('./pages/profile/UserProfile'));
+const DashboardChildrens = lazy(() => import('./pages/Dashboard/DashboardChildrens'));
+const ClassConfiguration = lazy(() => import('./pages/class/ClassConfiguration'));
+const SectionConfiguration = lazy(() => import('./pages/section/SectionConfiguration'));
+const SchoolListMain = lazy(() => import('./pages/school/SchoolListMain'));
+const SchoolConfiguration = lazy(() => import('./pages/school/SchoolConfiguration'));
+const Login = lazy(() => import('./pages/auth/Login'));
+const PrivacyPolicy = lazy(() => import('./pages/confidentials/PrivacyPolicy'));
+const AccountDeletion = lazy(() => import('./pages/confidentials/AccountDeletion/AccountDeletion'));
+const NotFound = lazy(() => import('./pages/Not Found/NotFound'));
+const StudentMain = lazy(() => import('./pages/student_pages/StudentMain_Pages/StudentMain'));
+const AttendanceMain = lazy(() => import('./pages/attendance/AttendanceMain'));
+const StudentRecordMain = lazy(() => import('./pages/student_pages/StudentRecord_Pages/StudentRecordMain'));
+const StudentRecordSingle = lazy(() => import('./pages/student_pages/StudentRecord_Pages/StudentRecordSingle'));
+const FeeTransactionMain = lazy(() => import('./pages/feeTransaction/FeeTransactionMain'));
+const StudentSingle = lazy(() => import('./pages/student_pages/StudentMain_Pages/StudentSingle'));
+const TeacherAssignmentMain = lazy(() => import('./pages/teacherAssignment/TeacherAssignmentMain'));
+const TeacherAssignmentSingle = lazy(() => import('./pages/teacherAssignment/TeacherAssignmentSingle'));
+const TimeTableMain = lazy(() => import('./pages/timetable/TimeTableMain'));
+const ExpenseMain = lazy(() => import('./pages/expense/ExpenseMain'));
+const ExpenseSingle = lazy(() => import('./pages/expense/ExpenseSingle'));
+const HomeworkMain = lazy(() => import('./pages/homework/HomeWorkMain'));
+const HomeworkSubmissionMain = lazy(() => import('./pages/homework/HomeworkSubmissionMain'));
+const FinanceLedgerMain = lazy(() => import('./pages/finance/FinanceLedgerMain'));
+const DeleteArchiveMain = lazy(() => import('./pages/deleteArchieve/DeleteArchiveMain'));
+const AuditMain = lazy(() => import('./pages/audit/AuditMain'));
+const AnnouncementMain = lazy(() => import('./pages/annoucement/AnnouncementMain'));
+const AnnouncementConfig = lazy(() => import('./pages/annoucement/AnnouncementConfig'));
+const ClubMain = lazy(() => import('./pages/clubs/clubs_main/ClubMain'));
+const ClubSingle = lazy(() => import('./pages/clubs/clubs_main/ClubSingle'));
+const FeeStructureMain = lazy(() => import('./pages/feeStructure/FeeStructureMain'));
+const FeeStructureSingle = lazy(() => import('./pages/feeStructure/FeeStructureSingle'));
+const ProtectedRoute = lazy(() => import('./shared/components/ProtectedRoute'));
+const ParentProfileSelection = lazy(() => import('./pages/parentPages/parentProfileSelection/ParentProfileSelection'));
+const AttendanceSingleStudent = lazy(() => import('./pages/attendance/AttendanceSingleStudent'));
+const MarkReportMain = lazy(() => import('./pages/markReports/MarkReportMain'));
+const MarkReportConfig = lazy(() => import('./pages/markReports/MarkReportConfig'));
+const AnnouncementParentMain = lazy(() => import('./pages/annoucement/AnnouncementParentMain'));
+const FinanceDashboardMain = lazy(() => import('./pages/reports/FinanceDashboardMain'));
+const MarkReportConfigMain = lazy(() => import('./pages/markReports/markReportConfig/MarkReportConfigMain'));
+const Home = lazy(() => import('./pages/landing_page/Home'));
+const UserListMain = lazy(() => import('./pages/userList/UserListMain'));
+const PendingTaskListMain = lazy(() => import('./pages/pendingTask/PendingTaskListMain'));
+const SubscriptionMain = lazy(() => import('./pages/subscripiton/SubscriptionMain'));
+const ForgotPasswordMain = lazy(() => import('./pages/auth/ForgotPasswordMain'));
+const ResetPasswordMain = lazy(() => import('./pages/auth/ResetPasswordMain'));
+const StudentProfileUpdateMain = lazy(() => import('./pages/student_pages/StudentMain_Pages/StudentProfileUpdateMain'));
+const ClubQuizMain = lazy(() => import('./pages/clubs/clubs_quiz/ClubQuizMain'));
+const ClubQuizAttempt = lazy(() => import('./pages/clubs/clubs_quiz/ClubQuizAttempt'));
 // import PendingTasksList from './pages/pendingTask/PendingTasksList';
-import PendingTaskListMain from './pages/pendingTask/PendingTaskListMain';
-import SubscriptionMain from './pages/subscripiton/SubscriptionMain';
 
 // const AccountantPermission = React.lazy(() => import('./Pages/Admin/Reports/AccountantPermission/AccountantPermission'));
 // const Accountant = React.lazy(() => import('./Pages/Accountant/Accountant'));
@@ -141,7 +150,13 @@ function App() {
     <>
       <Router>
         <SocketProvider>
-          <Suspense fallback={<p>loading...</p>}>
+          <Suspense fallback={
+            <section className='w-full h-full flex items-center justify-center'>
+              <div className="flex justify-center items-center py-8">
+                <i className="fas fa-circle-notch fa-spin text-primary text-4xl"></i>
+              </div>
+            </section>
+          }>
             {/* <ErrorBoundary> */}
             {/* <ToastProvider> */}
             <Routes >
@@ -149,85 +164,14 @@ function App() {
 
               <Route index path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPasswordMain />} />
+              <Route path="/reset-password/:id/:token" element={<ResetPasswordMain />} />
+
               <Route path="/profile" element={<UserProfile />} />
 
 
 
 
-              {/* <Route path='/dashboard' element={<DashboardChildrens />}>
-                <Route index element={<FinanceDashboardMain />} />
-
-                <Route path="profile" element={<UserProfile />} />
-                <Route path="class" element={<ClassConfiguration />} />
-                <Route path="section" element={<SectionConfiguration />} />
-                <Route path="school" element={<SchoolConfiguration />} />
-                <Route path="school-list" element={<SchoolListMain />} />
-                <Route path="timetable" element={<TimeTableMain />} />
-                <Route path="expense" element={<ExpenseMain />} >
-                  <Route path="single/:id" element={<ExpenseSingle />} />
-                </Route>
-                <Route path="homework" element={<HomeworkMain />} />
-                <Route path="homework-submission" element={<HomeworkSubmissionMain />} />
-                <Route path="markreport-config" element={<MarkReportConfigMain />} />
-                <Route path="markreport" element={<MarkReportMain />} >
-                  <Route path="single/:id" element={<MarkReportConfig />} />
-                  <Route path="create" element={<MarkReportConfig />} />
-                </Route>
-
-                <Route path="profile-selection" element={<ParentProfileSelection />} >
-                  <Route path="student/main-profile/:id" element={<StudentSingle />} />
-                  <Route path="student/record-profile/:studentId" element={<StudentRecordSingle />} >
-                    <Route path="fee-transaction" element={<FeeTransactionMain />} />
-                  </Route>
-                  <Route path="student/attendace/:id" element={<AttendanceSingleStudent />} />
-
-                  <Route path="student/announcement" element={<AnnouncementParentMain />} />
-
-                  <Route path="student/club" element={<ClubMain />} >
-                    <Route path="single/:id" element={<ClubSingle />} />
-                  </Route>
-
-                </Route>
-
-                <Route path="student" element={<StudentMain />} >
-                  <Route path="profile/:id" element={<StudentSingle />} />
-
-                </Route>
-                <Route path="attendance" element={<AttendanceMain />} />
-                <Route path="teacher-assignment" element={<TeacherAssignmentMain />} >
-
-                  <Route path="single/:id" element={<TeacherAssignmentSingle />} />
-
-                </Route>
-                <Route path="student-record" element={<StudentRecordMain />} >
-                  <Route path="single/:studentId" element={<StudentRecordSingle />} >
-                    <Route path="fee-transaction" element={<FeeTransactionMain />} />
-                  </Route>
-                </Route>
-
-                <Route path="club" element={<ClubMain />} >
-                  <Route path="single/:id" element={<ClubSingle />} />
-                </Route>
-
-                <Route path="announcement" element={<AnnouncementMain />} >
-                  <Route path="single/:id" element={<AnnouncementConfig />} />
-                  <Route path="create" element={<AnnouncementConfig />} />
-                </Route>
-
-
-                <Route path="fee-structure" element={<FeeStructureMain />} >
-                  <Route path="single/:classId" element={<FeeStructureSingle />} />
-                </Route>
-
-
-                <Route path="finance" element={<FinanceLedgerMain />} />
-                <Route path="delete-archive" element={<DeleteArchiveMain />} />
-                <Route path="audit" element={<AuditMain />} />
-
-
-
-
-              </Route> */}
 
 
               <Route path='/dashboard' element={<DashboardChildrens />}>
@@ -302,7 +246,9 @@ function App() {
 
 
                   <Route path="student" element={<StudentMain />} >
-                    <Route path="profile/:id" element={<StudentSingle />} />
+                    <Route path="profile/:id" element={<StudentSingle />} >
+                      <Route path="pending-update" element={<StudentProfileUpdateMain />} />
+                    </Route>
                   </Route>
 
 
@@ -315,8 +261,12 @@ function App() {
                     <Route path="single/:classId" element={<FeeStructureSingle />} />
                   </Route>
 
+                </Route>
+
+                <Route element={<ProtectedRoute allowedRoles={HIGHER_OFFICIALS} />}>
                   <Route path="subscription" element={<SubscriptionMain />} />
                 </Route>
+
 
 
                 {/* ========================================== */}
@@ -325,6 +275,9 @@ function App() {
 
                 <Route element={<ProtectedRoute allowedRoles={ACADEMIC_ACCESS} />}>
                   <Route path="attendance" element={<AttendanceMain />} />
+                  <Route path="attendance-report" element={<AttendanceAnalyticsDashboard />} />
+                  <Route path="attendance-year" element={<AttendanceSchoolWideYearlyAnalytics />} />
+                  <Route path="attendance-class" element={<AttendanceClassSpecificYearlyAnalytics />} />
                   <Route path="homework" element={<HomeworkMain />} />
                   <Route path="homework-submission" element={<HomeworkSubmissionMain />} />
 
@@ -338,7 +291,7 @@ function App() {
                     <Route path="create" element={<MarkReportConfig />} />
                   </Route>
                 </Route>
-                
+
                 {/* ========================================== */}
                 {/* STAFF: MANAGEMENT OPERATIONS               */}
                 {/* ========================================== */}
@@ -349,7 +302,11 @@ function App() {
                   <Route path="delete-archive" element={<DeleteArchiveMain />} />
 
                   <Route path="club" element={<ClubMain />}>
-                    <Route path="single/:id" element={<ClubSingle />} />
+                    <Route path="single/:id" element={<ClubSingle />} >
+                      <Route path="quiz" element={<ClubQuizMain />} >
+                        <Route path="attempt/:quizId" element={<ClubQuizAttempt />} />
+                      </Route>
+                    </Route>
                   </Route>
                   <Route path="announcement" element={<AnnouncementMain />}>
                     <Route path="single/:id" element={<AnnouncementConfig />} />
@@ -400,10 +357,10 @@ function App() {
 
               </Route>
 
-            {/* </Route> */}
+              {/* </Route> */}
 
 
-            {/* <Route path='/accountantlogin' element={<AdminLogin />} />
+              {/* <Route path='/accountantlogin' element={<AdminLogin />} />
               <Route path='/adminlogin' element={<AdminLogin />} />
 
 
@@ -425,19 +382,19 @@ function App() {
  */}
 
 
-            <Route path='/privacy-policy' element={<PrivacyPolicy />} />
-            <Route path='/account-deletion' element={<AccountDeletion />} />
-            <Route path='*' element={<NotFound />} />
+              <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+              <Route path='/account-deletion' element={<AccountDeletion />} />
+              <Route path='*' element={<NotFound />} />
 
-          </Routes>
+            </Routes>
 
-          <ToastContainer />
+            <ToastContainer />
 
-          {/* </ToastProvider> */}
-          {/* </ErrorBoundary> */}
-        </Suspense >
-      </SocketProvider>
-    </Router >
+            {/* </ToastProvider> */}
+            {/* </ErrorBoundary> */}
+          </Suspense >
+        </SocketProvider>
+      </Router >
     </>
   )
 }

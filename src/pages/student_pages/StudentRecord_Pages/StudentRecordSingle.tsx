@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate, Outlet, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, Outlet, useLocation, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { type RootState } from '../../../features/store/store';
 
@@ -9,6 +9,7 @@ import {
     useToggleStudentRecordStatus,
     useApplyConcession,
     useRevertFeeTransaction,
+    useVerifyConcession,
 } from '../../../api_services/student_api/studentRecordApi';
 
 import { useGetClasses } from '../../../api_services/schoolConfig_api/classApi';
@@ -22,26 +23,40 @@ import { Toggle } from '../../../shared/ui/Toggle';
 import { toast } from '../../../shared/ui/ToastContext';
 import AssignClass from './AssignClass';
 import CollectFeeModal from './CollectFeeModal';
-import { useAuthData } from '../../../hooks/useAuthData';
+import { getAcademicYears } from '../../../utils/utils';
+import { useRoleCheck } from '../../../hooks/useRoleCheck';
 
 export default function StudentRecordSingle() {
-    const { studentId } = useParams<{ studentId: string }>();
+    const { studentId } = useParams() as { studentId: string }
+    const [searchParams] = useSearchParams()
+    const studentAcademicYear = searchParams.get("academicYear")
+
     const navigate = useNavigate();
     const location = useLocation()
 
-    const { currentRole } = useAuthData()
+    const { isPrincipal, isCorrespondent, isAccountant, isVicePrincipal, isAdmin } = useRoleCheck()
+
+
+    const canCollectFee = isCorrespondent || isAccountant
+    const canAssignClass = isCorrespondent || isAccountant
+    const canRevertFee = isCorrespondent || isAccountant || isPrincipal
+    const canVerifyConcession = isCorrespondent || isAdmin || isPrincipal || isVicePrincipal
+    const canConcession = isCorrespondent || isAdmin || isPrincipal || isAccountant
+
 
     const { schoolId } = useSelector((state: RootState) => state.auth);
+    const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>(studentAcademicYear || "")
 
     // --- Data Fetching ---
     // const { data: record, isLoading, isError, refetch } = useGetStudentRecordById(schoolId!, studentId);
-    const { data: record, isLoading, isError, refetch } = useGetStudentRecordByIdV1(schoolId!, studentId);
+    const { data: record, isLoading, isError, refetch } = useGetStudentRecordByIdV1(schoolId!, studentId, selectedAcademicYear);
 
     // Mutations
     const toggleStatusMutation = useToggleStudentRecordStatus();
 
     const applyConcessionMutation = useApplyConcession();
     const revertFeeMutation = useRevertFeeTransaction();
+    const verifyMutation = useVerifyConcession();
 
     // --- Modal States ---
     const [isFeeModalOpen, setIsFeeModalOpen] = useState(false);
@@ -49,17 +64,19 @@ export default function StudentRecordSingle() {
     const [isConcessionModalOpen, setIsConcessionModalOpen] = useState(false);
 
     const [concessionData, setConcessionData] = useState({
-        type: 'amount',     // 'amount' or 'percentage'
-        value: '',          // The numeric value
-        remark: '',         // 'Sibling', 'Staff', etc.
+        type: record?.concession?.type || 'amount',     // 'amount' or 'percentage'
+        value: record?.concession?.value || '',          // The numeric value
+        remark: record?.concession?.remark || '',         // 'Sibling', 'Staff', etc.
 
         // Initialization fields (Only used if !isRecordCreated)
         classId: record?.classId || '',
         sectionId: record?.sectionId || '',
         newOld: record?.newOld || "new",
-        isBusApplicable: false,
+        isBusApplicable: record?.isBusApplicable || false,
         busPoint: ''
     });
+
+    const academicYearOptions = getAcademicYears();
 
     const [concessionFile, setConcessionFile] = useState<File | null>(null);
     // Detect if this is a Ghost Record (Not created in DB yet)
@@ -147,7 +164,12 @@ export default function StudentRecordSingle() {
     const handleToggleStatus = async (newStatus: boolean) => {
         if (!record) return;
         try {
-            await toggleStatusMutation.mutateAsync({ id: record._id, isActive: newStatus });
+            // await toggleStatusMutation.mutateAsync({ id: record._id, isActive: newStatus });
+            await toggleStatusMutation.mutateAsync({
+                studentId: studentId, // Can also be record.studentId depending on context source
+                isActive: newStatus,
+                academicYear: selectedAcademicYear // 🌟 Injects your local active selection state bound dynamically
+            });
             refetch();
             toast.success("Status Updated!");
         } catch (error: any) {
@@ -178,11 +200,25 @@ export default function StudentRecordSingle() {
         }
     };
 
+    const handleVerify = async () => {
+        // Pass both the ID and the Year from your state
+        try {
+
+            await verifyMutation.mutateAsync({
+                studentId: record.studentId?._id,
+                academicYear: selectedAcademicYear
+            });
+            toast.success("Verified successfully!");
+            refetch();
+        } catch (error: any) {
+            toast.error(error?.message || "Failed to Verify.");
+        }
+    };
+
     const totalSuccessfullyPaid = receipts
         .filter((tx: any) => tx.status === 'success')
         .reduce((sum: number, tx: any) => sum + (Number(tx.amountPaid) || 0), 0);
 
-    const isParent = currentRole === 'parent'
 
     // --- Render Guards ---
     if (isLoading) return (
@@ -190,6 +226,7 @@ export default function StudentRecordSingle() {
             <i className="fas fa-circle-notch fa-spin text-primary text-3xl mb-4"></i>
         </div>
     );
+
     if (isError || !record) return (
         <div className="p-6 text-center text-danger bg-danger/10 border border-danger/20 rounded-xl">
             Failed to load record details.
@@ -209,7 +246,7 @@ export default function StudentRecordSingle() {
             {/* Header & Quick Actions */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-surface p-6 rounded-xl border border-border shadow-sm shrink-0">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-lg border border-border flex items-center justify-center text-muted hover:bg-background transition-colors">
+                    <button onClick={() => navigate(-1)} className="w-10 h-10 cursor-pointer rounded-lg border border-border flex items-center justify-center text-muted hover:bg-background transition-colors">
                         <i className="fas fa-arrow-left"></i>
                     </button>
                     <div className="w-16 h-16 rounded-full bg-primary-soft text-primary flex items-center justify-center font-bold text-xl border border-primary/20 overflow-hidden">
@@ -221,33 +258,109 @@ export default function StudentRecordSingle() {
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-                            {record?.studentName || 'Unknown Student'}
+                            {record?.studentName || record?.studentId?.studentName || 'Unknown Student'}
                         </h1>
                         <p className="text-sm text-muted mt-1">
-                            Academic Year: {record?.academicYear || '-'} | SR-ID: {record?.srId || record?.studentId?.srId || 'N/A'}
+                            {/* Academic Year: {record?.academicYear || '-'} | */}
+                            SR-ID: {record?.srId || record?.studentId?.srId || 'N/A'}
                         </p>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4">
-                    {!isParent && <>
-                    <div className="bg-sub-header/50 px-4 py-2 rounded-lg border border-border">
-                        <Toggle
-                            checked={record?.isActive || false}
-                            onChange={handleToggleStatus}
-                            label="Active Status"
-                            disabled={toggleStatusMutation.isPending}
-                            isLoading={toggleStatusMutation.isPending}
+                {/* <div className="flex flex-wrap items-center gap-4">
 
+                    <div className='inline-block'>
+
+                        <SearchSelect
+                            label="Academic Year"
+                            options={academicYearOptions}
+                            value={selectedAcademicYear}
+                            onChange={(opt) => setSelectedAcademicYear(String(opt.value))}
+                            placeholder="Select Year..."
                         />
+
                     </div>
-                    
+
+                    {!isParent && <>
+                        <div className="bg-sub-header/50 px-4 py-2 rounded-lg border border-border">
+                            <Toggle
+                                checked={record?.isActive || false}
+                                onChange={handleToggleStatus}
+                                label="Active Status"
+                                disabled={toggleStatusMutation.isPending}
+                                isLoading={toggleStatusMutation.isPending}
+                                className="border border-border bg-sub-header peer-checked:bg-primary"
+
+                                // 2. Thumb: Add a border to make the circle pop against the background
+                                thumbClassName="border border-border"
+                            />
+                        </div>
+
                         <Button variant="outline" onClick={() => setIsAssignModalOpen(true)} leftIcon="fas fa-chalkboard-user">Manage Class</Button>
                         <Button variant="outline" onClick={() => setIsConcessionModalOpen(true)} leftIcon="fas fa-tags">Concession</Button>
                         <Button variant="primary" onClick={() => setIsFeeModalOpen(true)} leftIcon="fas fa-rupee-sign">
                             Collect Fee
                         </Button>
                     </>}
+                </div> */}
+
+                {/* RIGHT SIDE: Perfectly aligned action cluster */}
+                <div className="flex flex-wrap items-center justify-start lg:justify-end gap-3 w-full lg:w-auto">
+
+                    {/* Academic Year Dropdown Wrapper with relative positioning to fix label spacing */}
+                    <div className="w-full sm:w-48 relative -top-[9px]">
+                        {/* 💡 The negative top margin beautifully counterbalances the absolute height of the "Academic Year" label text to line it up horizontally with the buttons */}
+                        <SearchSelect
+                            label="Academic Year"
+                            options={academicYearOptions}
+                            value={selectedAcademicYear}
+                            onChange={(opt) => setSelectedAcademicYear(String(opt.value))}
+                            placeholder="Select Year..."
+                        />
+                    </div>
+
+                    {/* Active Status Toggle Wrapper */}
+                    {canConcession && <div className="h-10 flex items-center bg-sub-header/40 px-4 rounded-lg border border-border transition-colors hover:bg-sub-header/60">
+                        <Toggle
+                            checked={record?.isActive || false}
+                            onChange={handleToggleStatus}
+                            label="Active Status"
+                            disabled={toggleStatusMutation.isPending}
+                            isLoading={toggleStatusMutation.isPending}
+                            className="border border-border bg-sub-header peer-checked:bg-primary"
+                            thumbClassName="border border-border"
+                        />
+                    </div>
+                    }
+                    {/* Standard Action Options */}
+                    {canAssignClass && <Button
+                        variant="outline"
+                        className="h-10 px-4 text-sm font-medium transition-all"
+                        onClick={() => setIsAssignModalOpen(true)}
+                        leftIcon="fas fa-chalkboard-user"
+                    >
+                        Manage Class
+                    </Button>}
+
+                    {canConcession && <Button
+                        variant="outline"
+                        className="h-10 px-4 text-sm font-medium transition-all"
+                        onClick={() => setIsConcessionModalOpen(true)}
+                        leftIcon="fas fa-tags"
+                    >
+                        Concession
+                    </Button>}
+
+                    {/* Main Dynamic CTA Action */}
+                    {canCollectFee && <Button
+                        variant="primary"
+                        className="h-10 px-5 text-sm font-bold shadow-sm transition-all"
+                        onClick={() => setIsFeeModalOpen(true)}
+                        leftIcon="fas fa-rupee-sign"
+                    >
+                        Collect Fee
+                    </Button>}
+
                 </div>
             </div>
 
@@ -263,7 +376,7 @@ export default function StudentRecordSingle() {
 
                     <div className="grid grid-cols-2 gap-y-4 gap-x-6">
                         <div>
-                            <p className="text-muted text-xs">Class & Section</p>
+                            <p className="text-muted text-xs font-semibold">Class & Section</p>
                             <p className="font-medium text-foreground text-sm mt-0.5">
                                 {displayClassName} - {displaySectionName}
                             </p>
@@ -274,9 +387,9 @@ export default function StudentRecordSingle() {
                         </div>
 
                         <div>
-                            <p className="text-muted text-xs">Roll Number & Type</p>
+                            <p className="text-muted text-xs font-semibold">Roll Number & Type</p>
                             <p className="font-medium text-foreground text-sm mt-0.5">{actualRollNumber}</p>
-                            <p className="text-xs text-muted mt-1 capitalize">Admission: {record?.newOld || 'N/A'}</p>
+                            <p className="text-xs text-muted mt-1 capitalize">Admission: <span className='font-bold'>{record?.newOld || 'N/A'}</span></p>
                         </div>
 
                         <div className="col-span-2 flex flex-wrap gap-3 pt-2 border-t border-border/50">
@@ -294,10 +407,42 @@ export default function StudentRecordSingle() {
 
                 {/* Concession Details */}
                 <div className="bg-surface p-6 rounded-xl border border-border shadow-sm space-y-4">
-                    <div className="flex items-center gap-2 border-b border-border pb-3 mb-2">
-                        <i className="fas fa-tags text-primary"></i>
-                        <h3 className="font-semibold text-foreground">Concession Details</h3>
+                    <div className="flex items-center justify-between gap-2 border-b border-border pb-3 mb-2">
+                        <div className="flex items-center gap-2">
+                            <i className="fas fa-tags text-primary"></i>
+                            <h3 className="font-semibold text-foreground">Concession Details</h3>
+                        </div>
+
+                        {/* 🌟 ONLY SHOW VERIFICATION IF CONCESSION IS APPLIED */}
+                        {canVerifyConcession &&
+
+                            <>
+                                {concession?.isApplied && (
+                                    <div className="flex items-center">
+                                        {concession?.approvedBy ? (
+                                            <div className="flex items-center gap-2 text-success bg-success/10 px-3 py-1 rounded-md text-xs font-bold">
+                                                <i className="fas fa-check-circle"></i>
+                                                <span>Verified</span>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <Button
+                                                    variant="primary"
+                                                    size="sm"
+                                                    onClick={handleVerify}
+                                                    isLoading={verifyMutation.isPending}
+                                                >
+                                                    <i className="fas fa-check mr-2"></i> Approve
+                                                </Button>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                            </>
+                        }
                     </div>
+
+
                     {concession?.isApplied ? (
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
@@ -496,8 +641,9 @@ export default function StudentRecordSingle() {
                                                         <i className="fas fa-paperclip"></i>
                                                     </a>
                                                 )}
-                                                {tx.status === 'success' && (
+                                                {(canRevertFee && tx.status === 'success') && (
                                                     <>
+
                                                         {revertFeeMutation.isPending ?
                                                             <i className="fas fa-spinner animate-spin"></i>
 
@@ -551,6 +697,7 @@ export default function StudentRecordSingle() {
                 record={record} // Pass the data from useGetStudentRecordById
                 schoolId={schoolId!}
                 refetch={refetch} // Pass the refetch function so the table updates
+                selectedAcademicYear={selectedAcademicYear}
             />
 
             {/* 3. CONCESSION MODAL */}

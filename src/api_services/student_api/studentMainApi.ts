@@ -228,7 +228,7 @@ export const useDeleteStudent = () => {
   const queryClient = useQueryClient();
   const { currentRole } = useAuthData();
 
-  return useMutation({
+  return useMutation<ApiResponse, Error, string>({
     mutationFn: async (id: string) => {
       try {
         checkPermission(currentRole, ["correspondent"]);

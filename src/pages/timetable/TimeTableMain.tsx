@@ -1,8 +1,3 @@
-
-
-// SECOND VERSION
-
-
 import { useState, useMemo } from 'react';
 import { useAuthData } from '../../hooks/useAuthData';
 import { useGetAllClassesWithSections, type ClassWithSections } from '../../api_services/teacher_api/teacherApi';
@@ -13,6 +8,7 @@ import { Button } from '../../shared/ui/Button';
 import { SideModal } from '../../shared/ui/SideModal';
 import { Input, Label } from '../../shared/ui/Input';
 import { toast } from '../../shared/ui/ToastContext';
+import { useRoleCheck } from '../../hooks/useRoleCheck';
 
 const DAYS_OF_WEEK = [
     { label: 'Monday', value: 'monday' },
@@ -26,6 +22,10 @@ const DAYS_OF_WEEK = [
 export default function TimeTableMain() {
     const { schoolId } = useAuthData();
 
+    const {isCorrespondent, isAdmin} = useRoleCheck()
+
+    const canModify = isCorrespondent || isAdmin
+    
     // --- State: Selections ---
     const [selectedClassId, setSelectedClassId] = useState<string>('');
     const [selectedSectionId, setSelectedSectionId] = useState<string>('');
@@ -252,7 +252,7 @@ export default function TimeTableMain() {
                         </div>
                     )}
 
-                    {canShowTimeTable && (
+                    {(canModify && canShowTimeTable) && (
                         <>
                             {/* <div className="hidden lg:block w-px h-6 bg-border mx-1"></div> */}
 
@@ -270,6 +270,7 @@ export default function TimeTableMain() {
                                     variant="primary"
                                     size="sm"
                                     className="!py-2"
+                                    title={!dayToAdd ? "Change the day to add" : ""}
                                     onClick={handleAddDay}
                                     disabled={!dayToAdd || addDayMutation.isPending}
                                     isLoading={addDayMutation.isPending}
@@ -341,16 +342,16 @@ export default function TimeTableMain() {
                                         <tr key={daySchedule._id} className="group">
 
                                             {/* Row Header: Day Name (Sticky Left) */}
-                                            <td className="px-4 py-4 bg-border-soft text-foreground border-r border-b border-border font-bold  capitalize sticky left-0 z-10 shadow-[1px_0_0_0_#e2e8f0]">
+                                           <td className="px-4 py-4 bg-border-soft text-foreground border-r border-b border-border font-bold  capitalize sticky left-0 z-10 shadow-[1px_0_0_0_#e2e8f0]">
                                                 <div className="flex items-center justify-between gap-2">
                                                     <span>{daySchedule.day}</span>
-                                                    <button
+                                                     {canModify && <button
                                                         onClick={() => handleDeleteDay(daySchedule._id!)}
                                                         className="text-danger cursor-pointer hover:text-danger hover:bg-danger/10 p-1.5 rounded-full transition-colors shrink-0"
                                                         title="Delete Day"
                                                     >
                                                         <i className="fas fa-trash-alt text-xs"></i>
-                                                    </button>
+                                                    </button>}
                                                 </div>
                                             </td>
 
@@ -371,7 +372,8 @@ export default function TimeTableMain() {
                                                             <>
                                                                 <div className="font-bold text-foreground truncate text-sm flex items-center justify-between">
                                                                     {period.subjectName || 'No Subject'}
-                                                                    <i className="fas fa-pen text-[10px] text-muted opacity-0 group-hover/cell:opacity-100 transition-opacity"></i>
+                                                                    {/* <i className="fas fa-pen text-[10px] text-muted opacity-0 group-hover/cell:opacity-100 transition-opacity"></i> */}
+                                                                    <i className="fas fa-pen text-[10px] text-muted"></i>
                                                                 </div>
                                                                 {period.teacherId && (
                                                                     <div className="text-xs text-muted mt-1 truncate">
@@ -488,18 +490,18 @@ export default function TimeTableMain() {
                         </div>
 
                         <div className="shrink-0 pt-4 border-t border-border mt-auto flex justify-between gap-3 bg-surface z-10">
-                            {editingPeriod._id ? (
+                            {(canModify && editingPeriod._id) ? (
                                 <Button variant="danger" onClick={handleDeletePeriod} isLoading={deletePeriodMutation.isPending} leftIcon="fas fa-trash">
                                     Delete
                                 </Button>
                             ) : <div></div>}
 
-                            <div className="flex gap-2">
+                           {canModify && <div className="flex gap-2">
                                 <Button variant="outline" onClick={() => setIsPeriodModalOpen(false)}>Cancel</Button>
                                 <Button variant="primary" onClick={handleSavePeriod} isLoading={upsertPeriodMutation.isPending} leftIcon="fas fa-save">
                                     Save
                                 </Button>
-                            </div>
+                            </div>}
                         </div>
                     </div>
                 </SideModal>

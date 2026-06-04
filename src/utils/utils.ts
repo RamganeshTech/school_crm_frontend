@@ -140,3 +140,11 @@ export const formatDate = (
 
 // formatDate("2026-05-16T11:41:55.000Z", { variant: 'long-datetime' }) 
 // Output: "16 May 2026 : 11:41:55 AM"
+
+
+// Converts "2026-06-03" to "03/06/2026" safely for display
+export const displayFormat = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+};

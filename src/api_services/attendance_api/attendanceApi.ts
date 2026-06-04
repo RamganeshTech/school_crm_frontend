@@ -184,3 +184,160 @@ export const useGetStudentAttendanceHistory = (params: GetStudentHistoryParams) 
     enabled: !!params.studentId,
   });
 };
+
+
+
+
+export interface AttendanceReportFilters {
+    schoolId: string;
+    academicYear: string;
+    classId: string;
+    sectionId?: string | null;
+    startDate: string; // YYYY-MM-DD
+    endDate: string;   // YYYY-MM-DD
+}
+
+export interface AttendanceReportResponse {
+    ok: boolean;
+    message: string;
+    data: {
+        overview: {
+            totalWorkingDays: number;
+            totalStudentRecordsEvaluated: number;
+            effectiveAttendanceRate: string;
+            distribution: {
+                present: number;
+                absent: number;
+                late: number;
+                halfDay: number;
+            };
+            percentages: {
+                present: string;
+                absent: string;
+            };
+        };
+        chartData: Array<{
+            date: string;
+            present: number;
+            absent: number;
+            late: number;
+            halfDay: number;
+        }>;
+        atRiskStudents: Array<{
+            _id: string;
+            studentName: string;
+            rollNumber: string;
+            totalAbsences: number;
+        }>;
+    };
+}
+
+
+export const useGetClassAttendanceReport = (filters: AttendanceReportFilters) => {
+    return useQuery({
+        // 🌟 The object-driven query key tracks every filter change automatically
+        queryKey: ["attendance",'attendance-report', filters],
+        
+        queryFn: async () => {
+            // Clean up empty or null values before constructing query params
+            const params: Record<string, string> = {
+                schoolId: filters.schoolId,
+                academicYear: filters.academicYear,
+                classId: filters.classId,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+            };
+
+            if (filters.sectionId) {
+                params.sectionId = filters.sectionId;
+            }
+
+            const { data } = await Api.get<AttendanceReportResponse>('/api/attendance/report/class', { params });
+            
+            if (!data.ok) {
+                throw new Error(data.message || 'Failed to fetch attendance report analytics');
+            }
+            
+            return data.data;
+        },
+        
+        // 🌟 Production Guard: Prevent fetching if critical parameters are missing
+        enabled: !!filters.schoolId && !!filters.academicYear && !!filters.classId && !!filters.startDate && !!filters.endDate,
+        
+        // Performance optimizations for high-traffic dashboards
+        // staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+        // placeholderData: (previousData) => previousData, // Keeps old charts visible while loading new filter data (prevents UI flickering)
+    });
+};
+
+
+export interface YearlyLeaderboardFilters {
+    schoolId: string;
+    academicYear: string;
+    classId?: string;       // Optional: Omitted for School-Wide view
+    sectionId?: string | null; // Optional: Omitted for School-Wide view
+}
+
+export interface LeaderboardStudent {
+    _id: string;
+    studentName: string | null;
+    rollNumber: string | null;
+    classId: string;
+    sectionId: string;
+    presentCount: number;
+    absentCount: number;
+    lateCount: number;
+    halfDayCount: number;
+    totalDaysEvaluated: number;
+    effectivePresent: number;
+    attendancePercentage: number;
+}
+
+export interface YearlyLeaderboardsResponse {
+    ok: boolean;
+    message: string;
+    data: {
+        topAttendance: LeaderboardStudent[];
+        lowestAttendance: LeaderboardStudent[];
+        mostLate: LeaderboardStudent[];
+        mostHalfDays: LeaderboardStudent[];
+    };
+}
+
+export const useGetAcademicYearLeaderboards = (filters: YearlyLeaderboardFilters) => {
+    return useQuery({
+        // 🌟 Tracking filters implicitly ensures automatic cache invalidation on view shifts
+        queryKey: ["attendance", 'academic-year-leaderboards', filters],
+        
+        queryFn: async () => {
+            // Build parameters object dynamically
+            const params: Record<string, string> = {
+                schoolId: filters.schoolId,
+                academicYear: filters.academicYear,
+            };
+
+            // Force clean payload properties: only assign if structurally present
+            if (filters.classId) {
+                params.classId = filters.classId;
+            }
+            if (filters.sectionId) {
+                params.sectionId = filters.sectionId;
+            }
+
+            const { data } = await Api.get<YearlyLeaderboardsResponse>('/api/attendance/report/leaderboard', { params });
+            
+            if (!data.ok) {
+                throw new Error(data.message || 'Failed to assemble annual analytical leaderboards');
+            }
+            
+            return data.data;
+        },
+        
+        // 🌟 Production Guard: Block network calls if minimal core context properties are absent
+        enabled: !!filters.schoolId && !!filters.academicYear,
+        
+        // Performance architectural tuning for long-running statistical sets
+        // staleTime: 15 * 60 * 1000, // Keep historical charts fresh for 15 minutes to reduce DB aggregations
+        // gcTime: 30 * 60 * 1000,    // Cache results in memory for 30 minutes
+    });
+};

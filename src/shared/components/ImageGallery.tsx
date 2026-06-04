@@ -95,9 +95,27 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
 
     const onDeleteClick = (e: React.MouseEvent, image: IStudentUpload) => {
         e.stopPropagation();
-        if (handleDelete) {
+        // if (handleDelete) {
+        //     handleDelete(image);
+        //     handleClose(); // Close the modal after triggering delete
+        // }
+
+        if (handleDelete && selectedIndex !== null) {
+            // Trigger the deletion in the parent component
             handleDelete(image);
-            handleClose(); // Close the modal after triggering delete
+            
+            // 1. If it's the very last image in the entire gallery, close the modal
+            if (images.length <= 1) {
+                handleClose();
+            } 
+            // 2. If we are deleting the very last image in the list (e.g., Image 3 of 3), 
+            // we must shift the view backwards to the previous image (Image 2)
+            else if (selectedIndex === images.length - 1) {
+                setSelectedIndex(selectedIndex - 1);
+            }
+            // 3. If we delete an image at the start or middle, we DO NOT change the index.
+            // Why? Because when the parent removes the image from the array, the NEXT 
+            // image will automatically slide into this current index position!
         }
     };
 

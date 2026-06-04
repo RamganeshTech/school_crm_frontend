@@ -68,16 +68,6 @@ export default function UserListMain() {
 
             await assignRole(
                 { userId, newRole },
-                // {
-                //     onSuccess: () => {
-                //         toast.success("Role updated successfully");
-                //         setSelectedUser(null);
-                //         refetch();
-                //     },
-                //     onError: (err: any) => {
-                //         toast.error(err?.message || "Failed to update role");
-                //     }
-                // }
             );
             setSelectedUser(null);
             // refetch();

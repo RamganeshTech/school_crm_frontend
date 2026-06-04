@@ -1,23 +1,25 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 // import Sidebar from './Sidebar'; // Adjust path as needed
 // import { principalMenu } from '../../config/navigation'; // Import your specific role menu
 // import { useAuthData } from '../../hooks/useAuthData'; // Assuming you use this hook
 import Sidebar from '../../shared/components/Sidebar';
-import { accountantMenu, getParentInitialMenu, getParentMenu, principalMenu, teacherMenu } from '../../constants/constants';
+// import { accountantMenu, getParentInitialMenu, getParentMenu, principalMenu, teacherMenu } from '../../constants/constants';
 import { useLogoutUser } from '../../api_services/auth_api/authApi';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../features/slices/authSlice';
 import { queryClient } from '../../lib/queryClient';
 import type { RootState } from '../../features/store/store';
 import { GlobalHeader } from '../../shared/components/GlobalHeader';
-import { useCurrentStudent } from '../../hooks/useCurrentStudent';
+// import { useCurrentStudent } from '../../hooks/useCurrentStudent';
+// import { useAuthData } from '../../hooks/useAuthData';
+import { useAuthorizedMenu } from '../../hooks/useAuthorizedMenu';
 
 const DashboardChildrens: React.FC = () => {
     const navigate = useNavigate();
     // Get data from your auth hook or Redux store
     const dispatch = useDispatch();
-    // const { schoolId, userName, currentRole } = useAuthData();
+    // const { schoolId } = useAuthData();
     // const { role, schoolName } = useSelector((state: RootState) => state.auth)
 
     // const activeStudentId = studentId && studentId.length > 0 ? studentId[0] : null;
@@ -26,7 +28,7 @@ const DashboardChildrens: React.FC = () => {
         (state: RootState) => state.auth
     );
 
-    const { studentId } = useCurrentStudent();
+    // const { studentId } = useCurrentStudent();
 
     // const searchParam = useSearchParams()
 
@@ -78,47 +80,54 @@ const DashboardChildrens: React.FC = () => {
     // };
 
 
-    const getAuthorizedMenu = (role: string | null, activeStudentId: string | null) => {
-        // 1. Explicit Arrays for highly restricted roles
-        if (role === 'parent') return getParentMenu(activeStudentId);
-        if (role === 'teacher') return teacherMenu;
-        if (role === 'accountant') return accountantMenu;
+    // const getAuthorizedMenu = (role: string | null, activeStudentId: string | null) => {
+    //     // 1. Explicit Arrays for highly restricted roles
+    //     if (role === 'parent') return getParentMenu(activeStudentId);
+    //     if (role === 'teacher') return teacherMenu;
+    //     if (role === 'accountant') return accountantMenu;
 
-        // 2. Base list for powerful roles
-        let menu = [...principalMenu];
+    //     // 2. Base list for powerful roles
+    //     let menu = [...principalMenu];
 
-        // 3. Neglect (Filter out) specific items based on role
+    //     // 3. Neglect (Filter out) specific items based on role
 
-        // Only correspondent gets to see 'Staffs'
-        if (role !== 'correspondent') {
-            menu = menu.filter(item => item.name !== 'Staffs');
-        }
+    //     // Only correspondent gets to see 'Staffs'
+    //     if (role !== 'correspondent') {
+    //         menu = menu.filter(item => item.name !== 'Staffs');
+    //     }
 
-        // Administrators get everything except 'School List' (and Staffs, which is handled above)
-        if (role === 'administrator') {
-            menu = menu.filter(item => item.name !== 'School List');
-        }
+    //     // Administrators get everything except 'School List' (and Staffs, which is handled above)
+    //     // if (role === 'administrator') {
+    //     //     menu = menu.filter(item => item.name !== 'School List');
+    //     // }
 
-        // Principals & Vice Principals get everything, but shouldn't see multi-school management 
-        if (role === 'principal' || role === 'viceprincipal') {
-            menu = menu.filter(item => item.name !== 'School List');
-        }
+    //     // // Principals & Vice Principals get everything, but shouldn't see multi-school management 
+    //     // if (role === 'principal' || role === 'viceprincipal') {
+    //     //     menu = menu.filter(item => item.name !== 'School List');
+    //     // }
 
-        return menu;
-    };
+    //     if (role !== 'correspondent' || schoolId !== '6942923ab194c60dc810cc6b') {
+    //     menu = menu.filter(item => item.name !== 'School List');
+    // }
+
+    //     return menu;
+    // };
+
+    // const currentMenu = useMemo(() => {
+    //     if (role === "parent") {
+    //         return studentId
+    //             ? getParentMenu(studentId)
+    //             : getParentInitialMenu();
+    //     }
+
+    //     return getAuthorizedMenu(role, studentId);
+    // }, [role, studentId]);
+
+    const menuItems = useAuthorizedMenu();
 
 
 
 
-    const currentMenu = useMemo(() => {
-        if (role === "parent") {
-            return studentId
-                ? getParentMenu(studentId)
-                : getParentInitialMenu();
-        }
-
-        return getAuthorizedMenu(role, studentId);
-    }, [role, studentId]);
 
 
     return (
@@ -129,7 +138,8 @@ const DashboardChildrens: React.FC = () => {
             <Sidebar
                 schoolName={schoolName || ""} // Replace with actual dynamic name if available
                 schoolPath="/dashboard"
-                menuItems={currentMenu} // You can dynamically pass menus based on currentRole here
+                // menuItems={currentMenu} // You can dynamically pass menus based on currentRole here
+                menuItems={menuItems} // You can dynamically pass menus based on currentRole here
                 onLogout={handleLogout}
             />
 

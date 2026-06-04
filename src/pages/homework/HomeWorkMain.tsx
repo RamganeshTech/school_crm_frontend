@@ -5,7 +5,10 @@ import { useGetAllClassesWithSections, type ClassWithSections } from '../../api_
 import {
     useGetAllHomeworkInfinite,
     useCreateHomework,
-    useDeleteSubjectFromHomework
+    useDeleteSubjectFromHomework,
+    useDeleteHomeworkAttachment,
+    useUpdateHomeworkText,
+    useAddHomeworkAttachments
 } from '../../api_services/homework_api/homeWorkApi';
 import { SearchSelect } from '../../shared/ui/SearchSelect';
 import { Button } from '../../shared/ui/Button';
@@ -15,6 +18,8 @@ import { useGetSchoolById } from '../../api_services/schoolConfig_api/schoolapi'
 import { getAcademicYears } from '../../utils/utils';
 import { useGetAllHomeworkSubmissions } from '../../api_services/homework_api/homeWorksubmissionApi';
 import { toast } from '../../shared/ui/ToastContext';
+import { ImageGallery } from '../../shared/components/ImageGallery';
+import { useRoleCheck } from '../../hooks/useRoleCheck';
 
 
 
@@ -22,7 +27,9 @@ export default function HomeworkMain() {
     const { schoolId } = useAuthData();
     const { data: schoolData } = useGetSchoolById(schoolId!);
     const fetchedAcademicYear = schoolData?.currentAcademicYear || "";
+    const { isCorrespondent, isTeacher } = useRoleCheck()
 
+    const canModify = isCorrespondent || isTeacher
     // --- State: Selections ---
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('');
     const [selectedClassId, setSelectedClassId] = useState<string>('');
@@ -53,6 +60,11 @@ export default function HomeworkMain() {
     const [submissionViewSubject, setSubmissionViewSubject] = useState<any | null>(null);
     const [isCreateMode, setIsCreateMode] = useState(false);
     const [activeDate, setActiveDate] = useState<Date | null>(null);
+
+    // --- State: Editing Existing Subjects ---
+    const [editingTextSubjectId, setEditingTextSubjectId] = useState<string | null>(null);
+    const [editForm, setEditForm] = useState({ subjectName: '', description: '' });
+    const [uploadingSubjectId, setUploadingSubjectId] = useState<string | null>(null);
 
 
     // --- State: Form ---
@@ -104,6 +116,9 @@ export default function HomeworkMain() {
     // --- Mutations ---
     const createMutation = useCreateHomework();
     const deleteMutation = useDeleteSubjectFromHomework();
+    const deleteAttachmentMutation = useDeleteHomeworkAttachment(); // 🌟 Initialized here
+    const updateTextMutation = useUpdateHomeworkText();
+    const addAttachmentsMutation = useAddHomeworkAttachments();
 
     // --- Calendar Logic ---
     const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
@@ -159,6 +174,51 @@ export default function HomeworkMain() {
 
     };
 
+    // Handler 1: Edit Text Only
+    const handleEditTextSubmit = async (homeworkId: string, subjectId: string) => {
+        if (!editForm.subjectName.trim() || !editForm.description.trim()) {
+            toast.error("Subject name and description cannot be empty");
+            return;
+        }
+
+        try {
+            await updateTextMutation.mutateAsync({
+                homeworkId,
+                subjectId,
+                subjectName: editForm.subjectName, // 🌟 Fixes the TS Error
+                description: editForm.description
+            });
+
+            toast.success("Homework text updated successfully");
+            setEditingTextSubjectId(null);
+        } catch (error: any) {
+            toast.error(error.message || "Failed to update homework text");
+        }
+    };
+
+    // Handler 2: Immediate File Upload
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, homeworkId: string, subjectId: string) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        setUploadingSubjectId(subjectId); // Show loader only on this specific subject
+
+        try {
+            const formData = new FormData();
+            formData.append('homeworkId', homeworkId);
+            formData.append('subjectId', subjectId);
+            files.forEach(file => formData.append('files', file));
+
+            await addAttachmentsMutation.mutateAsync(formData);
+            toast.success("Attachments added successfully");
+        } catch (error: any) {
+            toast.error(error.message || "Failed to add attachments");
+        } finally {
+            setUploadingSubjectId(null);
+            e.target.value = ''; // Reset input so the exact same file can be selected again if needed
+        }
+    };
+
 
 
     const handleDeleteSubject = async ({ homeworkId, subjectId }: { homeworkId: string, subjectId: string }) => {
@@ -176,11 +236,29 @@ export default function HomeworkMain() {
     };
 
 
+    const handleDeleteAttachment = async (homeworkId: string, subjectId: string, attachmentId: string) => {
+        if (!window.confirm("Are you sure you want to delete this attachment?")) return;
+
+        try {
+            // Note: Adjust the payload keys (attachmentId/fileId) if your backend interface expects a different naming convention.
+            await deleteAttachmentMutation.mutateAsync({
+                homeworkId,
+                subjectId,
+                attachmentId
+            });
+            toast.success("Attachment deleted successfully");
+        } catch (error: any) {
+            // console.error("Failed to delete attachment", error);
+            toast.error(error.message || "Failed to delete attachment.");
+        }
+    };
+
+
     return (
         // Changed wrapper to bg-mainBg to provide contrast against the white calendar surface
         <div className="w-full h-full flex flex-col bg-mainBg overflow-hidden">
 
-            {/* RESPONSIVE HEADER */}
+
             <header className="shrink-0 px-4 md:px-6 py-4 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-surface z-20 shadow-sm">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-primary-soft text-primary flex items-center justify-center shadow-sm border border-primary/10">
@@ -387,7 +465,7 @@ export default function HomeworkMain() {
                                             {selectedClass?.name} {selectedSectionId ? `- Section ${classes.find(c => c._id === selectedClassId)?.sections.find(s => s._id === selectedSectionId)?.name}` : ''}
                                         </h3>
                                     </div>
-                                    {!isPastActiveDate && (<Button variant="primary" size="sm" leftIcon="fas fa-plus" onClick={() => setIsCreateMode(true)} className="whitespace-nowrap">
+                                    {(canModify && !isPastActiveDate) && (<Button variant="primary" size="sm" leftIcon="fas fa-plus" onClick={() => setIsCreateMode(true)} className="whitespace-nowrap">
                                         Add Subject
                                     </Button>
                                     )}
@@ -395,57 +473,154 @@ export default function HomeworkMain() {
 
                                 {activeDayData && activeDayData.subjects.length > 0 ? (
                                     <div className="space-y-4">
+
                                         {activeDayData.subjects.map((sub: any) => (
                                             <div key={sub._id} className="bg-surface border border-border rounded-xl p-4 shadow-sm relative group overflow-hidden">
                                                 <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <h4 className="font-bold text-foreground text-sm">{sub.subjectName}</h4>
 
-                                                    <div className="flex gap-2 items-center">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="text-xs !border-border text-primary h-6 px-2"
-                                                            onClick={() => setSubmissionViewSubject(sub)}
-                                                        >
-                                                            View Submissions
-                                                        </Button>
+                                                {editingTextSubjectId === sub._id ? (
+                                                    /* ========================================= */
+                                                    /* TEXT EDIT MODE                            */
+                                                    /* ========================================= */
+                                                    <div className="flex flex-col gap-3 animate-in fade-in pl-2">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <i className="fas fa-edit text-primary"></i>
+                                                            <h4 className="font-bold text-foreground text-sm">Edit Text Details</h4>
+                                                        </div>
 
-                                                        {!isPastActiveDate && (
-                                                            // <button
-                                                            //     className="w-6 h-6 flex items-center justify-center rounded bg-danger/10 text-danger hover:bg-danger hover:text-inverse"
-                                                            //     // onClick={() => deleteMutation.mutate({ homeworkId: activeDayData._id, subjectId: sub._id })}
-                                                            //     onClick={() => handleDeleteSubject({ homeworkId: activeDayData._id, subjectId: sub._id })}
-                                                            //     title="Delete Subject"
-                                                            // >
-                                                            //     <i className="fas fa-trash-alt text-[10px]"></i>
-                                                            // </button>
+                                                        <input
+                                                            className="w-full bg-background border border-border rounded-lg p-2.5 text-sm font-bold focus:border-primary outline-none"
+                                                            value={editForm.subjectName}
+                                                            onChange={(e) => setEditForm({ ...editForm, subjectName: e.target.value })}
+                                                            placeholder="Subject Name"
+                                                        />
 
-                                                            <Button
-                                                                variant="danger"
-                                                                size='sm'
-                                                                // Adjust size if your custom component supports icon/sm sizing layouts
-                                                                className="rounded bg-danger"
-                                                                onClick={() => handleDeleteSubject({ homeworkId: activeDayData._id, subjectId: sub._id })}
-                                                                isLoading={deleteMutation.isPending && deleteMutation.variables.subjectId === sub?._id}
-                                                                title="Delete Subject"
-                                                            >
-                                                                {/* Only render the icon if the mutation isn't currently loading */}
-                                                                <i className="fas fa-trash-alt text-[10px]"></i>
-                                                            </Button>
-                                                        )}
+                                                        <textarea
+                                                            className="w-full bg-background border border-border rounded-lg p-3 text-xs focus:border-primary outline-none resize-none min-h-[100px] custom-scrollbar"
+                                                            value={editForm.description}
+                                                            onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                                            placeholder="Update description..."
+                                                        />
+
+                                                        <div className="flex justify-end gap-2 mt-1">
+                                                            <Button variant="outline" size="sm" onClick={() => setEditingTextSubjectId(null)} disabled={updateTextMutation.isPending}>Cancel</Button>
+                                                            <Button variant="primary" size="sm" onClick={() => handleEditTextSubmit(activeDayData._id, sub._id)} isLoading={updateTextMutation.isPending}>Save Text</Button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <p className="text-xs text-muted leading-relaxed mb-3 whitespace-pre-wrap">{sub.description}</p>
+                                                ) : (
+                                                    /* ========================================= */
+                                                    /* STANDARD VIEW MODE                        */
+                                                    /* ========================================= */
+                                                    <div className="pl-2">
+                                                        <div className="flex justify-between items-start mb-2 gap-2">
+                                                            <h4 className="font-bold text-foreground text-sm">{sub.subjectName}</h4>
 
-                                                {sub.attachments?.length > 0 && (
-                                                    <div className="flex flex-wrap gap-2 pt-3 border-t border-border mt-3">
-                                                        {sub.attachments.map((file: any) => (
-                                                            <a key={file._id} href={file.url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-2 py-1 bg-background rounded text-[10px] font-medium text-primary border border-border hover:bg-primary-soft transition-colors">
-                                                                <i className={`fas ${file.type === 'pdf' ? 'fa-file-pdf text-danger' : 'fa-image'}`}></i>
-                                                                <span className="truncate max-w-[120px]">{file.originalName}</span>
-                                                            </a>
-                                                        ))}
+                                                            <div className="flex gap-2 items-center">
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="text-xs !border-border text-primary h-6 sm:px-2"
+                                                                    onClick={() => setSubmissionViewSubject(sub)}
+                                                                >
+                                                                    <span className='hidden sm:block'>View</span> Submissions
+                                                                </Button>
+
+                                                                {!isPastActiveDate && (
+                                                                    <div className="flex items-center gap-1">
+
+                                                                        {/* 🌟 1. ADD FILE BUTTON (Hidden Input trigger) */}
+                                                                        {canModify && <div className="relative" title="Add Attachments">
+                                                                            <input
+                                                                                type="file"
+                                                                                multiple
+                                                                                accept="image/*,.pdf"
+                                                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                                                                onChange={(e) => handleFileUpload(e, activeDayData._id, sub._id)}
+                                                                                disabled={uploadingSubjectId === sub._id}
+                                                                            />
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                size="sm"
+                                                                                className="rounded h-6 w-6 p-0 border-border text-muted hover:text-primary hover:bg-primary-soft pointer-events-none"
+                                                                                isLoading={uploadingSubjectId === sub._id}
+                                                                            >
+                                                                                {!uploadingSubjectId && <i className="fas fa-paperclip text-[10px]"></i>}
+                                                                            </Button>
+                                                                        </div>}
+
+                                                                        {/* 🌟 2. EDIT TEXT BUTTON */}
+                                                                        {canModify && <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            className="rounded h-6 w-6 p-0 border-border text-muted hover:text-primary hover:bg-primary-soft"
+                                                                            onClick={() => {
+                                                                                setEditingTextSubjectId(sub._id);
+                                                                                setEditForm({ subjectName: sub.subjectName, description: sub.description });
+                                                                            }}
+                                                                            title="Edit Text"
+                                                                        >
+                                                                            <i className="fas fa-edit text-[10px]"></i>
+                                                                        </Button>}
+
+                                                                        {/* 🌟 3. DELETE SUBJECT BUTTON */}
+                                                                        {canModify && <Button
+                                                                            variant="danger"
+                                                                            size="sm"
+                                                                            className="rounded bg-danger h-6 w-6 p-0"
+                                                                            onClick={() => handleDeleteSubject({ homeworkId: activeDayData._id, subjectId: sub._id })}
+                                                                            isLoading={deleteMutation.isPending && deleteMutation.variables.subjectId === sub?._id}
+                                                                            title="Delete Subject"
+                                                                        >
+                                                                            <i className="fas fa-trash-alt text-[10px]"></i>
+                                                                        </Button>}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        <p className="text-xs text-muted leading-relaxed mb-3 whitespace-pre-wrap">{sub.description}</p>
+
+                                                        {/* --- Place your previously updated Image/PDF Attachments code here --- */}
+                                                        {sub.attachments?.length > 0 && (
+                                                            <div className="flex flex-col gap-3 pt-3 border-t border-border mt-3">
+                                                                {/* 1. Image Gallery */}
+                                                                {sub.attachments.some((file: any) => file.type !== 'pdf') && (
+                                                                    <ImageGallery
+                                                                        images={sub.attachments.filter((file: any) => file.type !== 'pdf')}
+                                                                        {...(!isPastActiveDate ? { handleDelete: (image: any) => handleDeleteAttachment(activeDayData._id, sub._id, image._id) } : {})}
+                                                                        heightClass="!h-20 sm:h-32"
+                                                                        widthClass="w-24 sm:w-32"
+                                                                    />
+                                                                )}
+
+                                                                {/* 2. PDF Links */}
+                                                                {sub.attachments.some((file: any) => file.type === 'pdf') && (
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        {sub.attachments
+                                                                            .filter((file: any) => file.type === 'pdf')
+                                                                            .map((file: any) => (
+                                                                                <div key={file._id} className="flex items-center gap-3 px-2 py-1.5 bg-background rounded border border-border shadow-sm group">
+                                                                                    <a href={file.url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-[10px] font-medium text-primary hover:underline transition-colors flex-1 min-w-0" title="View Document">
+                                                                                        <i className="fas fa-file-pdf text-danger shrink-0 text-xs"></i>
+                                                                                        <span className="truncate max-w-[120px]">{file.originalName}</span>
+                                                                                    </a>
+                                                                                    {(canModify && !isPastActiveDate) && (
+                                                                                        <Button
+                                                                                            variant="danger"
+                                                                                            size="icon"
+                                                                                            onClick={() => handleDeleteAttachment(activeDayData._id, sub._id, file._id)} disabled={deleteAttachmentMutation?.isPending}
+                                                                                            // className="w-5 h-5 cursor-pointer flex items-center justify-center rounded text-muted hover:text-danger hover:bg-danger/10 transition-colors shrink-0 disabled:opacity-50" 
+                                                                                            title="Delete PDF"
+                                                                                        >
+                                                                                            <i className="fas fa-trash-alt text-[10px]"></i>
+                                                                                        </Button>
+                                                                                    )}
+                                                                                </div>
+                                                                            ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>

@@ -40,7 +40,7 @@ export default function AttendanceMain() {
 
     // --- Data Fetching: Students ---
     const { data: studentsData, isLoading: isStudentsLoading } = useGetAllStudents({
-        schoolId: schoolId!, classId: filters.classId, sectionId: filters.sectionId, limit: 100
+        schoolId: schoolId!, classId: filters.classId, sectionId: filters.sectionId, limit: 300
     });
     // const students = studentsData?.pages?.flat() || [];
 
@@ -96,13 +96,38 @@ export default function AttendanceMain() {
 
         const newMap: Record<string, AttendanceRecord> = {};
 
-        if (singleSheetData && singleSheetData && singleSheetData.length > 0) {
+        // if (singleSheetData && singleSheetData && singleSheetData.length > 0) {
+        //     singleSheetData.forEach((rec: any) => {
+        //         newMap[rec.studentId] = { studentId: rec.studentId, status: rec.status, remark: rec.remark || '' };
+        //     });
+        // } else if (students.length > 0) {
+        //     students.forEach((student: any) => {
+        //         newMap[student._id] = { studentId: student._id, status: '' as any, remark: '' }; // Default Present
+        //     });
+        // }
+
+        if (singleSheetData && singleSheetData.length > 0) {
             singleSheetData.forEach((rec: any) => {
-                newMap[rec.studentId] = { studentId: rec.studentId, status: rec.status, remark: rec.remark || '' };
+                // We find the matching student just in case the old DB records don't have the name/roll cached yet
+                const matchedStudent = students.find((s: any) => s._id === rec.studentId);
+
+                newMap[rec.studentId] = {
+                    studentId: rec.studentId,
+                    studentName: rec.studentName || matchedStudent?.studentName || 'Unknown',
+                    rollNumber: rec.rollNumber || matchedStudent?.nonMandatory?.rollNumber || matchedStudent?.rollNumber || '-',
+                    status: rec.status,
+                    remark: rec.remark || ''
+                };
             });
         } else if (students.length > 0) {
             students.forEach((student: any) => {
-                newMap[student._id] = { studentId: student._id, status: '' as any, remark: '' }; // Default Present
+                newMap[student._id] = {
+                    studentId: student._id,
+                    studentName: student.studentName || 'Unknown',
+                    rollNumber: student.nonMandatory?.rollNumber || student.rollNumber || '-',
+                    status: '' as any,
+                    remark: ''
+                };
             });
         }
 
@@ -166,6 +191,7 @@ export default function AttendanceMain() {
             default: return <span className="text-muted/30 font-medium">-</span>;
         }
     };
+
 
     return (
         <div className="w-full h-full flex flex-col p-2 space-y-4 overflow-hidden animate-in fade-in duration-300">
@@ -242,6 +268,30 @@ export default function AttendanceMain() {
                                                 {day}
                                             </th>
                                         ))}
+
+                                        {/* DATE COLUMNS */}
+                                        {/* {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+
+                                            // Simply check if this day is today AND we are viewing the correct month/year
+                                            const isToday = isViewingCurrentMonthAndYear && day === currentDay;
+
+                                            return (
+                                                <th
+                                                    key={day}
+                                                    onClick={() => handleGridDateClick(day)}
+                                                    className={`px-2 py-3 text-center font-bold border-r border-border/50 border-b w-10 min-w-[40px] cursor-pointer transition-colors
+                ${isToday
+                                                            ? 'bg-primary text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.2)]' // 🌟 Highlight styles
+                                                            : 'hover:bg-primary-soft/50 hover:text-primary'
+                                                        }
+            `}
+                                                    title={`Mark attendance for ${day} ${filters.month}`}
+                                                >
+                                                    {day}
+                                                </th>
+                                            );
+                                        })} */}
+
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuthData } from '../../hooks/useAuthData';
@@ -6,11 +5,13 @@ import { useGetAllUsers } from '../../api_services/auth_api/authApi';
 import { Input } from '../../shared/ui/Input';
 import { Button } from '../../shared/ui/Button';
 import { TableContainer, TBody, Td, Th, THead, Tr } from '../../shared/ui/TableLayout';
+import { useRoleCheck } from '../../hooks/useRoleCheck';
 
 export default function TeacherAssignmentMain() {
     const navigate = useNavigate();
     const { schoolId } = useAuthData();
     const [searchQuery, setSearchQuery] = useState('');
+    const { isAdmin, isCorrespondent } = useRoleCheck()
 
     // Fetch Teachers
     const { data: teachersData, isLoading, isError } = useGetAllUsers({ role: 'teacher', schoolId: schoolId! });
@@ -20,6 +21,9 @@ export default function TeacherAssignmentMain() {
     const filteredTeachers = teachers.filter((t: any) =>
         t.userName?.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+
+    const isHigherOfficial = isAdmin || isCorrespondent
 
 
     const isChild = location.pathname.includes("single")
@@ -97,14 +101,14 @@ export default function TeacherAssignmentMain() {
                                     </Td>
 
                                     {/* 4. Action Column (Always Visible) */}
-                                    <Td className="text-right">
+                                     <Td className="text-right">
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => navigate(teacher._id)} // Navigates to TeacherAssignmentSingle
+                                            onClick={() => navigate(`single/${teacher._id}`)} // Navigates to TeacherAssignmentSingle
                                             leftIcon="fas fa-cog"
                                         >
-                                            Manage
+                                            {isHigherOfficial ? "Manage" : "view"}
                                         </Button>
                                     </Td>
                                 </Tr>

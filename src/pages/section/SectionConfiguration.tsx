@@ -21,10 +21,13 @@ import { TableContainer, THead, Th, TBody, Tr, Td } from '../../shared/ui/TableL
 import { SearchSelect, type SelectOption } from '../../shared/ui/SearchSelect';
 import type { RootState } from '../../features/store/store';
 import { toast } from '../../shared/ui/ToastContext';
+import { useRoleCheck } from '../../hooks/useRoleCheck';
 
 export default function SectionConfiguration() {
     // --- Global State ---
     const { schoolId } = useSelector((state: RootState) => state.auth);
+    const { isAccountant, isTeacher, isParent, isPrincipal, isVicePrincipal } = useRoleCheck()
+
 
     // --- Local State ---
     const [selectedClassId, setSelectedClassId] = useState<string>('');
@@ -43,6 +46,9 @@ export default function SectionConfiguration() {
     const { data: classes, isLoading: isClassesLoading } = useGetClasses(schoolId!);
 
     const activeClassId = selectedClassId || classes?.[0]?._id;
+
+    const canModify = !isAccountant && !isTeacher && !isParent && !isPrincipal && !isVicePrincipal
+
 
     const {
         data: sections,
@@ -202,7 +208,7 @@ export default function SectionConfiguration() {
                         disabled={!selectedClassId}
                     />
 
-                    <Button
+                    {canModify && <Button
                         onClick={openCreateForm}
                         leftIcon="fas fa-plus"
                         variant="primary"
@@ -210,7 +216,7 @@ export default function SectionConfiguration() {
                         disabled={!selectedClassId}
                     >
                         Add Section
-                    </Button>
+                    </Button>}
                 </div>
             </div>
 
@@ -239,10 +245,10 @@ export default function SectionConfiguration() {
                         <THead className="sticky top-0 z-10 bg-background after:absolute after:bottom-0 after:left-0 after:right-0">
                             <tr>
                                 <Th className="w-20 text-center">S.No</Th>
-                                <Th>Section Name</Th>
-                                <Th>Room No.</Th>
-                                <Th>Capacity</Th>
-                                <Th className="text-right">Actions</Th>
+                                <Th className="text-center">Section Name</Th>
+                                <Th className="text-center">Room No.</Th>
+                                <Th className="text-center">Capacity</Th>
+                                {canModify && <Th className="text-center">Actions</Th>}
                             </tr>
                         </THead>
                         <TBody>
@@ -251,24 +257,24 @@ export default function SectionConfiguration() {
                                     <Td className="text-center font-medium text-muted">
                                         {index + 1}
                                     </Td>
-                                    <Td>
+                                    <Td className="text-center">
                                         <p className="font-semibold text-foreground">{sec.name}</p>
                                     </Td>
-                                    <Td>
-                                        <span className="text-muted">{sec.roomNumber || '-'}</span>
+                                    <Td className="text-center">
+                                        <span className="text-muted">{sec.roomNumber || 'N/A'}</span>
                                     </Td>
-                                    <Td>
+                                    <Td className="text-center">
                                         {sec.capacity ? (
                                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-surface border border-border text-foreground">
                                                 <i className="fas fa-users text-muted text-[10px]"></i>
                                                 {sec.capacity} students
                                             </span>
                                         ) : (
-                                            <span className="text-muted">-</span>
+                                            <span className="text-muted">N/A</span>
                                         )}
                                     </Td>
-                                    <Td className="text-right">
-                                        <div className="flex items-center justify-end gap-2">
+                                    {canModify && <Td className="text-center">
+                                        <div className="flex items-center justify-center gap-2">
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
@@ -288,7 +294,7 @@ export default function SectionConfiguration() {
                                                 <i className="fas fa-trash"></i>
                                             </Button>
                                         </div>
-                                    </Td>
+                                    </Td>}
                                 </Tr>
                             ))}
                         </TBody>
@@ -314,7 +320,7 @@ export default function SectionConfiguration() {
                     </div>
                     <h3 className="text-lg font-medium text-foreground mb-2">No Sections Configured</h3>
                     <p className="text-muted text-sm max-w-md mb-6">
-                        This class currently has no sections. Add your first section (e.g., 'A' or 'Rose') to get started.
+                        This class currently has no sections. Add your first section (e.g., 'A' or 'B') to get started.
                     </p>
                     <Button onClick={openCreateForm} variant="primary" leftIcon="fas fa-plus">
                         Add First Section
@@ -352,7 +358,7 @@ export default function SectionConfiguration() {
                         <Input
                             id="name"
                             label="Section Name"
-                            placeholder="e.g., A, B, C, Rose..."
+                            placeholder="e.g., A, B, C"
                             value={formData.name}
                             onChange={handleInputChange}
                             required

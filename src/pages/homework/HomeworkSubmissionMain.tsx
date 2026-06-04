@@ -10,11 +10,16 @@ import { useGetAllHomeworkInfinite } from '../../api_services/homework_api/homeW
 import { useGetSchoolById } from '../../api_services/schoolConfig_api/schoolapi';
 import { useGetAllHomeworkSubmissions, useSubmitHomeworkStatus } from '../../api_services/homework_api/homeWorksubmissionApi';
 import { toast } from '../../shared/ui/ToastContext';
+import { useRoleCheck } from '../../hooks/useRoleCheck';
 
 export default function HomeworkSubmissionMain() {
     const { schoolId } = useAuthData();
     const [searchParams] = useSearchParams();
     const studentId = searchParams.get('studentId');
+
+    const { isCorrespondent, isParent } = useRoleCheck()
+
+    const canModify = isCorrespondent || isParent
 
     // --- State ---
     const [viewDate, setViewDate] = useState(new Date());
@@ -264,7 +269,7 @@ export default function HomeworkSubmissionMain() {
                                                     ))}
                                                 </div>
 
-                                                {!submission && !isPastActiveDate && (
+                                                {(canModify && !submission && !isPastActiveDate) && (
                                                     <Button variant="outline" size="sm" onClick={() => handleOpenSubmitForm(sub)}>
                                                         Submit Work
                                                     </Button>
@@ -315,7 +320,7 @@ export default function HomeworkSubmissionMain() {
                                 </div> */}
                             </div>
 
-                            <div className="pt-4 border-t border-border flex justify-end gap-3 bg-surface shrink-0">
+                            {canModify && <div className="pt-4 border-t border-border flex justify-end gap-3 bg-surface shrink-0">
                                 <Button variant="outline" onClick={() => setSelectedSubject(null)}>Cancel</Button>
                                 <Button
                                     variant="primary"
@@ -325,7 +330,7 @@ export default function HomeworkSubmissionMain() {
                                 >
                                     Mark as Complete
                                 </Button>
-                            </div>
+                            </div>}
                         </div>
                     )}
                 </div>

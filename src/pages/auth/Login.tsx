@@ -8,6 +8,7 @@ import { setCredentials } from '../../features/slices/authSlice';
 import { Input } from '../../shared/ui/Input';
 import { Button } from '../../shared/ui/Button';
 import { toast } from '../../shared/ui/ToastContext';
+import { COMPANY } from '../../constants/constants';
 
 // ==========================================
 // CENTRALIZED HEX THEME CONTROLLER (LOGIN PAGE)
@@ -15,12 +16,12 @@ import { toast } from '../../shared/ui/ToastContext';
 // For a Pale Green theme, you could use:
 // brand: "#059669" (Emerald 600)
 // ==========================================
-const THEME = {
-  brand: "#0ea5e9",       // Main color (Left panel background, buttons, links)
-  brandHover: "#0284c7",  // Darker shade for hover states
-  brandSoft: "#e0f2fe",   // Very light shade for subtle backgrounds/glows
-  brandText: "#0369a1",   // Darker text for readability
-};
+// const THEME = {
+//   brand: "#0ea5e9",       // Main color (Left panel background, buttons, links)
+//   brandHover: "#0284c7",  // Darker shade for hover states
+//   brandSoft: "#e0f2fe",   // Very light shade for subtle backgrounds/glows
+//   brandText: "#0369a1",   // Darker text for readability
+// };
 
 const Login = () => {
   const [identifier, setIdentifier] = useState('');
@@ -380,7 +381,7 @@ const Login = () => {
             <div className="w-14 h-14 bg-white/10 border border-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
               <i className="fa-solid fa-graduation-cap text-3xl text-white drop-shadow-md"></i>
             </div>
-            <span className="text-2xl font-bold tracking-tight">BMB LMS</span>
+            <span className="text-2xl font-bold tracking-tight">{COMPANY.name} LMS</span>
           </div>
           <h1 className="text-4xl font-bold mb-5 tracking-tight leading-tight text-white/95">
             Smart Learning Management
@@ -490,21 +491,21 @@ const Login = () => {
             </div>
 
             {/* Remember Me / Forgot Password */}
-            {/* <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center justify-between mt-2">
               <div className="flex items-center gap-2">
-                <input
+                {/* <input
                   type="checkbox"
                   id="remember"
                   className="w-4 h-4 rounded border-slate-300 text-teal-700 focus:ring-teal-700 bg-white cursor-pointer"
                 />
                 <label htmlFor="remember" className="text-sm text-slate-600 font-medium select-none cursor-pointer">
                   Remember me
-                </label>
+                </label> */}
               </div>
-              <a href="#" className="text-sm font-semibold text-teal-700 hover:text-teal-800 transition-colors">
+              <button type="button" onClick={()=> navigate(`/forgot-password`)} className="text-sm cursor-pointer font-semibold text-teal-700 hover:text-teal-800 transition-colors">
                 Forgot password?
-              </a>
-            </div> */}
+              </button>
+            </div>
 
             {/* Submit Button */}
             <Button

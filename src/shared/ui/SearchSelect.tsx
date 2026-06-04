@@ -136,7 +136,7 @@ export interface SelectOption {
   value: string | number;
 }
 
-interface SearchSelectProps {
+interface SearchSelectProps  {
   options: SelectOption[];
   value?: string | number | null;
   onChange: (value: SelectOption) => void;
@@ -151,7 +151,8 @@ export const SearchSelect: React.FC<SearchSelectProps> = ({
   onChange,
   onEnter,
   placeholder = "Search...",
-  label
+  label,
+  ...props
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -226,6 +227,8 @@ export const SearchSelect: React.FC<SearchSelectProps> = ({
     <div className="relative w-full" ref={wrapperRef}>
       <Input
         label={label}
+        autoComplete="off"
+        // autoComplete="new-password"
         placeholder={placeholder}
         value={search}
         onChange={(e) => {
@@ -233,6 +236,8 @@ export const SearchSelect: React.FC<SearchSelectProps> = ({
           setIsOpen(true);
           setHighlightedIndex(0);
         }}
+
+        {...props}
 
         // Replace your existing rightIcon line with this logic:
         rightIcon={

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { type RootState } from '../../../features/store/store';
+// import { useSelector } from 'react-redux';
+// import { type RootState } from '../../../features/store/store';
 
 import useDebounce from '../../../hooks/useDebounce';
 import { useGetClasses } from '../../../api_services/schoolConfig_api/classApi';
@@ -8,26 +8,27 @@ import { useGetSections } from '../../../api_services/schoolConfig_api/sectionAp
 
 import { Button } from '../../../shared/ui/Button';
 import { Input, Label } from '../../../shared/ui/Input';
-import { SideModal } from '../../../shared/ui/SideModal';
+// import { SideModal } from '../../../shared/ui/SideModal';
 import { TableContainer, THead, Th, TBody, Tr, Td } from '../../../shared/ui/TableLayout';
 import { SearchSelect, type SelectOption } from '../../../shared/ui/SearchSelect';
 import {
     // useGetAllStudentRecords,
     useDeleteStudentRecord,
-    useToggleStudentRecordStatus,
-    useApplyConcession,
-    useUpdateConcessionDetails,
     useGetAllStudentRecordsV1
 } from '../../../api_services/student_api/studentRecordApi';
 import { useGetSchoolById } from '../../../api_services/schoolConfig_api/schoolapi';
 import { getAcademicYears } from '../../../utils/utils';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuthData } from '../../../hooks/useAuthData';
+import { useRoleCheck } from '../../../hooks/useRoleCheck';
 // import { useGetAllStudents } from '../../../api_services/student_api/studentMainApi';
-import { toast } from '../../../shared/ui/ToastContext';
+//import { toast } from '../../../shared/ui/ToastContext';
 
 
 export default function StudentRecordMain() {
-    const { schoolId } = useSelector((state: RootState) => state.auth);
+    // const { schoolId } = useSelector((state: RootState) => state.auth);
+    const {schoolId} = useAuthData()
+    const { isCorrespondent } = useRoleCheck();
 
 
 
@@ -40,6 +41,9 @@ export default function StudentRecordMain() {
     // --- Search & Filters State ---
     const [searchInput, setSearchInput] = useState('');
     const debouncedSearch = useDebounce(searchInput, 500);
+
+    const canDeleteStudentRecord = isCorrespondent; 
+ 
 
     const [filters, setFilters] = useState({
         academicYear: schoolData?.currentAcademicYear || '2026-2027', // Set default or fetch dynamically
@@ -112,10 +116,9 @@ export default function StudentRecordMain() {
     //     search: debouncedSearch,
     // });
 
-    const toggleStatusMutation = useToggleStudentRecordStatus();
     const deleteRecordMutation = useDeleteStudentRecord();
-    const applyConcessionMutation = useApplyConcession();
-    const updateConcessionMutation = useUpdateConcessionDetails();
+    // const applyConcessionMutation = useApplyConcession();
+    // const updateConcessionMutation = useUpdateConcessionDetails();
 
     const academicYearOptions = getAcademicYears();
 
@@ -124,13 +127,13 @@ export default function StudentRecordMain() {
     const records = data?.pages?.flatMap((page: any) => page.data || []) || [];
 
     // --- Modals State ---
-    const [isManageModalOpen, setIsManageModalOpen] = useState(false);
-    const [selectedRecord, setSelectedRecord] = useState<any>(null);
+    // const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+    // const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
     // Concession Form State
-    const [concessionType, setConcessionType] = useState('');
-    const [concessionValue, setConcessionValue] = useState('');
-    const [concessionFile, setConcessionFile] = useState<File | null>(null);
+    // const [concessionType, setConcessionType] = useState('');
+    // const [concessionValue, setConcessionValue] = useState('');
+    // const [concessionFile, setConcessionFile] = useState<File | null>(null);
 
     // --- Handlers ---
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -153,18 +156,6 @@ export default function StudentRecordMain() {
         });
     };
 
-    const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-        try {
-            await toggleStatusMutation.mutateAsync({ id, isActive: !currentStatus });
-
-            if (selectedRecord && selectedRecord._id === id) {
-                setSelectedRecord({ ...selectedRecord, isActive: !currentStatus });
-            }
-
-            refetch();
-        } catch (error) { console.error("Toggle failed", error); }
-    };
-
     const handleDelete = async (id: string, name: string) => {
         if (window.confirm(`Are you sure you want to permanently delete records for ${name}?`)) {
             try {
@@ -174,64 +165,6 @@ export default function StudentRecordMain() {
         }
     };
 
-    // const openManageModal = (record: any) => {
-    //     setSelectedRecord(record);
-    //     // Pre-fill concession details if they exist on the record
-    //     setConcessionType(record.concessionType || '');
-    //     setConcessionValue(record.concessionValue || '');
-    //     setConcessionFile(null);
-    //     setIsManageModalOpen(true);
-    // };
-
-
-    // --- Concession Handlers ---
-    const handleApplyConcession = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedRecord || !schoolId) return;
-
-        const formData = new FormData();
-        formData.append('schoolId', schoolId);
-        formData.append('studentId', selectedRecord.studentId || selectedRecord._id);
-        formData.append('concessionType', concessionType);
-        formData.append('concessionValue', concessionValue);
-        if (concessionFile) {
-            formData.append('file', concessionFile);
-        }
-
-        try {
-            await applyConcessionMutation.mutateAsync(formData);
-            refetch();
-            setIsManageModalOpen(false);
-            toast.success("Concession applied Successfully!");
-
-        } catch (error: any) {
-
-            console.error("Failed to apply concession", error);
-            toast.error(error.message || "Operation Failed");
-
-        }
-    };
-
-    const handleUpdateConcession = async () => {
-        if (!selectedRecord || !schoolId) return;
-
-        try {
-            await updateConcessionMutation.mutateAsync({
-                schoolId: schoolId,
-                studentRecordId: selectedRecord._id,
-                concessionType,
-                concessionValue
-            });
-            refetch();
-            toast.success("Updated Successfully!");
-
-            setIsManageModalOpen(false);
-        } catch (error: any) {
-            console.error("Failed to update concession", error);
-            toast.error(error.message || "Operation Failed");
-
-        }
-    };
 
     // --- Options Mapping ---
     const classOptions: SelectOption[] = classesData?.map((cls: any) => ({ label: cls.name, value: cls._id })) || [];
@@ -263,9 +196,9 @@ export default function StudentRecordMain() {
     return (
         <div className="w-full h-full flex flex-col p-2 space-y-4 overflow-hidden">
 
-            {/* --- Header --- */}
-            {/* <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
-                <div>
+            
+            
+               {/* <div>
                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                         <i className="fas fa-file-invoice text-primary"></i>
                         Student Academic & Financial Records
@@ -274,7 +207,7 @@ export default function StudentRecordMain() {
                 </div>
             </div> */}
 
-            {/* --- Header --- */}
+            
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 px-2">
                 <div>
                     <h1 className="text-xl lg:text-2xl font-bold text-foreground flex items-center gap-3">
@@ -534,14 +467,14 @@ export default function StudentRecordMain() {
 
                                             {/* Status Toggle */}
                                             <Td>
-                                                <button
+                                                {/* <button
                                                     onClick={() => handleToggleStatus(record._id, record.isActive)}
                                                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${record.isActive ? 'bg-success/10 text-success border-success/20 hover:bg-danger/10 hover:text-danger' : 'bg-surface text-muted border-border hover:bg-success/10 hover:text-success'}`}
                                                     title="Click to toggle status"
                                                 >
                                                     <i className={`fas fa-circle text-[8px] ${record.isActive ? 'text-success' : 'text-muted'}`}></i>
+                                                </button> */}
                                                     {record.isActive ? 'Active' : 'Inactive'}
-                                                </button>
                                             </Td>
 
                                             {/* Actions */}
@@ -550,7 +483,7 @@ export default function StudentRecordMain() {
                                                     <Button variant="outline"
                                                         size="sm"
                                                         // onClick={() => openManageModal(record)}
-                                                        onClick={() => navigate(`single/${record._id}`)}
+                                                        onClick={() => navigate(`single/${record._id}?academicYear=${filters.academicYear}`)}
                                                     // onClick={() => {
                                                     //     // Check if studentId is populated as an object, or if it's just a string
                                                     //     const targetStudentId = typeof record.studentId === 'object' ? record.studentId._id : record.studentId;
@@ -561,14 +494,14 @@ export default function StudentRecordMain() {
                                                         {/* Manage */}
                                                         View
                                                     </Button>
-                                                    <Button
+                                                  {canDeleteStudentRecord &&  <Button
                                                         variant="ghost" size="icon"
                                                         className="hover:text-danger hover:bg-danger/10 text-danger"
                                                         onClick={() => handleDelete(record._id, record.studentName)}
                                                         title="Delete Record"
                                                     >
                                                         <i className="fas fa-trash"></i>
-                                                    </Button>
+                                                    </Button>}
                                                 </div>
                                             </Td>
                                         </Tr>
@@ -601,14 +534,14 @@ export default function StudentRecordMain() {
             </div>
 
             {/* --- Example SideModal (Assign / Manage Class) --- */}
-            <SideModal
+            {/* <SideModal
                 isOpen={isManageModalOpen}
                 onClose={() => setIsManageModalOpen(false)}
                 title={`Manage Record: ${selectedRecord?.studentName}`}
             >
                 <div className="flex flex-col h-full space-y-8">
 
-                    {/* Status Management Section */}
+                    
                     <div className="bg-surface border border-border p-5 rounded-xl shadow-sm">
                         <div className="flex items-center justify-between">
                             <div>
@@ -616,7 +549,7 @@ export default function StudentRecordMain() {
                                 <p className="text-xs text-muted mt-1">Determine if this record is currently active for operations.</p>
                             </div>
 
-                            {/* Toggle Switch */}
+                            
                             <button
                                 type="button"
                                 onClick={() => selectedRecord && handleToggleStatus(selectedRecord._id, selectedRecord.isActive)}
@@ -628,7 +561,7 @@ export default function StudentRecordMain() {
                         </div>
                     </div>
 
-                    {/* Concession Management Section */}
+                    
                     <div className="flex-1">
                         <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2 mb-4">Concession Management</h3>
 
@@ -686,7 +619,7 @@ export default function StudentRecordMain() {
                         </form>
                     </div>
                 </div>
-            </SideModal>
+            </SideModal> */}
         </div>
     );
 }

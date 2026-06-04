@@ -58,7 +58,7 @@ export const useCreateMarkReport = () => {
             try {
                 checkPermission(currentRole, ["administrator", "correspondent", "principal", "viceprincipal", "teacher"]);
 
-                const { data } = await Api.post('/api/markreport/create', payload); // Adjust endpoint if different
+                const { data } = await Api.post('/api/markreport/v1/create', payload); // Adjust endpoint if different
                 if (!data.ok) throw new Error(data.message);
                 return data.data;
             } catch (error: any) {
@@ -86,7 +86,7 @@ export const useGetAllMarkReports = (params: GetMarkReportsParams) => {
             try{
             checkPermission(currentRole, MARK_REPORT_ROLES);
 
-            const { data } = await Api.get('/api/markreport/get-all', { params }); // Adjust endpoint
+            const { data } = await Api.get('/api/markreport/v1/get-all', { params }); // Adjust endpoint
             if (!data.ok) throw new Error(data.message);
             return data; // Returns { ok, message, count, data: [...] }
              } catch (error: any) {
@@ -111,7 +111,7 @@ export const useUpdateMarkReport = () => {
             try {
                 checkPermission(currentRole, ["administrator", "correspondent", "principal", "viceprincipal", "teacher"]);
 
-                const { data } = await Api.put(`/api/markreport/update/${reportId}`, updateData); // Adjust endpoint
+                const { data } = await Api.put(`/api/markreport/v1/update/${reportId}`, updateData); // Adjust endpoint
                 if (!data.ok) throw new Error(data.message);
                 return data.data;
             } catch (error: any) {
@@ -141,7 +141,7 @@ export const useDeleteMarkReport = () => {
             try {
                 checkPermission(currentRole, ["administrator", "correspondent", "principal"]); // Restrict deletion to higher roles
 
-                const { data } = await Api.delete(`/api/markreport/delete/${reportId}`); // Adjust endpoint
+                const { data } = await Api.delete(`/api/markreport/v1/delete/${reportId}`); // Adjust endpoint
                 if (!data.ok) throw new Error(data.message);
                 return data;
             } catch (error: any) {
@@ -167,7 +167,7 @@ export const useGetMarkReportById = (reportId: string | undefined) => {
             try {
                 checkPermission(currentRole, MARK_REPORT_ROLES);
 
-                const { data } = await Api.get(`/api/markreport/get/${reportId}`); // Adjust endpoint
+                const { data } = await Api.get(`/api/markreport/v1/get/${reportId}`); // Adjust endpoint
                 if (!data.ok) throw new Error(data.message);
                 return data.data;
             } catch (error: any) {

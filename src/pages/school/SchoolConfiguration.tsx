@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 // import { type UserRole } from '../../features/store/store'; // Adjust path
 // import { 
@@ -20,12 +20,19 @@ import {
 } from '../../api_services/schoolConfig_api/schoolapi';
 import type { RootState } from '../../features/store/store';
 import { toast } from '../../shared/ui/ToastContext';
+import { SearchSelect } from '../../shared/ui/SearchSelect';
+import { getAcademicYears } from '../../utils/utils';
+import { useRoleCheck } from '../../hooks/useRoleCheck';
 
 type TabOptions = 'details' | 'socials';
 
 export default function SchoolConfiguration() {
     // --- Global State ---
     const { schoolId } = useSelector((state: RootState) => state.auth);
+
+    const {isCorrespondent } = useRoleCheck()
+
+    const canModify = isCorrespondent
 
     // --- API Hooks ---
     const { data: schoolData, isLoading: isSchoolLoading } = useGetSchoolById(schoolId!);
@@ -51,33 +58,35 @@ export default function SchoolConfiguration() {
         currentAcademicYear: schoolData?.currentAcademicYear || '',
     });
 
+    const academicYearOptions = getAcademicYears();
+
     // Logo Upload State
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Socials Form State (Pre-defined common platforms for ease of use)
-    const [socialsForm, setSocialsForm] = useState(socialData || {
+    const [socialsForm, setSocialsForm] = useState(socialData?.socialPlatform || {
         facebook: '', instagram: '', linkedin: '', youtube: '', twitter: ''
     });
 
-    // // --- Populate Forms on Load ---
-    // useEffect(() => {
-    //     if (schoolData) {
-    //         setDetailsForm({
-    //             name: schoolData.name || '',
-    //             email: schoolData.email || '',
-    //             phoneNo: schoolData.phoneNo || '',
-    //             address: schoolData.address || '',
-    //             currentAcademicYear: schoolData.currentAcademicYear || '',
-    //         });
-    //     }
-    // }, [schoolData]);
+    // --- Populate Forms on Load ---
+    useEffect(() => {
+        if (schoolData) {
+            setDetailsForm({
+                name: schoolData.name || '',
+                email: schoolData.email || '',
+                phoneNo: schoolData.phoneNo || '',
+                address: schoolData.address || '',
+                currentAcademicYear: schoolData.currentAcademicYear || '',
+            });
+        }
+    }, [schoolData]);
 
-    // useEffect(() => {
-    //     if (socialData) {
-    //         // Assuming socialData returns an object mapping platforms to URLs
-    //         setSocialsForm(prev => ({ ...prev, ...socialData }));
-    //     }
-    // }, [socialData]);
+    useEffect(() => {
+        if (socialData) {
+            // Assuming socialData returns an object mapping platforms to URLs
+            setSocialsForm((prev: any) => ({ ...prev, ...socialData?.socialPlatform }));
+        }
+    }, [socialData]);
 
     // --- Handlers ---
     const handleDetailsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,16 +243,25 @@ export default function SchoolConfiguration() {
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                     <Input id="email" type="email" label="Official Email" leftIcon="fas fa-envelope" value={detailsForm.email} onChange={handleDetailsChange} disabled={updateSchoolMutation.isPending} />
                                     <Input id="phoneNo" type="tel" label="Contact Number" leftIcon="fas fa-phone" value={detailsForm.phoneNo} onChange={handleDetailsChange} disabled={updateSchoolMutation.isPending} />
-                                    <Input id="currentAcademicYear" label="Current Academic Year" value={detailsForm.currentAcademicYear} onChange={handleDetailsChange} disabled={updateSchoolMutation.isPending} />
+                                    {/* <Input id="currentAcademicYear" label="Current Academic Year" value={detailsForm.currentAcademicYear} onChange={handleDetailsChange} disabled={updateSchoolMutation.isPending} /> */}
+                                    <SearchSelect
+                                        // id="currentAcademicYear"
+                                        label="Academic Year"
+                                        options={academicYearOptions}
+                                        value={detailsForm.currentAcademicYear}
+                                        // onChange={(opt) => handleFilterChange('academicYear', String(opt.value))}
+                                        onChange={(opt) => setDetailsForm(prev => ({ ...prev, currentAcademicYear: String(opt.value) }))}
+                                        placeholder="Select Year..."
+                                    />
                                 </div>
 
                                 <Input id="address" label="Full Address" leftIcon="fas fa-map-marker-alt" value={detailsForm.address} onChange={handleDetailsChange} disabled={updateSchoolMutation.isPending} />
 
-                                <div className="flex justify-end pt-4">
+                              {canModify &&  <div className="flex justify-end pt-4">
                                     <Button type="submit" variant="primary" isLoading={updateSchoolMutation.isPending}>
                                         Save Changes
                                     </Button>
-                                </div>
+                                </div>}
                             </form>
                         </CardContent>
                     </Card>

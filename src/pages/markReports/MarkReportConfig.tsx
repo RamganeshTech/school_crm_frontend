@@ -10,6 +10,7 @@ import {
 import { useGetSchoolById } from '../../api_services/schoolConfig_api/schoolapi'; // Adjust path
 import MarkReportSingle from './MarkReportSingle';
 import { toast } from '../../shared/ui/ToastContext';
+import { useRoleCheck } from '../../hooks/useRoleCheck';
 
 export default function MarkReportConfig() {
     const { id: studentId } = useParams();
@@ -26,10 +27,13 @@ export default function MarkReportConfig() {
     // --- Queries & Mutations ---
     const { data: schoolData } = useGetSchoolById(schoolId!);
     const currentAcademicYear = schoolData?.currentAcademicYear || "";
+     const { isCorrespondent, isAdmin, isTeacher } = useRoleCheck();
+
+    const canModify = isCorrespondent || isAdmin || isTeacher 
 
     // 1. Security & Permissions
     const isRestrictedRole = ['parent'].includes(currentRole || '');
-    const isEditable = !isRestrictedRole; // Admins, Correspondents, Principals, Teachers can edit
+    const isEditable = canModify; // Admins, Correspondents, Principals, Teachers can edit
 
     // 2. Local Mode State 
     const [mode, setMode] = useState<'view' | 'edit' | 'create'>(studentId ? 'view' : 'create');
@@ -145,6 +149,7 @@ export default function MarkReportConfig() {
             onSubmit={handleSubmit}
             isSubmitting={createMutation.isPending || updateMutation.isPending}
             isEditable={isEditable}
+            currentAcademicYear={currentAcademicYear}
             onEdit={() => setMode('edit')}
             onCancel={() => {
                 // If canceling an edit, just go back to view mode. Otherwise, navigate to the main list.

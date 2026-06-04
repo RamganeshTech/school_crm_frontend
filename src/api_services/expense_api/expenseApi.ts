@@ -52,7 +52,7 @@ export const useGetAllExpensesInfinite = (params: Omit<GetAllExpensesParams, 'pa
         initialPageParam: 1,
         queryFn: async ({ pageParam = 1 }) => {
             try {
-                checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+                checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal"]);
 
                 const { data } = await Api.get('/api/expense/getall', {
                     params: { ...params, page: pageParam }
@@ -95,7 +95,7 @@ export const useGetExpenseById = (id: string | undefined) => {
         queryFn: async () => {
             try {
                 // Roles allowed: correspondent, accountant, principal
-                checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+                checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal"]);
 
                 const { data } = await Api.get(`/api/expense/get/${id}`);
 
@@ -143,7 +143,7 @@ export const useAddExpense = () => {
             }
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+            queryClient.invalidateQueries({ queryKey: ['expenses-infinite'] });
         },
     });
 };
@@ -175,7 +175,7 @@ export const useUpdateExpense = () => {
             }
         },
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+            queryClient.invalidateQueries({ queryKey: ['expenses-infinite'] });
             queryClient.invalidateQueries({ queryKey: ['expense', variables.id] });
         },
     });
@@ -201,7 +201,7 @@ export const useUpdateExpenseStatus = () => {
             }
         },
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+            queryClient.invalidateQueries({ queryKey: ['expenses-infinite'] });
             queryClient.invalidateQueries({ queryKey: ['expense', variables.id] });
         },
     });
@@ -227,7 +227,7 @@ export const useDeleteExpense = () => {
             }
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+            queryClient.invalidateQueries({ queryKey: ['expenses-infinite'] });
         },
     });
 };
@@ -253,7 +253,7 @@ export const useDeleteExpenseProof = () => {
             }
         },
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: ['expenses'] });
+            queryClient.invalidateQueries({ queryKey: ['expenses-infinite'] });
             queryClient.invalidateQueries({ queryKey: ['expense', variables.expenseId] });
         },
     });
@@ -280,7 +280,7 @@ export const useGetExpenseReport = (filters: ExpenseReportFilters) => {
         queryFn: async () => {
             try {
                 // Roles allowed: correspondent, accountant, principal
-                checkPermission(currentRole, ["correspondent", "accountant", "principal"]); // Assuming you have this imported
+                checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal", "administrator"]); // Assuming you have this imported
 
                 const { data } = await Api.get(`/api/expense/v1/report`, {
                     params: filters // Pass the filters directly to the URL query string

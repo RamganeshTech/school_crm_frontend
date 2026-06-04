@@ -13,8 +13,10 @@ import FinanceKPICards from './FinanceKPICards';
 // import FinanceTrendsChart from './FinanceTrendsChart';
 // import OutstandingFeesChart from './OutstandingFeesChart';
 import CashFlowTimelineWidget from './CashFlowTimelineWidget';
-import OutstandingLiabilityWidget from './OutstandingLiabilityWidget';
+import OutstandingLiabilityWidget from './OutstandingFeeDonut';
 import ExpenseReportWidget from './dashboards/ExpenseDashboard';
+import CollectedFeesWidget from './CollectedFeesWidget';
+import RecentFeeActivityWidget from './RecentFeeActivityWidget';
 
 type RangeValue = FinanceStatsParams["range"]
 
@@ -22,12 +24,20 @@ export default function FinanceDashboardMain() {
     const { schoolId } = useAuthData();
 
     // Fetch master school context to obtain matching default academic years securely
-    const { data: schoolData } = useGetSchoolById(schoolId!);
+    const { data: schoolData, isSuccess } = useGetSchoolById(schoolId!);
     const currentAcademicYear = schoolData?.currentAcademicYear;
 
     // --- State Management ---
     const [range, setRange] = useState<RangeValue>('month');
     const [academicYear, setAcademicYear] = useState<string>(currentAcademicYear!);
+
+    // 🌟 THE STATE HYDRATION ENGINE
+    // If the API call succeeds, has data, and your state is still empty, populate it instantly!
+    if (isSuccess && schoolData?.currentAcademicYear && !academicYear) {
+        setAcademicYear(schoolData.currentAcademicYear);
+    }
+
+
 
     const RANGE_OPTIONS = [
         { label: 'Today Summary', value: 'today' },
@@ -103,12 +113,22 @@ export default function FinanceDashboardMain() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-3">
                     <CashFlowTimelineWidget />
                 </div>
 
+
+
                 <div className="lg:col-span-1">
-                    <OutstandingLiabilityWidget defaultYear={currentAcademicYear!} />
+                    <CollectedFeesWidget defaultYear={academicYear!} />
+                </div>
+
+                <div className="lg:col-span-1">
+                    <OutstandingLiabilityWidget defaultYear={academicYear!} />
+                </div>
+
+                 <div className="lg:col-span-1">
+                    <RecentFeeActivityWidget />
                 </div>
 
                 <div className="lg:col-span-3">

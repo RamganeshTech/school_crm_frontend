@@ -9,13 +9,18 @@ import { getAcademicYears } from '../../utils/utils';
 import { useGetSchoolById } from '../../api_services/schoolConfig_api/schoolapi';
 import { useGetSections } from '../../api_services/schoolConfig_api/sectionApi';
 import { useGetAllStudentsV1 } from '../../api_services/student_api/studentMainApi';
+import { TableContainer, TBody, Td, Th, THead, Tr } from '../../shared/ui/TableLayout';
+import { useRoleCheck } from '../../hooks/useRoleCheck';
 // import { useGetMarkReportByIdV1 } from '../../api_services/markReport_api/markReportApi';
 // import { useGetMarkReportConfigByClass } from '../../api_services/markReport_api/markReportConfigApi';
 
 export default function MarkReportMain() {
     const navigate = useNavigate();
     const location = useLocation(); // Hook to track current URL
-    const { schoolId, currentRole } = useAuthData();
+    const { schoolId } = useAuthData();
+    const { isCorrespondent, isAdmin, isTeacher } = useRoleCheck();
+
+    const canModify = isCorrespondent || isAdmin || isTeacher 
     // const currentYear = new Date().getFullYear();
 
     const { data: schoolData } = useGetSchoolById(schoolId!);
@@ -59,7 +64,7 @@ export default function MarkReportMain() {
     // );
 
 
-   
+
     // NOTE: You will use your "Get or Initialize Marksheet" hook further down in your code 
     // ONLY when filters.studentId is not null.
     // const reports = reportPayload?.data || [];
@@ -75,7 +80,7 @@ export default function MarkReportMain() {
         }));
     };
 
-   
+
 
 
     const classOptions: SelectOption[] = useMemo(() => {
@@ -88,9 +93,9 @@ export default function MarkReportMain() {
 
     // This replaces your old useMemo!
     // const activeReport = reportPayload?.data || null;
-   
 
-    const canCreate = !['parent'].includes(currentRole || '');
+
+    // const canCreate = !['parent'].includes(currentRole || '');
 
     // --- NESTED ROUTE BYPASS ---
     // If the URL has 'single' or 'create', stop rendering this main page and ONLY render the child component.
@@ -154,7 +159,7 @@ export default function MarkReportMain() {
                     </div> */}
 
                     {/* NEW: Create Button (Hidden from Parents) */}
-                    {canCreate && (
+                    {canModify && (
                         <Button
                             variant="primary"
                             leftIcon="fas fa-plus"
@@ -181,215 +186,171 @@ export default function MarkReportMain() {
                         <i className="fas fa-circle-notch fa-spin text-primary text-3xl"></i>
                     </div>
                 ) : !filters.studentId ? (
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    // <div className="flex-1 overflow-y-auto custom-scrollbar p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 
-                        {/* Map over the actual students */}
-                        {studentsList?.map((student: any) => (
-                            <div
-                                key={student._id}
-                                className="group flex flex-col bg-surface border border-border rounded-2xl overflow-hidden hover:shadow-md hover:border-primary/40 transition-all duration-200"
-                            >
-                                {/* Top half: Identity */}
-                                <div className="p-5 flex items-start gap-4">
-                                    <div className="w-12 h-12 rounded-xl bg-primary-soft flex items-center justify-center text-primary font-bold text-xl shrink-0 shadow-sm">
-                                        {student.studentName?.charAt(0).toUpperCase() || 'S'}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="text-base font-bold text-foreground truncate" title={student.studentName}>
-                                            {student.studentName || 'Unknown Student'}
-                                        </h3>
-                                        <div className="flex items-center gap-1.5 mt-1">
-                                            <i className="fa-solid fa-id-card text-[10px] text-muted"></i>
-                                            <p className="text-xs text-muted font-medium truncate">
-                                                {student.srId || 'N/A'}
-                                            </p>
+                    //     {/* Map over the actual students */}
+                    //     {studentsList?.map((student: any) => (
+                    //         <div
+                    //             key={student._id}
+                    //             className="group flex flex-col bg-surface border border-border rounded-2xl overflow-hidden hover:shadow-md hover:border-primary/40 transition-all duration-200"
+                    //         >
+                    //             {/* Top half: Identity */}
+                    //             <div className="p-5 flex items-start gap-4">
+                    //                 <div className="w-12 h-12 rounded-xl bg-primary-soft flex items-center justify-center text-primary font-bold text-xl shrink-0 shadow-sm">
+                    //                     {student.studentName?.charAt(0).toUpperCase() || 'S'}
+                    //                 </div>
+                    //                 <div className="flex-1 min-w-0">
+                    //                     <h3 className="text-base font-bold text-foreground truncate" title={student.studentName}>
+                    //                         {student.studentName || 'Unknown Student'}
+                    //                     </h3>
+                    //                     <div className="flex items-center gap-1.5 mt-1">
+                    //                         <i className="fa-solid fa-id-card text-[10px] text-muted"></i>
+                    //                         <p className="text-xs text-muted font-medium truncate">
+                    //                             {student.srId || 'N/A'}
+                    //                         </p>
+                    //                     </div>
+                    //                 </div>
+                    //             </div>
+
+                    //             {/* Bottom half: Context & Action */}
+                    //             <div className="px-5 py-4 bg-background/50 border-t border-border flex items-center justify-between mt-auto gap-2">
+
+                    //                 {/* Academic Badges */}
+                    //                 <div className="flex items-center gap-2 overflow-hidden">
+                    //                     {student.classId?.className && (
+                    //                         <span className="px-2 py-1 bg-surface border border-border rounded-md text-[10px] font-bold text-foreground uppercase tracking-wider truncate">
+                    //                             {student.classId.className}
+                    //                         </span>
+                    //                     )}
+                    //                     {student.sectionId?.name && (
+                    //                         <span className="px-2 py-1 bg-surface border border-border rounded-md text-[10px] font-bold text-foreground uppercase tracking-wider truncate">
+                    //                             {student.sectionId.name}
+                    //                         </span>
+                    //                     )}
+                    //                 </div>
+
+
+                    //                 <Button
+                    //                     variant="primary"
+                    //                     leftIcon="fas fa-external-link-alt"
+                    //                     className="py-1.5 px-3 text-xs shrink-0 group-hover:shadow-md transition-all"
+                    //                     onClick={() => {
+                    //                         // Pass the student ID in the path, and the context in the URL query string
+                    //                         navigate(`single/${student._id}?academicYear=${filters.academicYear}&classId=${student.classId?._id || filters.classId}&sectionId=${student.sectionId?._id || filters.sectionId}`);
+                    //                     }}
+                    //                 >
+                    //                     Detailed Sheet
+                    //                 </Button>
+                    //             </div>
+                    //         </div>
+                    //     ))}
+
+                    //     {/* Empty State */}
+                    //     {(!studentsList || studentsList.length === 0) && (
+                    //         <div className="col-span-full py-12 text-center text-muted flex flex-col items-center">
+                    //             <i className="fa-solid fa-users-slash text-4xl mb-3 opacity-50"></i>
+                    //             <p className="font-medium">No students found.</p>
+                    //             <p className="text-xs mt-1">Select a valid Class and Section to view the roster.</p>
+                    //         </div>
+                    //     )}
+                    // </div>
+
+                    <TableContainer className="h-full custom-scrollbar overscroll-none">
+                        <THead className="sticky top-0 z-10 shadow-sm">
+                            <Tr>
+                                <Th className="text-center w-16">S.No</Th>
+                                <Th className="text-left">Student Identity</Th>
+                                <Th className="text-center">Class & Section</Th>
+                                <Th className="text-right pr-6">Action</Th>
+                            </Tr>
+                        </THead>
+                        <TBody>
+                            {(!studentsList || studentsList.length === 0) ? (
+                                /* Empty State */
+                                <Tr>
+                                    <td colSpan={4} className="py-12 text-center text-muted">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <i className="fa-solid fa-users-slash text-4xl mb-3 opacity-50"></i>
+                                            <p className="font-bold text-foreground">No students found.</p>
+                                            <p className="text-xs mt-1">Select a valid Class and Section to view the roster.</p>
                                         </div>
-                                    </div>
-                                </div>
+                                    </td>
+                                </Tr>
+                            ) : (
+                                /* Student Rows */
+                                studentsList.map((student: any, index: number) => (
+                                    <Tr key={student._id} className="hover:bg-primary-soft/20 transition-colors">
 
-                                {/* Bottom half: Context & Action */}
-                                <div className="px-5 py-4 bg-background/50 border-t border-border flex items-center justify-between mt-auto gap-2">
-
-                                    {/* Academic Badges */}
-                                    <div className="flex items-center gap-2 overflow-hidden">
-                                        {student.classId?.className && (
-                                            <span className="px-2 py-1 bg-surface border border-border rounded-md text-[10px] font-bold text-foreground uppercase tracking-wider truncate">
-                                                {student.classId.className}
+                                        {/* 1. S.No Column */}
+                                        <Td className="align-middle pt-4 text-center">
+                                            <span className="text-sm font-bold text-muted">
+                                                {index + 1}
                                             </span>
-                                        )}
-                                        {student.sectionId?.name && (
-                                            <span className="px-2 py-1 bg-surface border border-border rounded-md text-[10px] font-bold text-foreground uppercase tracking-wider truncate">
-                                                {student.sectionId.name}
-                                            </span>
-                                        )}
-                                    </div>
+                                        </Td>
 
-                                    {/* View Button - Sets the target student ID */}
-                                    {/* <Button
-                                        variant="outline"
-                                        className="py-1.5 px-3 text-xs shrink-0 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-colors"
-                                        onClick={() => handleFilterChange('studentId', student._id)}
-                                    >
-                                        View Grid
-                                    </Button> */}
+                                        {/* 2. Identity Column (Avatar + Name + SR ID) */}
+                                        <Td className="align-middle pt-3 text-left">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-primary-soft flex items-center justify-center text-primary font-bold text-lg shrink-0 shadow-sm border border-primary/10">
+                                                    {student.studentName?.charAt(0).toUpperCase() || 'S'}
+                                                </div>
+                                                <div className="flex flex-col max-w-[200px] sm:max-w-[250px]">
+                                                    <span className="text-sm font-bold text-foreground truncate" title={student.studentName}>
+                                                        {student.studentName || 'Unknown Student'}
+                                                    </span>
+                                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                                        <i className="fa-solid fa-id-card text-[10px] text-muted"></i>
+                                                        <span className="text-xs text-muted font-medium truncate">
+                                                            {student.srId || 'N/A'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Td>
 
-                                    <Button
-                                        variant="primary"
-                                        leftIcon="fas fa-external-link-alt"
-                                        className="py-1.5 px-3 text-xs shrink-0 group-hover:shadow-md transition-all"
-                                        onClick={() => {
-                                            // Pass the student ID in the path, and the context in the URL query string
-                                            navigate(`single/${student._id}?academicYear=${filters.academicYear}&classId=${student.classId?._id || filters.classId}&sectionId=${student.sectionId?._id || filters.sectionId}`);
-                                        }}
-                                    >
-                                        Detailed Sheet
-                                    </Button>
-                                </div>
-                            </div>
-                        ))}
+                                        {/* 3. Class & Section Badges Column */}
+                                        <Td className="align-middle pt-4 text-center">
+                                            <div className="flex items-center justify-center gap-2">
+                                                {student.currentClassId?.name ? (
+                                                    <span className="px-2 py-1 bg-surface border border-border rounded-md text-[10px] font-bold text-foreground uppercase tracking-wider">
+                                                        {student.currentClassId.name}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-muted text-xs">--</span>
+                                                )}
+                                                {student.currentClassId?.name && (
+                                                    <span className="px-2 py-1 bg-surface border border-border rounded-md text-[10px] font-bold text-foreground uppercase tracking-wider">
+                                                        {student.currentSectionId.name}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </Td>
 
-                        {/* Empty State */}
-                        {(!studentsList || studentsList.length === 0) && (
-                            <div className="col-span-full py-12 text-center text-muted flex flex-col items-center">
-                                <i className="fa-solid fa-users-slash text-4xl mb-3 opacity-50"></i>
-                                <p className="font-medium">No students found.</p>
-                                <p className="text-xs mt-1">Select a valid Class and Section to view the roster.</p>
-                            </div>
-                        )}
-                    </div>
-                ) 
-                
-                : (
-
-                    <></>
+                                        {/* 4. Action Column */}
+                                        <Td className="align-middle pt-3 text-right pr-6">
+                                            <Button
+                                                variant="primary"
+                                                leftIcon="fas fa-external-link-alt"
+                                                className="py-1.5 px-3 text-xs shrink-0 transition-all ml-auto"
+                                                onClick={() => {
+                                                    // Pass the student ID in the path, and the context in the URL query string
+                                                    navigate(`single/${student._id}?academicYear=${filters.academicYear}&classId=${student.classId?._id || filters.classId}&sectionId=${student.sectionId?._id || filters.sectionId}`);
+                                                }}
+                                            >
+                                                Detailed Sheet
+                                            </Button>
+                                        </Td>
+                                    </Tr>
+                                ))
+                            )}
+                        </TBody>
+                    </TableContainer>
                 )
-                // : !activeReport ? (
-                //     <div className="flex-1 flex flex-col items-center justify-center p-6 text-muted">
-                //         <i className="fas fa-folder-open text-4xl mb-3 opacity-30"></i>
-                //         <p className="text-base font-bold">No Records Found</p>
-                //     </div>
-                // ) : (
-                //     <div className="flex-1 flex flex-col h-full overflow-hidden animate-in fade-in duration-200">
 
+                    : (
 
-
-                //         <div className="px-6 py-5 border-b border-border bg-sub-header/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
-                //             <div>
-                //                 <h3 className="text-xl font-bold text-foreground">{activeReport.studentId?.studentName}</h3>
-                //                 <p className="text-sm text-muted mt-1 font-medium">
-                //                     Class {activeReport.classId?.name || 'Unassigned'} — Section {activeReport.sectionId?.name || 'N/A'}
-                //                 </p>
-                //             </div>
-                //             <div className="flex gap-3">
-                //                 <Button variant="outline" leftIcon="fas fa-arrow-left" className="text-sm py-2" onClick={() => setFilters(p => ({ ...p, studentId: '' }))}>
-                //                     All Students
-                //                 </Button>
-                //                 <Button variant="primary" leftIcon="fas fa-external-link-alt" className="text-sm py-2" onClick={() => navigate(`single/${activeReport._id}`)}>
-                //                     Detailed Sheet
-                //                 </Button>
-                //             </div>
-                //         </div>
-
-                        
-
-                //         <div className="overflow-x-auto rounded-xl border border-border shadow-sm bg-surface">
-                //             <table className="w-full text-left border-collapse min-w-max">
-                //                 <thead>
-                //                     <tr className="text-[11px] font-bold text-muted uppercase tracking-wider border-b-2 border-border bg-mainBg">
-                //                         <th className="p-4 border-r border-border/50 sticky left-0 z-10 bg-mainBg shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-64">
-                //                             Subjects
-                //                         </th>
-                //                         {/* DYNAMIC EXAM HEADERS */}
-                //                         {exams.map((exam, eIdx) => (
-                //                             <th key={eIdx} className="p-4 border-r border-border/50 text-center min-w-[140px]">
-                //                                 <div className="font-bold text-foreground text-sm">{exam.examName}</div>
-                //                                 <div className="text-[10px] mt-1 font-normal opacity-70">
-                //                                     Max {exam.maxMarks} • Pass {exam.passingMarks}
-                //                                 </div>
-                //                             </th>
-                //                         ))}
-                //                     </tr>
-                //                 </thead>
-
-                //                 <tbody className="divide-y divide-border/50">
-                //                     {activeReport?.isAbsent ? (
-                //                         <tr>
-                //                             <td colSpan={exams.length + 1} className="px-6 py-16 text-center text-danger font-semibold bg-danger/5">
-                //                                 <i className="fas fa-user-times mr-2 text-xl mb-2 block"></i>
-                //                                 Student was marked ABSENT for this examination timeline.
-                //                             </td>
-                //                         </tr>
-                //                     ) : (
-                //                         /* DYNAMIC SUBJECT ROWS */
-                //                         subjects.map((sub, sIdx) => (
-                //                             <tr key={sIdx} className="hover:bg-sub-header/30 transition-colors group">
-
-                //                                 {/* Subject Name Column (Sticky) */}
-                //                                 <td className="p-4 font-semibold text-foreground border-r border-border/50 sticky left-0 z-10 bg-surface group-hover:bg-sub-header/50 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
-                //                                     {sub.subjectName}
-                //                                     {sub.subjectCode && (
-                //                                         <span className="block text-[10px] text-muted font-normal mt-0.5">
-                //                                             {sub.subjectCode}
-                //                                         </span>
-                //                                     )}
-                //                                 </td>
-
-                //                                 {/* Exam Mark Columns */}
-                //                                 {exams.map((exam, eIdx) => {
-                //                                     const mark = getMark(sub.subjectName, exam.examName);
-
-                //                                     // Check for null, undefined, and empty string
-                //                                     const hasMark = mark !== null && mark !== undefined && mark !== '';
-                //                                     const isFail = hasMark && Number(mark) < (exam?.passingMarks || 35);
-
-                //                                     return (
-                //                                         <td key={eIdx} className="p-3 border-r border-border/50 text-center">
-                //                                             {hasMark ? (
-                //                                                 <span className={`font-bold text-lg ${isFail ? 'text-danger' : 'text-foreground'}`}>
-                //                                                     {mark}
-                //                                                 </span>
-                //                                             ) : (
-                //                                                 <span className="text-muted/40 font-medium">--</span>
-                //                                             )}
-                //                                         </td>
-                //                                     );
-                //                                 })}
-                //                             </tr>
-                //                         ))
-                //                     )}
-                //                 </tbody>
-                //             </table>
-                //         </div>
-
-                //         {marksSummary && (
-                //             <div className="px-6 py-5 border-t border-border bg-sub-header/30 grid grid-cols-2 sm:grid-cols-4 gap-6 shrink-0">
-                //                 <div>
-                //                     <p className="text-[11px] text-muted font-bold uppercase tracking-wider">Total Marks</p>
-                //                     <p className="text-lg font-bold text-foreground mt-1">{marksSummary.obtained} <span className="text-sm text-muted">/ {marksSummary.totalMax}</span></p>
-                //                 </div>
-                //                 <div>
-                //                     <p className="text-[11px] text-muted font-bold uppercase tracking-wider">Percentage</p>
-                //                     <p className="text-lg font-bold text-primary mt-1">{marksSummary.percentage}%</p>
-                //                 </div>
-                //                 <div>
-                //                     <p className="text-[11px] text-muted font-bold uppercase tracking-wider">Aggregated Status</p>
-                //                     <span className={`inline-block text-xs font-bold uppercase tracking-wider mt-1.5 px-3 py-1 rounded-md border ${marksSummary.status === 'FAIL' ? 'bg-danger/10 text-danger border-danger/20' : 'bg-success/10 text-success border-success/20'
-                //                         }`}>
-                //                         {marksSummary.status}
-                //                     </span>
-                //                 </div>
-                //                 {activeReport.remarks && (
-                //                     <div className="col-span-2 sm:col-span-1 border-l border-border pl-4">
-                //                         <p className="text-[11px] text-muted font-bold uppercase tracking-wider">Teacher Remarks</p>
-                //                         <p className="text-sm font-semibold text-foreground mt-1 line-clamp-2" title={activeReport.remarks}>
-                //                             "{activeReport.remarks}"
-                //                         </p>
-                //                     </div>
-                //                 )}
-                //             </div>
-                //         )}
-                //     </div>
-                // )
+                        <></>
+                    )
                 }
             </div>
         </div>

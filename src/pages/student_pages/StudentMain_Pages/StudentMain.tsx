@@ -21,6 +21,7 @@ import { useGetSections } from '../../../api_services/schoolConfig_api/sectionAp
 import useDebounce from '../../../hooks/useDebounce';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from '../../../shared/ui/ToastContext';
+import { useRoleCheck } from '../../../hooks/useRoleCheck';
 
 
 export default function StudentMain() {
@@ -56,8 +57,8 @@ export default function StudentMain() {
         studentName: '',
         gender: 'Male',
         dob: '',
-        whatsappNumber: '',
-        newOld: 'New',
+        mobileNumber: '',
+        newOld: 'new',
     });
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -69,6 +70,11 @@ export default function StudentMain() {
         schoolId: schoolId!,
         classId: filters.classId
     });
+
+    const { isTeacher, isParent, isPrincipal, isVicePrincipal, isCorrespondent } = useRoleCheck()
+    const canCreate = !isTeacher && !isParent && !isPrincipal && !isVicePrincipal
+    const canDelete = isCorrespondent
+    const canEdit = !isTeacher && !isPrincipal && !isVicePrincipal
 
     // const { data, isLoading, isError, refetch } = useGetAllStudents({
     //     schoolId: schoolId!,
@@ -151,7 +157,7 @@ export default function StudentMain() {
     };
 
     const openCreateForm = () => {
-        setFormData({ studentName: '', gender: 'Male', dob: '', whatsappNumber: '', newOld: 'New' });
+        setFormData({ studentName: '', gender: 'Male', dob: '', mobileNumber: '', newOld: 'new' });
         setSelectedFile(null);
         setEditingId(null);
         setIsFormOpen(true);
@@ -162,8 +168,8 @@ export default function StudentMain() {
             studentName: student.studentName,
             gender: student.gender,
             dob: student.dob ? new Date(student.dob).toISOString().split('T')[0] : '',
-            whatsappNumber: student.whatsappNumber,
-            newOld: student.newOld || 'New',
+            mobileNumber: student.mobileNumber,
+            newOld: student.newOld || 'new',
         });
         setSelectedFile(null);
         setEditingId(student._id);
@@ -199,25 +205,44 @@ export default function StudentMain() {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        const payload = new FormData();
-        payload.append('schoolId', schoolId!);
-        payload.append('studentName', formData.studentName);
-        payload.append('gender', formData.gender);
-        payload.append('dob', formData.dob);
-        payload.append('whatsappNumber', formData.whatsappNumber);
-        payload.append('newOld', formData.newOld);
-        if (selectedFile) {
-            payload.append('file', selectedFile);
-        }
-
         try {
+            e.preventDefault();
+
+            if (formData.mobileNumber) {
+                // Strictly 10 digits regex
+                const phoneRegex = /^\d{10}$/;
+                if (!phoneRegex.test(formData.mobileNumber)) {
+                    toast.error("Whatsapp number must be exactly 10 digits.");
+                    return;
+                }
+            }
+
+
+            if (!formData.studentName?.trim()) {
+                toast.error("Student Name is Mandatory.");
+                return;
+            }
+
+            const payload = new FormData();
+            payload.append('schoolId', schoolId!);
+            payload.append('studentName', formData.studentName);
+            payload.append('gender', formData.gender);
+            payload.append('dob', formData.dob);
+            payload.append('mobileNumber', formData.mobileNumber);
+            payload.append('newOld', formData.newOld);
+            if (selectedFile) {
+                payload.append('file', selectedFile);
+            }
+
             if (editingId) {
                 await updateStudentMutation.mutateAsync({ id: editingId, formData: payload });
                 toast.success("Updated Successfully!");
 
             } else {
+
+
+
+
                 await createStudentMutation.mutateAsync(payload);
                 toast.success("Created Successfully!");
 
@@ -311,12 +336,12 @@ export default function StudentMain() {
                         </Button>
                     </div>
 
-                    <div className="block">
+                    {canCreate && <div className="block">
                         <Button onClick={openCreateForm} leftIcon="fas fa-plus" variant="primary">
                             <span className='hidden md:block'>Create Student</span>
                             <span className='block md:hidden'> Create</span>
                         </Button>
-                    </div>
+                    </div>}
                 </div>
             </div>
 
@@ -441,7 +466,7 @@ export default function StudentMain() {
                                 <Th>DOB</Th>
                                 <Th>Current Section</Th>
                                 <Th>Status</Th>
-                                <Th className="text-right">Actions</Th>
+                                <Th className="text-center">Actions</Th>
                             </tr>
                         </THead>
                         <TBody>
@@ -529,19 +554,19 @@ export default function StudentMain() {
                                                         <Button variant="ghost" size="icon" onClick={() => navigate(`profile/${student._id}`)} title="View Student">
                                                             <i className="fas fa-eye"></i>
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => openEditForm(student)} title="Edit Student">
+                                                        {canEdit && <Button variant="ghost" size="icon" onClick={() => openEditForm(student)} title="Edit Student">
                                                             <i className="fas fa-edit"></i>
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
+                                                        </Button>}
+                                                        {canDelete && <Button
+                                                            variant="danger"
+                                                            size={deleteStudentMutation.isPending ? "sm" : "icon"}
                                                             className="hover:text-danger hover:bg-danger/10 text-danger"
                                                             onClick={() => handleDelete(student._id, student.studentName)}
-                                                            isLoading={deleteStudentMutation.isPending}
+                                                            isLoading={deleteStudentMutation.isPending && deleteStudentMutation.variables === student._id}
                                                             title="Delete Student"
                                                         >
                                                             <i className="fas fa-trash"></i>
-                                                        </Button>
+                                                        </Button>}
                                                     </div>
                                                 </Td>
                                             </Tr>
@@ -603,6 +628,7 @@ export default function StudentMain() {
 
                         <Input
                             id="studentName"
+                            autoFocus={true}
                             label="Full Name"
                             placeholder="Enter student's name"
                             value={formData.studentName}
@@ -610,7 +636,7 @@ export default function StudentMain() {
                             required
                         />
 
-                        <div className="grid grid-cols-2 gap-4">
+                        {!editingId && <div className="grid grid-cols-2 gap-4">
                             <SearchSelect
                                 label="Gender"
                                 options={genderOptions}
@@ -625,19 +651,21 @@ export default function StudentMain() {
                                 label="Date of Birth"
                                 value={formData.dob}
                                 onChange={handleFormChange}
-                                required
-                            />
-                        </div>
 
-                        <Input
-                            id="whatsappNumber"
+                            />
+                        </div>}
+
+                        {!editingId && <Input
+                            id="mobileNumber"
                             type="tel"
-                            label="WhatsApp Number"
+                            maxLength={10}
+                            minLength={10}
+                            label="Mobile Number"
                             placeholder="+91 9876543210"
-                            value={formData.whatsappNumber}
+                            value={formData.mobileNumber}
                             onChange={handleFormChange}
-                            required
-                        />
+
+                        />}
 
                         <div className="flex flex-col gap-1.5 pt-2">
                             <Label>Admission Type</Label>

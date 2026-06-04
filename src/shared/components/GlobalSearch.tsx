@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 // import { useAuthData } from '../../hooks/useAuthData';
 // Make sure to import your menus from wherever you defined them
 // import { principalMenu, getParentMenu } from '../../utils/menuConfig';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../../features/store/store';
-import { getParentMenu, principalMenu } from '../../constants/constants';
+// import { useSelector } from 'react-redux';
+// import type { RootState } from '../../features/store/store';
+// import { getParentMenu, principalMenu } from '../../constants/constants';
+import { useAuthorizedMenu } from '../../hooks/useAuthorizedMenu';
 
 export const GlobalSearch = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -19,27 +20,32 @@ export const GlobalSearch = () => {
     // Get current role and active student ID (if parent) from your auth hook
     // const { currentRole } = useAuthData();
 
-    const { role: currentRole, studentId } = useSelector((state: RootState) => state.auth)
+    // const { studentId } = useSelector((state: RootState) => state.auth)
 
 
     // If studentId is an array (as defined in your login slice), grab the first one, or use the active one if you have a selector for it.
-    const activeStudentId = Array.isArray(studentId) && studentId.length > 0 ? studentId[0] : null;
+    // const activeStudentId = Array.isArray(studentId) && studentId.length > 0 ? studentId[0] : null;
 
     // 1. Determine which menu to search based on Role
-    const availableModules = useMemo(() => {
-        if (currentRole === 'parent') {
-            return getParentMenu(activeStudentId);
-        }
-        return principalMenu;
-    }, [currentRole, activeStudentId]);
+    // const availableModules = useMemo(() => {
+    //     if (currentRole === 'parent') {
+    //         return getParentMenu(activeStudentId);
+    //     }
+    //     return principalMenu;
+    // }, [currentRole, activeStudentId]);
+
+    // 1. Get the authoritative menu list for this specific user
+    const availableModules = useAuthorizedMenu();
 
     // 2. Filter modules based on search query
     const filteredModules = useMemo(() => {
         if (!query.trim()) return availableModules;
-        return availableModules.filter((module: any) =>
+        
+        return availableModules.filter((module) =>
             module.name.toLowerCase().includes(query.toLowerCase())
         );
     }, [query, availableModules]);
+
 
     // 3. Handle Keyboard Navigation (Up, Down, Enter, Escape)
     const handleKeyDown = (e: React.KeyboardEvent) => {

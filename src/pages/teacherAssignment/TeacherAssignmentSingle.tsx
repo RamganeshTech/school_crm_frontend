@@ -5,6 +5,7 @@ import { useGetSingleUser } from '../../api_services/auth_api/authApi';
 import { Button } from '../../shared/ui/Button';
 import { useGetAllClassesWithSections, useManageTeacherAssignments, type ClassWithSections, } from '../../api_services/teacher_api/teacherApi';
 import { toast } from '../../shared/ui/ToastContext';
+import { useRoleCheck } from '../../hooks/useRoleCheck';
 
 
 // Type for the queued updates
@@ -17,6 +18,9 @@ export default function TeacherAssignmentSingle() {
     const { id: teacherId } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { schoolId } = useAuthData();
+    const { isAdmin, isCorrespondent } = useRoleCheck()
+    const canModify = isAdmin || isCorrespondent
+
 
     // --- State ---
     const [pendingUpdates, setPendingUpdates] = useState<AssignmentUpdate[]>([]);
@@ -91,6 +95,7 @@ export default function TeacherAssignmentSingle() {
 
     // --- Handlers ---
     const handleToggle = (classId: string, sectionId?: string) => {
+        if(!canModify) return toast.warning("only administrator and correspondent can make the modification")
         setPendingUpdates(prev => {
             const payload: AssignmentUpdate = { classId };
             if (sectionId) payload.sectionId = sectionId;
@@ -161,10 +166,10 @@ export default function TeacherAssignmentSingle() {
                     </button>
                     <div>
                         <h1 className="text-xl font-bold text-foreground">
-                            Assign Classes to <span className="text-primary">{teacher.name}</span>
+                            Assign Classes to <span className="text-primary">{teacher.userName}</span>
                         </h1>
                         <div className="flex items-center gap-3 mt-1">
-                            <p className="text-xs font-semibold text-muted tracking-wider uppercase">
+                            <p className="text-xs font-semibold text-muted">
                                 {teacher.email || 'No email provided'}
                             </p>
                             {/* Shows the server's truth of total assignments */}
@@ -175,7 +180,7 @@ export default function TeacherAssignmentSingle() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                {canModify && <div className="flex items-center gap-4">
                     {hasUnsavedChanges && (
                         <span className="text-xs font-bold text-warning animate-pulse flex items-center gap-1.5">
                             <i className="fas fa-circle text-[8px]"></i> Unsaved Changes Pending
@@ -190,7 +195,7 @@ export default function TeacherAssignmentSingle() {
                     >
                         Save Assignments
                     </Button>
-                </div>
+                </div>}
             </header>
 
             {/* FULL WIDTH LIST */}

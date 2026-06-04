@@ -4,31 +4,24 @@ import { useAuthData } from '../../hooks/useAuthData';
 // import { useGetExpenseById, useUpdateExpense, useDeleteExpenseProof } from '../../api_services/expenseApi'; // Adjust path
 import { Button } from '../../shared/ui/Button';
 import { Input, Label } from '../../shared/ui/Input';
-import { SearchSelect } from '../../shared/ui/SearchSelect';
+import { SearchSelect, type SelectOption } from '../../shared/ui/SearchSelect';
 import { useDeleteExpenseProof, useGetExpenseById, useUpdateExpense } from '../../api_services/expense_api/expenseApi';
 import { toast } from '../../shared/ui/ToastContext';
 import { ImageGallery } from '../../shared/components/ImageGallery';
 import { downloadImageUtil } from '../../api_services/download_api/downloadApi';
-
-const CATEGORY_OPTIONS = [
-    { label: 'Maintenance', value: 'Maintenance' },
-    { label: 'Utilities', value: 'Utilities' },
-    { label: 'Supplies', value: 'Supplies' },
-    { label: 'Events', value: 'Events' },
-    { label: 'Miscellaneous', value: 'Miscellaneous' },
-];
-
-const PAYMENT_MODE_OPTIONS = [
-    { label: 'Cash', value: 'Cash' },
-    { label: 'Bank Transfer', value: 'Bank Transfer' },
-    { label: 'Cheque', value: 'Cheque' },
-    { label: 'UPI', value: 'UPI' },
-];
+import { EXPENSE_CATEGORY_OPTIONS, PAYMENT_MODE_OPTIONS } from './ExpenseMain';
+import { useRoleCheck } from '../../hooks/useRoleCheck';
 
 export default function ExpenseSingle() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { schoolId } = useAuthData();
+    const { isCorrespondent } = useRoleCheck()
+
+    const canDelete = isCorrespondent
+    const canEdit = isCorrespondent
+
+
 
     // --- State ---
     const [isEditing, setIsEditing] = useState(false);
@@ -78,7 +71,7 @@ export default function ExpenseSingle() {
             formData.append('date', editForm.date);
             formData.append('remarks', editForm.remarks);
 
-            if (editForm.paymentMode === 'Cheque' || editForm.paymentMode === 'Bank Transfer') {
+            if (editForm.paymentMode === 'cheque' || editForm.paymentMode === 'bank_transfer') {
                 formData.append('chequeNumber', editForm.chequeNumber);
                 formData.append('bankName', editForm.bankName);
             }
@@ -156,9 +149,9 @@ export default function ExpenseSingle() {
                 {galleryImages.length > 0 && (
                     <ImageGallery
                         images={galleryImages}
-                        handleDelete={isEditing ? handleGalleryDelete : undefined}
+                        {...(canDelete ? { handleDelete: handleGalleryDelete } : {})}
                         heightClass="h-32 sm:h-40"
-                        widthClass="w-full sm:w-48 md:w-56"
+                        widthClass="w-full sm:w-48 md:w-52"
                     />
                 )}
 
@@ -264,7 +257,7 @@ export default function ExpenseSingle() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                {canEdit && <div className="flex items-center gap-3">
                     {isEditing ? (
                         <>
                             <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
@@ -277,7 +270,7 @@ export default function ExpenseSingle() {
                             Edit Expense
                         </Button>
                     )}
-                </div>
+                </div>}
             </header>
 
             {/* 2. MAIN CONTENT (Two Column Split) */}
@@ -299,11 +292,11 @@ export default function ExpenseSingle() {
                                         <Input label="Date" type="date" value={editForm.date} onChange={(e) => handleFieldChange('date', e.target.value)} />
                                         <div className="flex flex-col gap-1.5">
                                             <Label>Category</Label>
-                                            <SearchSelect options={CATEGORY_OPTIONS} value={editForm.category} onChange={(opt: any) => handleFieldChange('category', opt?.value)} />
+                                            <SearchSelect options={EXPENSE_CATEGORY_OPTIONS} value={editForm.category} onChange={(opt: any) => handleFieldChange('category', opt?.value)} />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
                                             <Label>Payment Mode</Label>
-                                            <SearchSelect options={PAYMENT_MODE_OPTIONS} value={editForm.paymentMode} onChange={(opt: any) => handleFieldChange('paymentMode', opt?.value)} />
+                                            <SearchSelect options={PAYMENT_MODE_OPTIONS as unknown as SelectOption[]} value={editForm.paymentMode} onChange={(opt: any) => handleFieldChange('paymentMode', opt?.value)} />
                                         </div>
                                     </>
                                 ) : (
@@ -322,7 +315,7 @@ export default function ExpenseSingle() {
                                         </div>
                                         <div>
                                             <p className="text-xs text-muted mb-1 font-medium">Payment Mode</p>
-                                            <p className="text-base font-semibold text-foreground">{expense.paymentMode}</p>
+                                            <p className="text-base font-semibold text-foreground">{expense?.paymentMode === "bank_transfer" ? "Bank Transfer" : expense?.paymentMode}</p>
                                         </div>
                                     </>
                                 )}
@@ -336,7 +329,7 @@ export default function ExpenseSingle() {
 
                             <div className="space-y-5">
                                 {/* Bank Details (Conditional) */}
-                                {(isEditing ? (editForm.paymentMode === 'Cheque' || editForm.paymentMode === 'Bank Transfer') : (expense.paymentMode === 'Cheque' || expense.paymentMode === 'Bank Transfer')) && (
+                                {(isEditing ? (editForm.paymentMode === 'cheque' || editForm.paymentMode === 'bank_transfer') : (expense.paymentMode === 'cheque' || expense.paymentMode === 'bank_transfer')) && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 p-4 bg-background/50 rounded-lg border border-border border-dashed">
                                         {isEditing ? (
                                             <>
@@ -347,11 +340,11 @@ export default function ExpenseSingle() {
                                             <>
                                                 <div>
                                                     <p className="text-xs text-muted mb-1 font-medium">Bank Name</p>
-                                                    <p className="text-sm font-semibold text-foreground">{expense.bankName || 'N/A'}</p>
+                                                    <p className="text-sm font-semibold text-foreground">{expense?.chequeDetails?.bankName || 'N/A'}</p>
                                                 </div>
                                                 <div>
                                                     <p className="text-xs text-muted mb-1 font-medium">Reference / Cheque No.</p>
-                                                    <p className="text-sm font-semibold text-foreground">{expense.chequeNumber || 'N/A'}</p>
+                                                    <p className="text-sm font-semibold text-foreground">{expense?.chequeDetails?.chequeNumber || 'N/A'}</p>
                                                 </div>
                                             </>
                                         )}

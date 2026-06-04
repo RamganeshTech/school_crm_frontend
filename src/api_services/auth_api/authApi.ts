@@ -320,6 +320,40 @@ export const useDeleteUser = () => {
 
 
 
+// --- REQUEST FORGOT PASSWORD HOOK ---
+export const useForgotPassword = () => {
+  return useMutation({
+    mutationFn: async ({ email }: { email: string }) => {
+      try {
+        const { data } = await Api.post(`/api/user/forgot-password`, { email });
+        return data;
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage);
+      }
+    }
+  });
+};
+
+// --- EXECUTE RESET PASSWORD HOOK ---
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: async ({ id, token, newPassword, confirmPassword }: any) => {
+      try {
+        const { data } = await Api.post(`/api/user/reset-password/${id}/${token}`, {
+          newPassword,
+          confirmPassword
+        });
+        return data;
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage);
+      }
+    }
+  });
+};
+
+
 export interface AssociatedStudentsResponse {
   ok: boolean;
   message: string;

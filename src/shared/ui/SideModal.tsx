@@ -6,6 +6,7 @@ interface SideModalProps {
   title: string;
   children: React.ReactNode;
   width?: string; // Allows overriding width like 'w-[400px]' or 'max-w-2xl'
+  actions?: React.ReactNode; // 🌟 Added optional actions prop to pass any elements
 }
 
 export const SideModal: React.FC<SideModalProps> = ({
@@ -13,7 +14,8 @@ export const SideModal: React.FC<SideModalProps> = ({
   onClose,
   title,
   children,
-  width = "w-full sm:w-[450px] md:w-[500px]"
+  width = "w-full sm:w-[450px] md:w-[500px]",
+  actions // Destructure here
 }) => {
   // Prevent body scroll when open
   useEffect(() => {
@@ -25,29 +27,40 @@ export const SideModal: React.FC<SideModalProps> = ({
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         onClick={onClose}
-        className={`fixed inset-0 bg-foreground/40 backdrop-blur-sm z-[9990] transition-opacity duration-300 ${
-          isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
-        }`}
+        className={`fixed inset-0 bg-foreground/40 backdrop-blur-sm z-[9990] transition-opacity duration-300 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+          }`}
       />
 
 
       {/* Modal Panel (Sliding from Right) */}
-      <div 
-        className={`fixed top-0 right-0 h-full bg-surface shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out flex flex-col ${width} border-l-2 border-border ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+      <div
+        className={`fixed top-0 right-0 h-full bg-surface shadow-2xl z-[9999] transform transition-transform duration-300 ease-in-out flex flex-col ${width} border-l-2 border-border ${isOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface">
           <h2 className="text-lg font-semibold text-content">{title}</h2>
-          <button 
+
+          {/* <button 
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-full text-content-muted hover:bg-background hover:text-content transition-colors"
           >
             <i className="fa-solid fa-xmark text-lg"></i>
-          </button>
+          </button> */}
+
+          <div className="flex items-center gap-3">
+            {/* 🌟 Custom actions button slot stays elegantly to the left of the close mark */}
+            {actions && <div className="flex items-center">{actions}</div>}
+
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-full text-content-muted hover:bg-background hover:text-content transition-colors cursor-pointer"
+            >
+              <i className="fa-solid fa-xmark text-lg"></i>
+            </button>
+          </div>
         </div>
 
         {/* Content (Scrollable) */}

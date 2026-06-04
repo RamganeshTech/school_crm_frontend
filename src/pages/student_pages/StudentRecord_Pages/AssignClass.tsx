@@ -11,6 +11,8 @@ import { useGetSections } from '../../../api_services/schoolConfig_api/sectionAp
 // Import your mutations (replace with your actual hook names/paths)
 import { useAssignStudentToClass, useRemoveStudentFromClass } from '../../../api_services/student_api/studentRecordApi';
 import { toast } from '../../../shared/ui/ToastContext';
+import { Toggle } from '../../../shared/ui/Toggle';
+import { getAcademicYears } from '../../../utils/utils';
 
 interface AssignClassProps {
     isOpen: boolean;
@@ -18,16 +20,18 @@ interface AssignClassProps {
     record: any;
     schoolId: string;
     refetch: () => void;
+    selectedAcademicYear: string
 }
 
-export default function AssignClass({ isOpen, onClose, record, schoolId, refetch }: AssignClassProps) {
+export default function AssignClass({ isOpen, onClose, record, schoolId, refetch, selectedAcademicYear }: AssignClassProps) {
     const [assignData, setAssignData] = useState({
         classId: '',
         className: '', // <-- Added
         sectionId: '',
         sectionName: '', // <-- Added
-        academicYear: '2025-2026',
-        rollNumber: ''
+        academicYear: selectedAcademicYear,
+        rollNumber: '',
+        isBusApplicable: false // 🌟 Added new state property
     });
 
     // --- Mutations ---
@@ -58,7 +62,8 @@ export default function AssignClass({ isOpen, onClose, record, schoolId, refetch
                 sectionId: record?.sectionId?._id || record?.sectionId || '',
                 sectionName: record?.sectionName || record?.sectionId?.name || '', // <-- Added
                 academicYear: record?.academicYear || null,
-                rollNumber: record?.rollNumber || ''
+                rollNumber: record?.rollNumber || '',
+                isBusApplicable: record?.isBusApplicable || false // 🌟 Sync from database record
             });
         }
     }, [record, isOpen]);
@@ -70,8 +75,8 @@ export default function AssignClass({ isOpen, onClose, record, schoolId, refetch
             await assignClassMutation.mutateAsync({
                 schoolId: schoolId,
                 studentId: typeof record?.studentId === 'object' ? record?.studentId?._id : record?.studentId,
-                studentName: record?.studentName || '',
-                newOld: record?.newOld || 'New',
+                studentName: record?.studentName || record?.studentId?.studentName || '',
+                newOld: record?.newOld || 'new',
                 ...assignData
             });
             onClose();
@@ -104,6 +109,16 @@ export default function AssignClass({ isOpen, onClose, record, schoolId, refetch
         <SideModal isOpen={isOpen} onClose={onClose} title="Assign to Class">
             <form onSubmit={handleAssignSubmit} className="flex flex-col h-full space-y-6">
                 <div className="space-y-4 pr-2">
+
+                    {/* 🌟 PREMIUM INFORMATIONAL CALLOUT BANNER */}
+                    <div className="flex items-start gap-3 p-3.5 bg-primary-soft/40 border border-primary/20 rounded-xl text-sm">
+                        <i className="fas fa-circle-info text-primary mt-0.5 text-base shrink-0"></i>
+                        <div className="text-content-muted leading-relaxed">
+                            <span className="font-bold text-foreground block mb-0.5">Fee Structure Required</span>
+                            Please ensure the fee configuration for the selected class is initialized for this academic year before assigning students.
+                        </div>
+                    </div>
+
                     <SearchSelect
                         label="Select Class *"
                         options={classOptions}
@@ -134,8 +149,37 @@ export default function AssignClass({ isOpen, onClose, record, schoolId, refetch
                         </div>
                     )}
 
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-end">
+                        {/* <Input id="academicYear" label="Academic Year" value={assignData.academicYear} onChange={(e) => setAssignData({ ...assignData, academicYear: e.target.value })} required /> */}
+
+                        <SearchSelect
+                            label="Academic Year *" // Removed label to keep the top bar clean like a search input
+                            options={getAcademicYears()}
+                            value={assignData.academicYear}
+                            onChange={(opt) => setAssignData({ ...assignData, academicYear: String(opt.value) })}
+                            placeholder="Academic Year..."
+
+                        />
+                        {/* Styled Toggle Container matching the Input height */}
+                        <div className="flex items-center px-2 bg-surface border border-border rounded-lg transition-colors hover:bg-mainBg">
+                            <Toggle
+                                checked={assignData.isBusApplicable}
+                                onChange={(checked) => setAssignData({ ...assignData, isBusApplicable: checked })}
+                                label="Bus Transport Required"
+                                // className="border border-border peer-checked:bg-primary"
+                                // thumbClassName="border border-border"
+
+                                className="border border-border bg-sub-header peer-checked:bg-primary"
+
+                                // 2. Thumb: Add a border to make the circle pop against the background
+                                thumbClassName="border border-border"
+                            />
+                        </div>
+                    </div>
+
                     <Input id="rollNumber" label="Roll Number (Optional)" value={assignData.rollNumber} onChange={(e) => setAssignData({ ...assignData, rollNumber: e.target.value })} />
-                    <Input id="academicYear" label="Academic Year *" value={assignData.academicYear} onChange={(e) => setAssignData({ ...assignData, academicYear: e.target.value })} required />
+
                 </div>
 
                 <div className="mt-auto pt-6 flex justify-end gap-3 border-t border-border">

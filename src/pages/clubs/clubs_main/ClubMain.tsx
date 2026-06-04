@@ -13,9 +13,15 @@ import { SideModal } from '../../../shared/ui/SideModal';
 import { Input, Label } from '../../../shared/ui/Input';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { toast } from '../../../shared/ui/ToastContext';
+import { useRoleCheck } from '../../../hooks/useRoleCheck';
 
 export default function ClubMain() {
-    const { schoolId, currentRole } = useAuthData();
+    const { schoolId } = useAuthData();
+
+    
+    const { isCorrespondent, isAdmin } = useRoleCheck()
+
+    const canModify = isAdmin || isCorrespondent
 
     const navigate = useNavigate(); // <--- Added
     // --- State ---
@@ -149,7 +155,6 @@ export default function ClubMain() {
         }
     };
 
-    const isAdmin = ["correspondent", "administrator"].includes(currentRole || '');
 
 
     const isChild = location.pathname.includes("single")
@@ -169,7 +174,7 @@ export default function ClubMain() {
                     </h1>
                     <p className="text-sm text-muted mt-1">Discover and manage extracurricular groups.</p>
                 </div>
-                {isAdmin && (
+                {canModify && (
                     <Button variant="primary" leftIcon="fas fa-plus" onClick={openCreateModal}>
                         Create Club
                     </Button>
@@ -197,7 +202,7 @@ export default function ClubMain() {
                             <ClubCard
                                 key={club._id}
                                 club={club}
-                                isAdmin={isAdmin}
+                                canModify={canModify}
                                 onView={(id) => navigate(`single/${id}`)} // <--- Added Navigation
                                 onEdit={openEditModal}
                                 onDelete={handleDelete}

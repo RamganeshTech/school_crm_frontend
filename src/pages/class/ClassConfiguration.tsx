@@ -1,300 +1,3 @@
-// import React, { useState,  } from 'react';
-// import { useSelector } from 'react-redux';
-// import { type UserRole } from '../../features/store/store';
-// import { ClassData, useCreateClass, useDeleteClass, useGetClasses, useUpdateClass } from '../../api_services/schoolConfig_api/classApi';
-// import { Button } from '../../shared/ui/Button';
-// import { Input, Label } from '../../shared/ui/Input';
-
-// export default function ClassConfiguration() {
-//     // --- Global State ---
-//     const { schoolId } = useSelector((state: RootState) => state.auth);
-
-
-
-//     // --- API Hooks ---
-//     const { data: classes, isLoading, isError } = useGetClasses(schoolId!);
-//     const createClassMutation = useCreateClass();
-//     const updateClassMutation = useUpdateClass();
-//     const deleteClassMutation = useDeleteClass();
-
-//     // --- Local State ---
-//     const [isFormOpen, setIsFormOpen] = useState(false);
-//     const [editingId, setEditingId] = useState<string | null>(null);
-//     const [formData, setFormData] = useState({
-//         name: '',
-//         order: 1,
-//         hasSections: true,
-//     });
-
-//     // --- Handlers ---
-//     const openCreateForm = () => {
-//         setFormData({ name: '', order: (classes?.length || 0) + 1, hasSections: true });
-//         setEditingId(null);
-//         setIsFormOpen(true);
-//     };
-
-//     const openEditForm = (cls: ClassData) => {
-//         setFormData({ name: cls.name, order: cls.order, hasSections: cls.hasSections });
-//         setEditingId(cls._id);
-//         setIsFormOpen(true);
-//     };
-
-//     const closeForm = () => {
-//         setIsFormOpen(false);
-//         setEditingId(null);
-//     };
-
-//     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//         const { id, value, type } = e.target;
-//         setFormData(prev => ({
-//             ...prev,
-//             [id]: type === 'number' ? Number(value) : value
-//         }));
-//     };
-
-//     const toggleHasSections = () => {
-//         setFormData(prev => ({ ...prev, hasSections: !prev.hasSections }));
-//     };
-
-//     const handleSubmit = async (e: React.FormEvent) => {
-//         e.preventDefault();
-
-//         try {
-//             if (editingId) {
-//                 await updateClassMutation.mutateAsync({
-//                     id: editingId,
-//                     data: formData
-//                 });
-//             } else {
-//                 await createClassMutation.mutateAsync({
-//                     schoolId: schoolId!,
-//                     data: formData
-//                 });
-//             }
-//             closeForm();
-//         } catch (error) {
-//             console.error("Failed to save class", error);
-//         }
-//     };
-
-//     const handleDelete = async (id: string, name: string) => {
-//         if (window.confirm(`Are you sure you want to delete class "${name}"?`)) {
-//             try {
-//                 await deleteClassMutation.mutateAsync(id);
-//             } catch (error) {
-//                 console.error("Failed to delete class", error);
-//             }
-//         }
-//     };
-
-//     // --- Render Guards ---
-//     if (isLoading) {
-//         return (
-//             <div className="w-full h-64 flex flex-col items-center justify-center">
-//                 <i className="fas fa-circle-notch fa-spin text-primary text-3xl mb-4"></i>
-//                 <p className="text-muted text-sm font-medium">Loading classes...</p>
-//             </div>
-//         );
-//     }
-
-//     if (isError) {
-//         return (
-//             <div className="w-full p-6 text-center bg-red-50 border border-red-200 rounded-xl">
-//                 <p className="text-danger font-medium">Failed to load classes. Please try again later.</p>
-//             </div>
-//         );
-//     }
-
-//     return (
-//         <div className="w-full max-w-full h-full max-full overflow-y-auto mx-auto p-4 md:p-6 space-y-6">
-
-//             {/* --- Header Section --- */}
-//             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-//                 <div>
-//                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-//                         <i className="fas fa-layer-group text-primary"></i>
-//                         Class Configuration
-//                     </h1>
-//                     <p className="text-sm text-muted mt-1">Manage standard classes and section structures for your school.</p>
-//                 </div>
-
-//                 {!isFormOpen && (
-//                     <Button onClick={openCreateForm} leftIcon="fas fa-plus" variant="primary">
-//                         Add New Class
-//                     </Button>
-//                 )}
-//             </div>
-
-//             {/* --- Form Section (Create / Edit) --- */}
-//             {isFormOpen && (
-//                 <div className="bg-surface border border-border rounded-xl p-6 shadow-sm mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
-//                     <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
-//                         <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-//                             <i className={`fas ${editingId ? 'fa-edit' : 'fa-plus-circle'} text-primary`}></i>
-//                             {editingId ? 'Edit Class' : 'Create New Class'}
-//                         </h2>
-//                         <button onClick={closeForm} className="text-muted hover:text-danger transition-colors">
-//                             <i className="fas fa-times text-lg"></i>
-//                         </button>
-//                     </div>
-
-//                     <form onSubmit={handleSubmit} className="space-y-6">
-//                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//                             <Input
-//                                 id="name"
-//                                 label="Class Name"
-//                                 placeholder="e.g., Grade 1, Kindergarten, Standard X"
-//                                 value={formData.name}
-//                                 onChange={handleInputChange}
-//                                 required
-//                                 disabled={createClassMutation.isPending || updateClassMutation.isPending}
-//                             />
-
-//                             <Input
-//                                 id="order"
-//                                 type="number"
-//                                 label="Display Order"
-//                                 placeholder="1, 2, 3..."
-//                                 value={formData.order}
-//                                 onChange={handleInputChange}
-//                                 required
-//                                 min="1"
-//                                 disabled={createClassMutation.isPending || updateClassMutation.isPending}
-//                             />
-//                         </div>
-
-//                         {/* Custom Styled Toggle for hasSections */}
-//                         <div className="flex flex-col gap-1.5">
-//                             <Label>Section Configuration</Label>
-//                             <button
-//                                 type="button"
-//                                 onClick={toggleHasSections}
-//                                 className={`flex items-center gap-3 p-3 border rounded-lg transition-all text-left ${formData.hasSections ? 'border-primary bg-primary-soft/50' : 'border-border bg-background hover:bg-surface'}`}
-//                             >
-//                                 <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.hasSections ? 'bg-primary' : 'bg-muted'}`}>
-//                                     <span className={`inline-block h-4 w-4 transform rounded-full bg-surface transition-transform ${formData.hasSections ? 'translate-x-6' : 'translate-x-1'}`} />
-//                                 </div>
-//                                 <div>
-//                                     <p className="text-sm font-medium text-foreground">
-//                                         {formData.hasSections ? 'Sections Enabled' : 'No Sections'}
-//                                     </p>
-//                                     <p className="text-xs text-muted">
-//                                         {formData.hasSections ? 'This class will be divided into sections (e.g., A, B, C).' : 'This class will act as a single unit without sub-sections.'}
-//                                     </p>
-//                                 </div>
-//                             </button>
-//                         </div>
-
-//                         <div className="flex justify-end gap-3 pt-4 border-t border-border">
-//                             <Button 
-//                                 type="button" 
-//                                 variant="ghost" 
-//                                 onClick={closeForm}
-//                                 disabled={createClassMutation.isPending || updateClassMutation.isPending}
-//                             >
-//                                 Cancel
-//                             </Button>
-//                             <Button 
-//                                 type="submit" 
-//                                 variant="primary"
-//                                 isLoading={createClassMutation.isPending || updateClassMutation.isPending}
-//                             >
-//                                 {editingId ? 'Update Class' : 'Save Class'}
-//                             </Button>
-//                         </div>
-//                     </form>
-//                 </div>
-//             )}
-
-//             {/* --- Data List Section --- */}
-//             <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
-//                 {classes && classes.length > 0 ? (
-//                     <div className="overflow-x-auto">
-//                         <table className="w-full text-left border-collapse">
-//                             <thead>
-//                                 <tr className="bg-background border-b border-border">
-//                                     <th className="py-4 px-6 text-xs font-semibold text-muted uppercase tracking-wider w-20 text-center">Order</th>
-//                                     <th className="py-4 px-6 text-xs font-semibold text-muted uppercase tracking-wider">Class Name</th>
-//                                     <th className="py-4 px-6 text-xs font-semibold text-muted uppercase tracking-wider">Structure</th>
-//                                     <th className="py-4 px-6 text-xs font-semibold text-muted uppercase tracking-wider text-right">Actions</th>
-//                                 </tr>
-//                             </thead>
-//                             <tbody className="divide-y divide-border">
-//                                 {/* Sort by order before mapping */}
-//                                 {[...classes].sort((a, b) => a.order - b.order).map((cls) => (
-//                                     <tr key={cls._id} className="hover:bg-primary-soft/20 transition-colors group">
-//                                         <td className="py-4 px-6 text-center">
-//                                             <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-background border border-border text-sm font-medium text-muted group-hover:text-primary group-hover:border-primary transition-colors">
-//                                                 {cls.order}
-//                                             </span>
-//                                         </td>
-//                                         <td className="py-4 px-6">
-//                                             <p className="font-semibold text-foreground">{cls.name}</p>
-//                                         </td>
-//                                         <td className="py-4 px-6">
-//                                             {cls.hasSections ? (
-//                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-primary-soft text-primary border border-primary/20">
-//                                                     <i className="fas fa-sitemap text-[10px]"></i>
-//                                                     Has Sections
-//                                                 </span>
-//                                             ) : (
-//                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-surface text-muted border border-border">
-//                                                     <i className="fas fa-minus text-[10px]"></i>
-//                                                     Single Unit
-//                                                 </span>
-//                                             )}
-//                                         </td>
-//                                         <td className="py-4 px-6 text-right">
-//                                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-//                                                 <Button 
-//                                                     variant="ghost" 
-//                                                     size="icon" 
-//                                                     onClick={() => openEditForm(cls)}
-//                                                     title="Edit Class"
-//                                                 >
-//                                                     <i className="fas fa-edit"></i>
-//                                                 </Button>
-//                                                 <Button 
-//                                                     variant="ghost" 
-//                                                     size="icon" 
-//                                                     className="hover:text-danger hover:bg-danger/10"
-//                                                     onClick={() => handleDelete(cls._id, cls.name)}
-//                                                     isLoading={deleteClassMutation.isPending}
-//                                                     title="Delete Class"
-//                                                 >
-//                                                     <i className="fas fa-trash"></i>
-//                                                 </Button>
-//                                             </div>
-//                                         </td>
-//                                     </tr>
-//                                 ))}
-//                             </tbody>
-//                         </table>
-//                     </div>
-//                 ) : (
-//                     /* Empty State */
-//                     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-//                         <div className="w-16 h-16 rounded-full bg-surface border border-border flex items-center justify-center mb-4 text-muted text-2xl shadow-sm">
-//                             <i className="fas fa-folder-open"></i>
-//                         </div>
-//                         <h3 className="text-lg font-medium text-foreground mb-2">No Classes Configured</h3>
-//                         <p className="text-muted text-sm max-w-md mb-6">
-//                             You haven't added any classes to this school yet. Set up your academic structure by adding your first class.
-//                         </p>
-//                         <Button onClick={openCreateForm} variant="primary" leftIcon="fas fa-plus">
-//                             Add First Class
-//                         </Button>
-//                     </div>
-//                 )}
-//             </div>
-//         </div>
-//     );
-// }
-
-
-
-
-
 
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -313,10 +16,12 @@ import { Input, Label } from '../../shared/ui/Input';
 import { SideModal } from '../../shared/ui/SideModal';
 import { TableContainer, THead, Th, TBody, Tr, Td } from '../../shared/ui/TableLayout';
 import type { RootState } from '../../features/store/store';
+import { useRoleCheck } from '../../hooks/useRoleCheck';
 
 export default function ClassConfiguration() {
     // --- Global State ---
     const { schoolId } = useSelector((state: RootState) => state.auth);
+    const { isAccountant, isTeacher, isParent, isPrincipal, isVicePrincipal } = useRoleCheck()
 
     // --- API Hooks ---
     const { data: classes, isLoading, isError, refetch } = useGetClasses(schoolId!);
@@ -406,6 +111,9 @@ export default function ClassConfiguration() {
         }
     };
 
+
+    const canModify = !isAccountant && !isTeacher && !isParent && !isPrincipal && !isVicePrincipal
+
     // --- Render Guards ---
     if (isLoading) {
         return (
@@ -448,9 +156,9 @@ export default function ClassConfiguration() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         wrapperClassName="w-full sm:w-64" // Keeps the input at a nice width
                     />
-                    <Button onClick={openCreateForm} leftIcon="fas fa-plus" variant="primary" className="w-full sm:w-auto whitespace-nowrap shrink-0">
+                    {canModify && <Button onClick={openCreateForm} leftIcon="fas fa-plus" variant="primary" className="w-full sm:w-auto whitespace-nowrap shrink-0">
                         Add New Class
-                    </Button>
+                    </Button>}
                 </div>
 
             </header>
@@ -465,7 +173,7 @@ export default function ClassConfiguration() {
                             <Th className="w-20 text-center">S.No</Th>
                             <Th>Class Name</Th>
                             <Th>Structure</Th>
-                            <Th className="text-right">Actions</Th>
+                            {canModify && <Th className="text-right">Actions</Th>}
                         </tr>
                     </THead>
                     <TBody>
@@ -492,7 +200,7 @@ export default function ClassConfiguration() {
                                         </span>
                                     )}
                                 </Td>
-                                <Td className="text-right">
+                                {canModify && <Td className="text-right">
                                     {/* 🛑 Removed opacity classes so buttons are always visible */}
                                     <div className="flex items-center justify-end gap-2">
                                         <Button
@@ -514,7 +222,7 @@ export default function ClassConfiguration() {
                                             <i className="fas fa-trash"></i>
                                         </Button>
                                     </div>
-                                </Td>
+                                </Td>}
                             </Tr>
                         ))}
                     </TBody>
@@ -581,7 +289,7 @@ export default function ClassConfiguration() {
                                         {formData.hasSections ? 'Sections Enabled' : 'No Sections'}
                                     </p>
                                     <p className="text-xs text-muted mt-0.5 leading-relaxed">
-                                        {formData.hasSections ? 'This class will be divided into multiple sections (e.g., A, B, C).' : 'This class will act as a single unit without sub-sections.'}
+                                        {formData.hasSections ? 'This class will having multiple sections in future (A, B, C, D)' : 'This class wont have any sectiions.'}
                                     </p>
                                 </div>
                             </button>

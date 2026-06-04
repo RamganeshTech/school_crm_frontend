@@ -3,6 +3,12 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 // Define the roles available in your multi-tenant system
 export type UserRole = "correspondent" | "principal" | "teacher" | "parent" | "administrator" | "accountant" | "viceprincipal" | null;
 
+interface TeacherAssignment {
+  classId: string | null,
+  sectionId: string | null,
+  _id?: string | null
+}
+
 interface AuthState {
   _id: string | null;
   userName: string | null; // Renamed for clarity
@@ -12,7 +18,7 @@ interface AuthState {
   isAuthenticated: boolean;
   academicYear: string | null,
   studentId: string[]
-  assignments: string[],
+  assignments: TeacherAssignment[],
   isPlatformAdmin: boolean
   schoolName: string | null
 }
@@ -45,7 +51,7 @@ const authSlice = createSlice({
         token: string,
         academicYear: string | null;
         studentId: string[]
-        assignments: string[],
+        assignments: TeacherAssignment[],
         isPlatformAdmin: boolean
         schoolName: string | null
       }>
