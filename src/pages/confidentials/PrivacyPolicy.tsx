@@ -198,7 +198,7 @@ const PrivacyPolicy: React.FC = () => {
             </main>
 
             <footer className={style.footer}>
-                &copy; {new Date().getFullYear()} {appNameDOMAIN_NAME Management System. All rights reserved.
+                &copy; {new Date().getFullYear()} {DOMAIN_NAME} Management System. All rights reserved.
             </footer>
         </div>
     );
