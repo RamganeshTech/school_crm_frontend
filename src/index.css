@@ -139,6 +139,23 @@ html {
   display: none;
 }
 
+
+/* Force show custom scrollbar ONLY for specific containers */
+.show-scrollbar::-webkit-scrollbar {
+  display: block !important;
+  width: 5px;
+}
+.show-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.show-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* soft light gray */
+  border-radius: 10px;
+}
+.show-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 /* ADD THIS BLOCK */
 
 @font-face {

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useAuthData } from './useAuthData'; // Adjust path
 import { principalMenu, accountantMenu, teacherMenu, getParentMenu, getParentInitialMenu, vicePrincipalMenu } from '../constants/constants';
 import { useCurrentStudent } from './useCurrentStudent';
+import { useGetSchoolById } from '../api_services/schoolConfig_api/schoolapi';
 // Import your menus (Adjust paths as needed)
 // import {  } from '../constants/menus'; 
 
@@ -47,7 +48,19 @@ export const useAuthorizedMenu = () => {
     // 1. Pull the necessary context automatically
     const { currentRole, schoolId } = useAuthData();
 
-    const { studentId: activeStudentId } = useCurrentStudent();
+    const { data } = useGetSchoolById(schoolId!)
+    const academicYear = data?.currentAcademicYear
+
+
+    console.log("academicYear in auth menu", academicYear)
+    // const { studentId: activeStudentId } = useCurrentStudent();
+    const {
+        studentId: activeStudentId,
+        classId,
+        sectionId
+    } = useCurrentStudent();
+
+    
 
 
     // 2. Wrap the logic in useMemo so it only recalculates when role/id changes
@@ -58,7 +71,12 @@ export const useAuthorizedMenu = () => {
         if (currentRole === 'parent') {
             // Check if activeStudentId exists. If yes, full menu. If not, initial menu.
             return activeStudentId
-                ? getParentMenu(activeStudentId)
+                ? getParentMenu({
+                    studentId: activeStudentId,
+                    classId: classId,
+                    sectionId: sectionId,
+                    academicYear: academicYear
+                })
                 : getParentInitialMenu();
         }
 
@@ -69,7 +87,7 @@ export const useAuthorizedMenu = () => {
         // --- 2. Base list for powerful roles ---
 
         let menu = [...principalMenu];
-        
+
         if (currentRole === "viceprincipal") {
             let VPMenu = vicePrincipalMenu;
             menu = VPMenu

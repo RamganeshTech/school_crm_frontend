@@ -203,10 +203,21 @@ export const getParentInitialMenu = (): MenuItem[] => [
 // };
 
 
+interface ParentMenuParams {
+    studentId: string | null;
+    classId?: string | null;
+    sectionId?: string | null;
+    academicYear?: string | null;
+}
 
-export const getParentMenu = (studentId: string | null): MenuItem[] => {
+export const getParentMenu = ({ studentId, classId, sectionId, academicYear }: ParentMenuParams): MenuItem[] => {
     // Base path. If studentId exists, append it as a query parameter.
     const queryStr = studentId ? `?studentId=${studentId}` : '';
+
+    // 🌟 Specific query string just for the Mark Report route
+    const markReportQuery = studentId 
+        ? `?classId=${classId || ''}&sectionId=${sectionId || ''}&academicYear=${academicYear || ''}` 
+        : '';
 
     return [
         { name: 'Profile Selection', path: "/dashboard/profile-selection", icon: 'fas fa-user-group' },
@@ -215,7 +226,7 @@ export const getParentMenu = (studentId: string | null): MenuItem[] => {
         { name: 'Student Profile', path: `/dashboard/student/record-profile/${studentId}`, icon: 'fas fa-user-group' },
         { name: 'Student Main', path: `/dashboard/student/main-profile/${studentId}`, icon: 'fas fa-user-group' },
         { name: 'Attedance', path: `/dashboard/student/attendace/${studentId}`, icon: 'fas fa-clipboard' },
-        { name: 'Mark report', path: `/dashboard/student/markreport/${studentId}`, icon: 'fas fa-file-invoice' },
+        { name: 'Mark report', path: `/dashboard/student/markreport/${studentId}${markReportQuery}`, icon: 'fas fa-file-invoice' },
         { name: 'Annoucement', path: "/dashboard/student/announcement", icon: 'fas fa-bullhorn' },
         { name: 'Clubs', path: "/dashboard/student/club", icon: 'fas fa-layer-group' },
     ];

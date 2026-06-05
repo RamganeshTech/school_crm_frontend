@@ -2,8 +2,12 @@
 
 //  THIRD VERSION
 
-import { useState, type ElementType } from 'react';
+import { useEffect, useState, type ElementType } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { useAuthData } from '../../hooks/useAuthData';
+import { useGetAllSchools } from '../../api_services/schoolConfig_api/schoolapi';
+import { useDispatch } from 'react-redux';
+import { setSchool } from '../../features/slices/authSlice';
 
 export interface SubMenuItem {
     name: string;
@@ -27,12 +31,26 @@ interface SidebarProps {
 export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }: SidebarProps) {
     const location = useLocation();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const [isHovered, setIsHovered] = useState(false);
     const [isManuallyExpanded, setIsManuallyExpanded] = useState(false);
     const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
 
+    const { isPlatformAdmin } = useAuthData();
+    const { data: schools, isLoading: isSchoolsLoading } = useGetAllSchools();
+
     const isExpanded = isManuallyExpanded || isHovered;
+
+    const [isSchoolDropdownOpen, setIsSchoolDropdownOpen] = useState(false);
+
+    // 🌟 3. Auto-close the school dropdown if the sidebar shrinks
+    useEffect(() => {
+        if (!isExpanded) {
+            setIsSchoolDropdownOpen(false);
+        }
+    }, [isExpanded]);
+
 
     // useEffect(() => {
     //     if (!isExpanded) {
@@ -40,14 +58,25 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
     //     }
     // }, [isExpanded]);
 
-   const handleMouseEnter = () => {
+
+    // 🌟 2. Handle the school selection
+    const handleSchoolChange = ({selectedSchoolId, selectedSchoolName }: {selectedSchoolId:string, selectedSchoolName:string }) => {
+        // Dispatch the ID into your authSlice exactly as you structured it
+        dispatch(setSchool({ schoolId: selectedSchoolId , schoolName:selectedSchoolName}));
+
+        // Close the dropdown and navigate to the dashboard root
+        setIsSchoolDropdownOpen(false);
+        navigate('/dashboard');
+    };
+
+    const handleMouseEnter = () => {
         setIsHovered(true);
     };
 
     const handleMouseLeave = () => {
         // ✅ Batching: Both states update at once, triggering only ONE render.
         setIsHovered(false);
-        setOpenSubMenus({}); 
+        setOpenSubMenus({});
     };
 
 
@@ -75,9 +104,8 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
             className={`h-full bg-surface border-r border-border transition-all duration-300 ease-in-out flex flex-col shadow-sm shrink-0
         ${isExpanded ? 'w-36 md:w-64' : 'w-10 md:w-20'}`}
         >
-            {/* --- HEADER --- */}
-            <div className="h-14 flex items-center px-5 border-b border-border border-opacity-50 shrink-0">
-                <Link to={schoolPath} className="flex outline-none items-center gap-4 overflow-hidden w-full">
+            <div className="h-14 flex items-center px-3 border-b border-border border-opacity-50 shrink-0">
+                {/* <Link to={schoolPath} className="flex outline-none items-center gap-4 overflow-hidden w-full">
                     <div className="w-7 h-7 md:w-10 md:h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
                         <span className="text-inverse  font-bold text-md md:text-lg">
                             {schoolName.charAt(0)}
@@ -87,7 +115,86 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
             ${isExpanded ? 'opacity-100 max-w-[150px]' : 'opacity-0 max-w-0'}`}>
                         {schoolName}
                     </span>
-                </Link>
+                </Link> */}
+
+
+                {isPlatformAdmin ? (
+                    <div className="w-full relative">
+                        <button
+                            onClick={() => setIsSchoolDropdownOpen(!isSchoolDropdownOpen)}
+                            className="flex outline-none items-center justify-between w-full hover:bg-mainBg p-1 md:p-2 rounded-xl transition-colors cursor-pointer"
+                        >
+                            <div className="flex items-center gap-4 overflow-hidden">
+                                <div className="w-7 h-7 md:w-10 md:h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20 overflow-hidden">
+                                    <span className="text-inverse font-bold text-md md:text-lg">
+                                        {schoolName.charAt(0)}
+                                    </span>
+                                </div>
+                                <span className={`font-poppins font-semibold text-foreground text-[12px] md:text-lg truncate transition-all duration-300 overflow-hidden text-left
+                                    ${isExpanded ? 'opacity-100 max-w-[120px]' : 'opacity-0 max-w-0'}`}>
+                                    {schoolName}
+                                </span>
+                            </div>
+
+                            {isExpanded && (
+                                <i className={`fas fa-chevron-down text-xs text-muted transition-transform duration-300 ${isSchoolDropdownOpen ? 'rotate-180' : ''}`}></i>
+                            )}
+                        </button>
+
+                        {isSchoolDropdownOpen && (
+                            <div className="absolute top-[110%] left-0 w-48 md:w-full max-h-64 overflow-y-auto 
+                            bg-surface border border-border shadow-lg rounded-xl z-50 flex flex-col p-2 gap-1 animate-fade-in show-scrollbar">
+                                <span className="text-[10px] font-bold text-muted uppercase tracking-wider px-3 pt-1 pb-2">
+                                    Switch School
+                                </span>
+
+                                {isSchoolsLoading ? (
+                                    <div className="px-3 py-4 text-center">
+                                        <i className="fas fa-circle-notch fa-spin text-primary opacity-50 text-sm"></i>
+                                    </div>
+                                ) : (
+                                    schools?.map((school: any) => (
+                                        <button
+                                            key={school._id}
+                                            onClick={() => handleSchoolChange({selectedSchoolId:school._id, selectedSchoolName:school.name})}
+                                            className="flex cursor-pointer items-center gap-3 w-full text-left px-2 py-2 text-sm font-medium text-foreground hover:bg-primary/10 hover:text-primary rounded-lg transition-colors group"
+                                        >
+                                            {school.logo?.url ? (
+                                                <img
+                                                    src={school.logo.url}
+                                                    alt={school.name}
+                                                    className="w-6 h-6 rounded-md object-cover shrink-0 border border-border group-hover:border-primary/30"
+                                                />
+                                            ) : (
+                                                <div className="w-6 h-6 rounded-md bg-mainBg text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-border group-hover:border-primary/30">
+                                                    {school.name.charAt(0)}
+                                                </div>
+                                            )}
+
+                                            <span className="truncate">{school.name}</span>
+                                        </button>
+                                    ))
+                                )}
+
+                            </div>
+                        )}
+                    </div>
+
+                ) : (
+
+                    <Link to={schoolPath} className="flex outline-none items-center gap-4 overflow-hidden w-full p-1 md:p-2">
+                        <div className="w-7 h-7 md:w-10 md:h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
+                            <span className="text-inverse font-bold text-md md:text-lg">
+                                {schoolName.charAt(0)}
+                            </span>
+                        </div>
+                        <span className={`font-poppins font-semibold text-foreground text-[12px] md:text-lg truncate transition-all duration-300 overflow-hidden
+                            ${isExpanded ? 'opacity-100 max-w-[150px]' : 'opacity-0 max-w-0'}`}>
+                            {schoolName}
+                        </span>
+                    </Link>
+
+                )}
             </div>
 
             {/* --- MAIN NAVIGATION --- */}
@@ -165,7 +272,7 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
 
                 <button
                     onClick={toggleSidebar} // 🛑 Using the new fixed toggle function here
-                    className="flex items-center justify-center p-1.5 md:p-3 rounded-xl text-muted hover:bg-primary-soft hover:text-primary transition-colors shrink-0"
+                    className="flex cursor-pointer items-center justify-center p-1.5 md:p-3 rounded-xl text-muted hover:bg-primary-soft hover:text-primary transition-colors shrink-0"
                     title="Toggle Sidebar"
                 >
                     <i className={`text-md md:text-xl w-3 md:w-6 text-center transition-transform duration-300 ${isManuallyExpanded ? 'fas fa-angle-double-left' : 'fas fa-angle-double-right'}`}></i>
@@ -173,7 +280,7 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
 
                 <button
                     onClick={onLogout}
-                    className={`flex items-center justify-center gap-2 md:gap-1 p-1.5 md:p-3 rounded-xl text-danger hover:bg-danger/10 transition-colors group ${isExpanded ? 'flex-1' : 'w-full'}`}
+                    className={`flex cursor-pointer items-center justify-center gap-2 md:gap-1 p-1.5 md:p-3 rounded-xl text-danger hover:bg-danger/10 transition-colors group ${isExpanded ? 'flex-1' : 'w-full'}`}
                     title="Logout"
                 >
                     <i className="fas fa-sign-out-alt text-xl shrink-0 w-3 md:w-6 text-center group-hover:text-danger"></i>

@@ -3,22 +3,25 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import type { RootState } from '../../../features/store/store';
 import { useGetParentStudents } from '../../../api_services/auth_api/authApi';
 import { useGetStudentById } from '../../../api_services/student_api/studentMainApi';
-import { clearCurrentstudent, setStudentId } from '../../../features/slices/activeStudentSlice';
+import { clearCurrentstudent, setClassId, setSectionId, setStudentId } from '../../../features/slices/activeStudentSlice';
 import { useEffect } from 'react';
 
 export default function ParentProfileSelection() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const { userName:parentName, _id } = useSelector((state: RootState) => state.auth);
+    const { userName: parentName, _id } = useSelector((state: RootState) => state.auth);
 
     // Dynamic Fetch: Pull student array directly from specialized
     const { data: studentIds, isLoading: isListLoading, isError } = useGetParentStudents({ userId: _id! });
 
-    const handleProfileSelect = (studentId: string) => {
-        dispatch(setStudentId(studentId));
+    const handleProfileSelect = (student: any) => {
+        console.log("studentId", student._id, student.currentClassId, student.currentSectionId)
+        dispatch(setStudentId(student._id));
+        dispatch(setClassId(student.currentClassId?._id || student?.currentClassId || null));
+        dispatch(setSectionId(student.currentSectionId?._id || student?.currentSectionId || null));
 
-        navigate(`/dashboard/student/record-profile/${studentId}`);
+        navigate(`/dashboard/student/record-profile/${student._id}`);
     };
 
 
@@ -86,7 +89,7 @@ export default function ParentProfileSelection() {
 // ==========================================================
 interface CardProps {
     studentId: string;
-    onSelect: (id: string) => void;
+    onSelect: (student: any) => void;
 }
 
 function StudentProfileCard({ studentId, onSelect }: CardProps) {
@@ -119,7 +122,7 @@ function StudentProfileCard({ studentId, onSelect }: CardProps) {
 
     return (
         <button
-            onClick={() => onSelect(studentId)}
+            onClick={() => onSelect(student)}
             className="group flex flex-col items-center space-y-4 cursor-pointer focus:outline-none w-full max-w-[18rem]"
         >
             {/* The Avatar Container (Flat Layout - Simple Pointer Interactivity) */}

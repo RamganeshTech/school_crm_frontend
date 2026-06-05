@@ -67,6 +67,10 @@ const authSlice = createSlice({
       state.isPlatformAdmin = action.payload.isPlatformAdmin;
       state.schoolName = action.payload.schoolName;
     },
+    setSchool: (state, action)=>{
+      state.schoolId = action.payload.schoolId
+      state.schoolName = action.payload.schoolName
+    },
     logout: (_state) => {
       // Direct reset to initial state
       return initialState;
@@ -74,5 +78,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, logout, setSchool } = authSlice.actions;
 export default authSlice.reducer;
