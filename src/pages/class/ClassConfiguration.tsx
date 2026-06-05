@@ -24,7 +24,7 @@ export default function ClassConfiguration() {
     const { isAccountant, isTeacher, isParent, isPrincipal, isVicePrincipal } = useRoleCheck()
 
     // --- API Hooks ---
-    const { data: classes, isLoading, isError, refetch } = useGetClasses(schoolId!);
+    const { data: classes, isLoading, isError } = useGetClasses(schoolId!);
     const createClassMutation = useCreateClass();
     const updateClassMutation = useUpdateClass();
     const deleteClassMutation = useDeleteClass();
@@ -92,7 +92,7 @@ export default function ClassConfiguration() {
                     data: formData
                 });
             }
-            refetch()
+            // refetch()
             closeForm();
         } catch (error) {
             console.error("Failed to save class", error);
@@ -103,7 +103,7 @@ export default function ClassConfiguration() {
         if (window.confirm(`Are you sure you want to delete class "${name}"?`)) {
             try {
                 await deleteClassMutation.mutateAsync(id);
-                refetch()
+                // refetch()
 
             } catch (error) {
                 console.error("Failed to delete class", error);
