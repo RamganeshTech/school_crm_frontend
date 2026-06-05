@@ -25,6 +25,9 @@ import { type UserRole } from "../features/slices/authSlice";
 //     FINANCE_PAYROLL: '/dashboard/finance/payroll',
 // };
 
+
+export const DOMAIN_NAME = "Daily Grades"
+
 export const NO_IMAGE = noimg
 
 

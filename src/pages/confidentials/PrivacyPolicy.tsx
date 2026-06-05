@@ -2,11 +2,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import style from './PrivacyPolicy.module.css';
+import { DOMAIN_NAME } from '../../constants/constants';
 
 const PrivacyPolicy: React.FC = () => {
     const navigate = useNavigate();
     // const domain = import.meta.env.VITE_APP_BASE_API;
-    const appName = "BMB School App";
     // const companyName = "Build My Business";
     const supportEmail = "ramstechcircle@gmail.com";
 
@@ -16,7 +16,7 @@ const PrivacyPolicy: React.FC = () => {
             <nav className={style.navbar}>
                 <div className={style.logoArea}>
                     {/* <div className={style.logoCircle}>B</div> */}
-                    <span className={style.appName}>{appName}</span>
+                    <span className={style.appName}>{DOMAIN_NAME}</span>
                 </div>
                 <button className={style.backLink} onClick={() => navigate(-1)}>
                     Back to Home
@@ -30,7 +30,7 @@ const PrivacyPolicy: React.FC = () => {
                 <section className={style.section}>
                     <h2 className={style.sectionTitle}>1. Introduction</h2>
                     <p>
-                        Welcome to <strong>{appName}</strong> ("we," "our," or "us"). We provide a school management platform that allows multiple educational institutions to manage student data, teacher records, academic years, and school-wide communications.
+                        Welcome to <strong>{DOMAIN_NAME}</strong> ("we," "our," or "us"). We provide a school management platform that allows multiple educational institutions to manage student data, teacher records, academic years, and school-wide communications.
                     </p>
                     <p className="mt-4">
                         This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and website. By using our service, you agree to the terms of this policy.
@@ -123,7 +123,7 @@ const PrivacyPolicy: React.FC = () => {
                 {/* New Section 10: Account & Data Deletion */}
                 <section className={style.section}>
                     <h2 className={style.sectionTitle}>10. Account & Data Deletion</h2>
-                    <p>Users have the right to request deletion of their account and associated personal data from the <strong>{appName}</strong> platform.</p>
+                    <p>Users have the right to request deletion of their account and associated personal data from the <strong>{DOMAIN_NAME}</strong> platform.</p>
                     <p>Account deletion requests are reviewed and processed by an correspondent to prevent unauthorized or accidental deletion.</p>
                     <p>To request account deletion, users must send an email from their registered email address to:</p>
                     <p className={style.emailHighlight}>{supportEmail}</p>
@@ -178,13 +178,13 @@ const PrivacyPolicy: React.FC = () => {
                         <div style={{ display: 'flex', marginTop: '0.2rem', alignItems: 'center' }}>
                             <strong style={{ width: '80px', flexShrink: 0 }}>Website:</strong>
                             <a
-                                href="https://www.bmbproducts.com"
+                                href="https://www.dailygrades.com"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={style.emailHighlight}
                                 style={{ textDecoration: 'underline', flex: 1 }}
                             >
-                                https://www.bmbproducts.com
+                                https://www.dailygrades.com
                             </a>
                         </div>
                     </div>
@@ -198,7 +198,7 @@ const PrivacyPolicy: React.FC = () => {
             </main>
 
             <footer className={style.footer}>
-                &copy; {new Date().getFullYear()} {appName} Management System. All rights reserved.
+                &copy; {new Date().getFullYear()} {appNameDOMAIN_NAME Management System. All rights reserved.
             </footer>
         </div>
     );

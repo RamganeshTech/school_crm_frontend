@@ -1,10 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import style from './AccountDeletion.module.css';
+// import style from './AccountDeletion.module.css';
+import style from "./accountDeletion.module.css"
 
 const AccountDeletion: React.FC = () => {
     const navigate = useNavigate();
-    const appName = "BMB School App";
+    const appName = "Daily Grades App";
     const supportEmail = "ramstechcircle@gmail.com";
 
     return (
