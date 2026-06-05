@@ -31,9 +31,6 @@ export const DOMAIN_NAME = "Daily Grades"
 export const NO_IMAGE = noimg
 
 
-export const COMPANY = {
-    name: "Bukld My School"
-}
 export type ValidUserRole = Exclude<UserRole, null>;
 
 export const AUTH_CHECK_ROLES: ValidUserRole[] = [

@@ -4,7 +4,7 @@ import { useForgotPassword } from '../../api_services/auth_api/authApi'; // Adju
 import { Button } from '../../shared/ui/Button'; // Adjust path
 import { Input } from '../../shared/ui/Input'; // Adjust path
 import { toast } from '../../shared/ui/ToastContext'; // Adjust path
-import { COMPANY } from '../../constants/constants';
+import { DOMAIN_NAME } from '../../constants/constants';
 
 export default function ForgotPasswordMain() {
     const navigate = useNavigate();
@@ -44,8 +44,8 @@ export default function ForgotPasswordMain() {
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
                         <i className="fas fa-school text-xl"></i>
                     </div>
-                    <h1 className="text-xl font-black text-foreground tracking-wide uppercase">
-                        {COMPANY.name}
+                    <h1 className="text-xl font-bold text-foreground tracking-wide uppercase">
+                        {DOMAIN_NAME}
                     </h1>
                 </div>
 

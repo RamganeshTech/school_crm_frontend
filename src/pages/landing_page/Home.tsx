@@ -13,7 +13,7 @@
 
 // SECOND VERSION
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
 import { Button } from '../../shared/ui/Button';
 import { useAuthData } from '../../hooks/useAuthData';
@@ -87,20 +87,21 @@ const Home = () => {
         transition={{ duration: 0.5 }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md border-b border-slate-200/50 shadow-sm py-4' : 'bg-transparent py-6'}`}
       >
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className="w-10 h-10 bg-[var(--brand)] rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between">
+          <div className="flex items-center gap-1 sm:gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <div className="w-10 h-10 bg-[var(--brand)] rounded-xl flex items-center justify-center
+             shadow-lg group-hover:scale-105 transition-transform duration-300">
               <i className="fa-solid fa-graduation-cap text-xl text-white"></i>
             </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900">
+            <span className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
               {DOMAIN_NAME}
             </span>
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-600">
-            <a href="#ecosystem" className="hover:text-[var(--brand)] transition-colors">Ecosystem</a>
+            {/* <a href="#ecosystem" className="hover:text-[var(--brand)] transition-colors">Ecosystem</a> */}
             <a href="#features" className="hover:text-[var(--brand)] transition-colors">Features</a>
-            <a href="#roles" className="hover:text-[var(--brand)] transition-colors">For Roles</a>
+            <a href="#roles" className="hover:text-[var(--brand)] transition-colors">Roles</a>
           </div>
 
           <div className="flex items-center gap-4">
@@ -109,7 +110,7 @@ const Home = () => {
                 Sign In
               </button>
             )}
-            <Button onClick={handleGetStarted} className="bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white shadow-lg shadow-sky-500/30 border-none rounded-lg px-6 py-2 transition-all">
+            <Button onClick={handleGetStarted} className="bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white shadow-lg shadow-sky-500/30 border-none rounded-lg px-3 sm:px-6 py-2 transition-all">
               {userId ? 'Dashboard' : 'Get Started'}
             </Button>
           </div>
@@ -117,7 +118,7 @@ const Home = () => {
       </motion.nav>
 
       {/* --- HERO SECTION --- */}
-      <section className="relative pt-16 pb-16 lg:pt-16 overflow-hidden bg-white border-b border-slate-100">
+      <section className="relative pt-32 pb-16 lg:pt-16 overflow-hidden bg-white border-b border-slate-100">
 
         {/* Soft Background Glows */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-100 rounded-full blur-[120px] pointer-events-none opacity-60 translate-x-1/3 -translate-y-1/4"></div>
@@ -130,22 +131,22 @@ const Home = () => {
             initial="hidden" animate="visible" variants={staggerContainer}
             className="w-full lg:w-1/2 flex flex-col items-start text-left z-20"
           >
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--brand-soft)] text-[var(--brand)] text-xs font-bold tracking-wider uppercase border border-sky-100 mb-8 shadow-sm">
+            {/* <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--brand-soft)] text-[var(--brand)] text-xs font-bold tracking-wider uppercase border border-sky-100 mb-8 shadow-sm">
               <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse"></span>
               The Complete Learning OS
-            </motion.div>
+            </motion.div> */}
 
-            <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-slate-900 leading-[1.15] tracking-tight mb-6">
+            <motion.h1 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-bold text-slate-900 leading-[1.15] tracking-tight mb-6">
               Empower Learning. <br />
               <span className="text-[var(--brand)]">Simplify Operations.</span>
             </motion.h1>
 
-            <motion.p variants={fadeUp} className="text-lg text-slate-600 mb-10 max-w-lg leading-relaxed font-medium">
+            <motion.p variants={fadeUp} className="text-sm sm:text-lg text-slate-600 mb-10 max-w-lg leading-relaxed font-medium">
               {DOMAIN_NAME} connects educators, students, accountants, and leadership into one beautifully organized, lightning-fast digital campus.
             </motion.p>
 
             <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <Button onClick={handleGetStarted} size="lg" className="w-full sm:w-auto px-8 py-4 bg-[var(--accent)] text-white text-base shadow-xl shadow-orange-500/20 border-none rounded-xl font-bold transition-transform hover:-translate-y-1">
+              <Button onClick={handleGetStarted} size="lg" className="w-full sm:w-auto px-4 sm:px-8 py-2 sm:py-4 bg-[var(--accent)] text-white text-base shadow-xl border-none rounded-xl font-bold transition-transform hover:-translate-y-1">
                 {userId ? 'Enter Dashboard' : 'Start Your Journey'}
                 <i className="fa-solid fa-arrow-right ml-2"></i>
               </Button>
@@ -275,192 +276,19 @@ const Home = () => {
         </div>
       </section>
 
-      {/* --- ALL ROLES SECTION --- */}
-      {/* <section id="roles" className="py-24 bg-slate-50 relative">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUp}
-            className="text-center mb-16"
-          >
-            <h2 className="text-sm font-bold text-[var(--brand)] tracking-widest uppercase mb-3">One Unified Platform</h2>
-            <h3 className="text-3xl sm:text-4xl font-bold text-slate-900">Dedicated portals for every single role.</h3>
-            <p className="text-slate-500 mt-4 max-w-2xl mx-auto">Access levels and dashboards are perfectly tailored so your staff only sees what they need to manage.</p>
-          </motion.div>
-
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer}
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"
-          >
-            {[
-              { role: 'Correspondent', desc: 'Trust & Ownership', icon: 'fa-building-columns', color: 'text-slate-700 bg-slate-200' },
-              { role: 'Principal', desc: 'Academic Leadership', icon: 'fa-user-tie', color: 'text-indigo-600 bg-indigo-100' },
-              { role: 'Vice Principal', desc: 'Daily Operations', icon: 'fa-clipboard-user', color: 'text-violet-600 bg-violet-100' },
-              { role: 'Administrator', desc: 'System Management', icon: 'fa-shield-halved', color: 'text-sky-600 bg-sky-100' },
-              { role: 'Accountant', desc: 'Financial Ledgers', icon: 'fa-file-invoice-dollar', color: 'text-emerald-600 bg-emerald-100' },
-              { role: 'Teacher', desc: 'Classroom Control', icon: 'fa-chalkboard-user', color: 'text-amber-600 bg-amber-100' },
-              { role: 'Parent', desc: 'Student Tracking', icon: 'fa-hands-holding-child', color: 'text-rose-600 bg-rose-100' },
-              { role: 'Student', desc: 'Active Learning', icon: 'fa-user-graduate', color: 'text-orange-600 bg-orange-100' },
-            ].map((item, idx) => (
-              <motion.div key={idx} variants={fadeUp} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col items-center text-center">
-                <div className={`w-12 h-12 rounded-full ${item.color} flex items-center justify-center text-xl mb-4`}>
-                  <i className={`fa-solid ${item.icon}`}></i>
-                </div>
-                <h4 className="text-base font-bold text-slate-900 mb-1">{item.role}</h4>
-                <p className="text-slate-500 text-xs">{item.desc}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section> */}
-
-      {/* --- ALL ROLES SECTION (Premium Bento Grid with Interactive Reveals) --- */}
-      {/* <section id="roles" className="py-24 bg-slate-50 relative overflow-hidden">
-        
-       
-        <div className="absolute inset-0 z-0 pointer-events-none flex justify-center">
-          <div className="w-full h-full bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:32px_32px] opacity-30" style={{ WebkitMaskImage: 'radial-gradient(ellipse at center, black 30%, transparent 70%)' }}></div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-          
-         
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUp}
-            className="text-center mb-16"
-          >
-            <h2 className="text-sm font-bold text-[var(--brand)] tracking-widest uppercase mb-3">One Unified Platform</h2>
-            <h3 className="text-3xl sm:text-4xl font-bold text-slate-900">Dedicated portals for every single role.</h3>
-            <p className="text-slate-500 mt-4 max-w-2xl mx-auto font-medium">
-              Access levels and dashboards are perfectly tailored. Your staff, students, and parents only see exactly what they need to succeed.
-            </p>
-          </motion.div>
-
-         
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
-          >
-            {[
-              { 
-                role: 'Correspondent', desc: 'Trust & Campus Ownership', icon: 'fa-building-columns', 
-                badge: 'Root Access', span: 'sm:col-span-2 lg:col-span-2', 
-                colorClass: 'group-hover:border-slate-800 group-hover:bg-slate-50', iconColor: 'text-slate-700', badgeColor: 'bg-slate-800 text-white' 
-              },
-              { 
-                role: 'Principal', desc: 'Academic Leadership', icon: 'fa-user-tie', 
-                badge: 'Analytics Hub', span: 'sm:col-span-1 lg:col-span-1', 
-                colorClass: 'group-hover:border-indigo-500 group-hover:bg-indigo-50/50', iconColor: 'text-indigo-600', badgeColor: 'bg-indigo-500 text-white' 
-              },
-              { 
-                role: 'Vice Principal', desc: 'Daily Operations', icon: 'fa-clipboard-user', 
-                badge: 'Staff Control', span: 'sm:col-span-1 lg:col-span-1', 
-                colorClass: 'group-hover:border-violet-500 group-hover:bg-violet-50/50', iconColor: 'text-violet-600', badgeColor: 'bg-violet-500 text-white' 
-              },
-              { 
-                role: 'Administrator', desc: 'System Management', icon: 'fa-shield-halved', 
-                badge: 'Full Config', span: 'sm:col-span-1 lg:col-span-1', 
-                colorClass: 'group-hover:border-sky-500 group-hover:bg-sky-50/50', iconColor: 'text-sky-600', badgeColor: 'bg-sky-500 text-white' 
-              },
-              { 
-                role: 'Accountant', desc: 'Financial Ledgers', icon: 'fa-file-invoice-dollar', 
-                badge: 'Fee Tracking', span: 'sm:col-span-1 lg:col-span-1', 
-                colorClass: 'group-hover:border-emerald-500 group-hover:bg-emerald-50/50', iconColor: 'text-emerald-600', badgeColor: 'bg-emerald-500 text-white' 
-              },
-              { 
-                role: 'Teacher', desc: 'Classroom Control', icon: 'fa-chalkboard-user', 
-                badge: 'Smart Grading', span: 'sm:col-span-2 lg:col-span-2', 
-                colorClass: 'group-hover:border-amber-500 group-hover:bg-amber-50/50', iconColor: 'text-amber-500', badgeColor: 'bg-amber-500 text-white' 
-              },
-              { 
-                role: 'Parent', desc: 'Student Tracking', icon: 'fa-hands-holding-child', 
-                badge: 'Live Alerts', span: 'sm:col-span-2 lg:col-span-2', 
-                colorClass: 'group-hover:border-rose-500 group-hover:bg-rose-50/50', iconColor: 'text-rose-500', badgeColor: 'bg-rose-500 text-white' 
-              },
-              { 
-                role: 'Student', desc: 'Active Learning', icon: 'fa-user-graduate', 
-                badge: 'Assignments', span: 'sm:col-span-2 lg:col-span-2', 
-                colorClass: 'group-hover:border-orange-500 group-hover:bg-orange-50/50', iconColor: 'text-orange-500', badgeColor: 'bg-orange-500 text-white' 
-              },
-            ].map((item, idx) => (
-              <motion.div 
-                key={idx} 
-                variants={fadeUp} 
-                className={`group relative bg-white p-6 rounded-2xl border-2 border-transparent shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 cursor-default overflow-hidden flex flex-col justify-between min-h-[160px] ${item.span} ${item.colorClass}`}
-              >
-               
-                <div className="absolute inset-0 border-2 border-slate-100 rounded-2xl group-hover:opacity-0 transition-opacity duration-300 pointer-events-none"></div>
-
-                <div className="relative z-10 flex justify-between items-start">
-                  <div className={`w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xl text-slate-400 group-hover:scale-110 group-hover:bg-white group-hover:shadow-sm group-hover:${item.iconColor} transition-all duration-300`}>
-                    <i className={`fa-solid ${item.icon}`}></i>
-                  </div>
-                  
-                 
-                  <div className={`opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm ${item.badgeColor}`}>
-                    {item.badge}
-                  </div>
-                </div>
-                
-                <div className="relative z-10 mt-6 transition-transform duration-300 group-hover:translate-x-1">
-                  <h4 className="text-lg font-bold text-slate-900 mb-1">{item.role}</h4>
-                  <p className="text-slate-500 text-sm font-medium">{item.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-          
-        </div>
-      </section> */}
 
       <RolesSection />
 
-      {/* FEATURE GRID */}
-      {/* <section id="features" className="py-24 bg-white border-t border-slate-100">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUp}
-            className="mb-16 md:w-2/3"
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">Core Capabilities</h2>
-            <p className="text-lg text-slate-500">A modular architecture designed to eliminate busywork and automate daily operations across your entire campus.</p>
-          </motion.div>
-
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
-            {[
-              { title: 'Smart Timetables', desc: 'Organize class schedules, assign teachers efficiently, and auto-prevent period conflicts.', icon: 'fa-calendar-days', iconColor: 'text-sky-500' },
-              { title: 'Live Attendance', desc: 'Log daily attendance swiftly and keep parents informed with automated mobile push alerts.', icon: 'fa-user-check', iconColor: 'text-emerald-500' },
-              { title: 'AI-Powered Quizzes', desc: 'Generate assessments instantly from PDFs using advanced Gemini 2.0 AI integration.', icon: 'fa-wand-magic-sparkles', iconColor: 'text-orange-500' },
-              { title: 'Finance & Ledger', desc: 'Manage fee structures, record transactions, and maintain a complete, auditable ledger.', icon: 'fa-wallet', iconColor: 'text-indigo-500' },
-              { title: 'Dynamic Reports', desc: 'Generate beautiful mark reports, term analyses, and detailed student academic profiles.', icon: 'fa-chart-pie', iconColor: 'text-rose-500' },
-              { title: 'Clubs & Activities', desc: 'Manage extracurriculars, track student participation, and organize out-of-classroom learning.', icon: 'fa-masks-theater', iconColor: 'text-amber-500' },
-            ].map((feature, idx) => (
-              <motion.div key={idx} variants={fadeUp} className="flex gap-4 group">
-                <div className="shrink-0 w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xl group-hover:bg-white group-hover:shadow-md transition-all">
-                  <i className={`fa-solid ${feature.icon} ${feature.iconColor}`}></i>
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold text-slate-900 mb-2">{feature.title}</h4>
-                  <p className="text-slate-500 text-sm leading-relaxed">{feature.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section> */}
 
       <FeaturesSection />
 
       {/* --- HIGH CONTRAST CTA --- */}
-      <section className="py-24 bg-slate-50">
+      {/* <section className="py-24 bg-slate-50">
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
             className="bg-[var(--brand)] rounded-[2rem] p-10 md:p-16 text-center shadow-2xl relative overflow-hidden"
           >
-            {/* Background design elements */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-sky-400 rounded-full blur-[80px] opacity-30 translate-x-1/2 -translate-y-1/2"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-[var(--accent)] rounded-full blur-[80px] opacity-20 -translate-x-1/2 translate-y-1/2"></div>
 
@@ -478,10 +306,49 @@ const Home = () => {
             </div>
           </motion.div>
         </div>
+      </section> */}
+
+
+      <section className="py:12 sm:py-24 bg-white relative overflow-hidden">
+        {/* Subtle dot pattern background to make the white card stand out */}
+        <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:24px_24px] opacity-50"></div>
+
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
+            // 🌟 The Premium White/Silver Gradient Card
+            className="bg-gradient-to-br from-white via-slate-50 to-slate-100 rounded-[2rem] p-10 md:p-16 text-center shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-slate-200 relative overflow-hidden"
+          >
+            {/* Extremely soft, professional blue lighting behind the text */}
+            <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500 rounded-full blur-[120px] opacity-[0.08] translate-x-1/3 -translate-y-1/3"></div>
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-sky-400 rounded-full blur-[120px] opacity-[0.08] -translate-x-1/3 translate-y-1/3"></div>
+
+            <div className="relative z-10">
+              {/* Dark text for perfect readability on a white background */}
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-slate-900 mb-6">Ready to upgrade your school?</h2>
+
+              <p className="text-slate-500 text-md sm:text-lg max-w-2xl mx-auto mb-10 font-medium">
+                Join modern educational institutions simplifying their workflows with {DOMAIN_NAME} today.
+              </p>
+
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+                {/* 🌟 Bold, solid Blue Button for maximum visibility */}
+                <Button onClick={handleGetStarted} size="lg" className="w-full sm:w-auto !bg-blue-600 hover:!bg-blue-700 text-white 
+                font-bold text-base px-10 py-2 sm:py-4 rounded-xl border-none shadow-xl shadow-blue-600/20 transition-transform hover:scale-105">
+                  {userId ? 'Go to Dashboard' : 'Get Started Now'}
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </section>
 
+
+
       {/* --- CLEAN FOOTER --- */}
-      <footer className="bg-white border-t border-slate-100 pt-16 pb-8">
+      {/* <footer className="bg-white border-t border-slate-100 pt-16 pb-8">
+
+
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
             <div className="flex items-center gap-3">
@@ -499,13 +366,60 @@ const Home = () => {
 
           <div className="border-t border-slate-100 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
             <p>&copy; {new Date().getFullYear()} {DOMAIN_NAME} LMS. All rights reserved.</p>
-            <div className="flex items-center gap-2 font-bold">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span>Systems Operational</span>
-            </div>
           </div>
         </div>
+      </footer> */}
+
+
+      <footer className="bg-white border-t border-slate-100 pt-16 pb-8">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+
+          {/* Top Section: Responsive Grid Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
+
+            {/* Column 1: Brand & Description */}
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
+                  <i className="fa-solid fa-graduation-cap text-sm text-white"></i>
+                </div>
+                <span className="text-lg font-bold tracking-tight text-slate-900">{DOMAIN_NAME}</span>
+              </div>
+              <p className="text-sm text-slate-500 max-w-sm leading-relaxed font-medium">
+                Empowering modern educational institutions with a comprehensive, role-based digital campus and streamlined workflow management.
+              </p>
+            </div>
+
+            {/* Column 2: Quick Links (Scrolls to IDs) */}
+            <div className="flex flex-col gap-4">
+              <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Platform</h4>
+              <div className="flex flex-col gap-3 text-sm font-medium text-slate-500">
+                {/* These use href="#id" to smoothly scroll down the landing page */}
+                <a href="#features" className="hover:text-blue-600 transition-colors duration-200 w-fit">Features</a>
+                <a href="#roles" className="hover:text-blue-600 transition-colors duration-200 w-fit">The Ecosystem</a>
+              </div>
+            </div>
+
+            {/* Column 3: Legal & Support (Moved to the upper section) */}
+            <div className="flex flex-col gap-4">
+              <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Legal</h4>
+              <div className="flex flex-col gap-3 text-sm font-medium text-slate-500">
+                <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors duration-200 w-fit">Privacy Policy</Link>
+                <Link to="/terms-and-conditions" className="hover:text-blue-600 transition-colors duration-200 w-fit">Terms & Conditions</Link>
+                <Link to="/account-deletion" className="hover:text-blue-600 transition-colors duration-200 w-fit">Account Deletion</Link>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Bottom Section: Copyright Bar Only */}
+          <div className="border-t border-slate-100 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-400">
+            <p>&copy; {new Date().getFullYear()} {DOMAIN_NAME} LMS. All rights reserved.</p>
+          </div>
+
+        </div>
       </footer>
+
     </div>
   );
 };

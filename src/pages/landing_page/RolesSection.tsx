@@ -84,17 +84,7 @@ const ROLES_DATA = [
     desc: "Real-time mobile notifications, academic progress views, and online fee gateways.",
     features: ["Push Alerts", "Progress View", "Fee Gateway"]
   },
-//   {
-//     role: "student",
-//     label: "Student",
-//     icon: "fa-user-graduate",
-//     color: "text-orange-500",
-//     bg: "bg-orange-500",
-//     lightBg: "bg-orange-50",
-//     borderColor: "border-orange-500",
-//     desc: "Unified learning workspace, extracurricular activity tracking, and performance badges.",
-//     features: ["Learning Space", "Activity Track", "Badges"]
-//   }
+
 ];
 
 const RolesSection = () => {
@@ -123,7 +113,7 @@ const RolesSection = () => {
   };
 
   return (
-    <section id="roles" className="py-24 bg-slate-50 relative overflow-hidden flex flex-col items-center">
+    <section id="roles" className="py-12 sm:py-24 bg-slate-50 relative overflow-hidden flex flex-col items-center">
       
       {/* Background Decor */}
       <div className="absolute inset-0 z-0 flex items-center justify-center opacity-40 pointer-events-none">
@@ -144,7 +134,7 @@ const RolesSection = () => {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="relative w-[750px] h-[750px] scale-[0.5] sm:scale-[0.7] lg:scale-100 transition-transform duration-500 origin-center flex items-center justify-center">
+        <div className="relative w-[750px] h-[750px] scale-[0.4] sm:scale-[0.7] lg:scale-100 transition-transform duration-500 origin-center flex items-center justify-center">
           
           {/* Orbital Rings */}
           <div className="absolute w-[600px] h-[600px] rounded-full border border-slate-200"></div>
@@ -187,7 +177,7 @@ const RolesSection = () => {
                   </div>
                   
                   {/* Petal Label */}
-                  <div className={`absolute -bottom-6 w-32 text-center text-sm font-bold transition-colors ${isActive ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                  <div className={`absolute -bottom-6 w-32 text-center text-lg font-bold transition-colors ${isActive ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-600'}`}>
                     {item.label}
                   </div>
                 </motion.div>
@@ -222,7 +212,7 @@ const RolesSection = () => {
                   {activeRole.features.map((feature, idx) => (
                     <div key={idx} className="flex mx-auto items-center gap-3 px-4 py-2 rounded-xl">
                       {/* <div className={`w-2 h-2 rounded-full ${activeRole.bg}`}></div> */}
-                      <span className="text-xs font-bold text-slate-700">{feature}</span>
+                      <span className="text-md font-bold text-slate-700">{feature}</span>
                     </div>
                   ))}
                 </div>

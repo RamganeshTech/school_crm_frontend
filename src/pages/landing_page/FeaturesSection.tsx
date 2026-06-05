@@ -55,10 +55,10 @@ const FEATURES_DATA = [
     shortTitle: 'Reports',
     desc: 'Generate beautiful mark reports, term analyses, and deeply detailed student academic profiles.', 
     icon: 'fa-chart-pie', 
-    color: 'text-rose-500',
-    bg: 'bg-rose-500',
-    lightBg: 'bg-rose-50',
-    glow: 'shadow-rose-500/20'
+    color: 'text-green-500',
+    bg: 'bg-green-500',
+    lightBg: 'bg-green-50',
+    glow: 'shadow-green-500/20'
   },
   { 
     id: "clubs",
@@ -143,12 +143,12 @@ const FeaturesSection = () => {
       case 'reports':
         return (
           <div className="relative w-full h-full flex items-center justify-center">
-            <div className="absolute w-48 h-48 bg-rose-200/50 rounded-full blur-2xl"></div>
-            <div className="relative z-10 w-36 h-36 bg-white rounded-[2.5rem] shadow-xl flex items-center justify-center text-6xl text-rose-500 rotate-[-5deg]">
+            <div className="absolute w-48 h-48 bg-green-200/50 rounded-full blur-2xl"></div>
+            <div className="relative z-10 w-36 h-36 bg-white rounded-[2.5rem] shadow-xl flex items-center justify-center text-6xl text-green-500 rotate-[-5deg]">
               <i className="fa-solid fa-chart-pie"></i>
             </div>
             <div className="absolute z-20 bottom-4 -right-4 bg-slate-900 text-white px-4 py-2 rounded-xl shadow-lg font-bold text-xs flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-rose-500"></span> Class Average
+              <span className="w-2 h-2 rounded-full bg-green-500"></span> Class Average
             </div>
           </div>
         );
@@ -176,9 +176,9 @@ const FeaturesSection = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
-        <div className="mb-12 md:mb-16 text-center max-w-2xl mx-auto">
+        <div className="mb-6 md:mb-16 text-center max-w-2xl mx-auto">
           <h2 className="text-sm font-bold text-[var(--brand)] tracking-widest uppercase mb-3">Core Capabilities</h2>
-          <h3 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
+          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mb-4">
             Everything you need. Nothing you don't.
           </h3>
           <p className="text-base sm:text-lg text-slate-500 font-medium">

@@ -4,7 +4,7 @@ import { useResetPassword } from '../../api_services/auth_api/authApi'; // Adjus
 import { Button } from '../../shared/ui/Button'; // Adjust path
 import { Input } from '../../shared/ui/Input'; // Adjust path
 import { toast } from '../../shared/ui/ToastContext'; // Adjust path
-import { COMPANY } from '../../constants/constants';
+import { DOMAIN_NAME } from '../../constants/constants';
 
 export default function ResetPasswordMain() {
     const { id, token } = useParams<{ id: string; token: string }>();
@@ -79,8 +79,8 @@ export default function ResetPasswordMain() {
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
                         <i className="fas fa-school text-xl"></i>
                     </div>
-                    <h1 className="text-xl font-black text-foreground tracking-wide uppercase hidden sm:block">
-                        {COMPANY.name}
+                    <h1 className="text-xl font-bold text-foreground tracking-wide uppercase hidden sm:block">
+                        {DOMAIN_NAME}
                     </h1>
                 </div>
             </header>

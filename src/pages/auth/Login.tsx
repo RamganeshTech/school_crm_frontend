@@ -8,7 +8,7 @@ import { setCredentials } from '../../features/slices/authSlice';
 import { Input } from '../../shared/ui/Input';
 import { Button } from '../../shared/ui/Button';
 import { toast } from '../../shared/ui/ToastContext';
-import { COMPANY } from '../../constants/constants';
+import { DOMAIN_NAME } from '../../constants/constants';
 
 // ==========================================
 // CENTRALIZED HEX THEME CONTROLLER (LOGIN PAGE)
@@ -368,7 +368,7 @@ const Login = () => {
     <div className="min-h-screen w-full flex bg-slate-50 font-sans overflow-y-auto selection:bg-teal-100">
 
       {/* LEFT SIDE: Deep Teal Branding & LMS Illustration */}
-      <div className="hidden md:flex w-1/2 bg-teal-800 relative items-center justify-center p-12 overflow-hidden">
+      <div className="hidden md:flex w-1/2 bg-teal-800 relative items-center justify-center p-4 overflow-hidden">
 
         {/* Crisp, structural background pattern instead of blurry orbs */}
         <div className="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
@@ -381,7 +381,7 @@ const Login = () => {
             <div className="w-14 h-14 bg-white/10 border border-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
               <i className="fa-solid fa-graduation-cap text-3xl text-white drop-shadow-md"></i>
             </div>
-            <span className="text-2xl font-bold tracking-tight">{COMPANY.name} LMS</span>
+            <span className="text-2xl font-bold tracking-tight">{DOMAIN_NAME} LMS</span>
           </div>
           <h1 className="text-4xl font-bold mb-5 tracking-tight leading-tight text-white/95">
             Smart Learning Management
@@ -391,7 +391,7 @@ const Login = () => {
           </p>
 
           {/* Professional LMS Student Progress Card */}
-          <div className="bg-teal-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl space-y-6">
+          <div className="bg-teal-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4">
             {/* Student Header */}
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white border border-white/20 shadow-inner">
@@ -436,7 +436,7 @@ const Login = () => {
         <div className="w-full max-w-sm space-y-8"> */}
 
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-slate-50 lg:bg-white">
-        <div className="w-full max-w-md p-8 sm:p-10 bg-white rounded-3xl shadow-xl border border-slate-200 md:!shadow-none md:border-none space-y-8">
+        <div className="w-full max-w-md p-8 sm:p-10 bg-white rounded-3xl shadow-xl border border-slate-200 md:!shadow-none md:border-none space-y-6">
 
           {/* Mobile Logo */}
           <div className="lg:hidden w-12 h-12 bg-teal-700 rounded-xl flex items-center justify-center shadow-sm mb-6">
@@ -448,7 +448,7 @@ const Login = () => {
             <p className="text-slate-500 font-medium">Enter your credentials to access your dashboard.</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-4">
 
             <Input
               label="Email or Phone Number"
@@ -491,18 +491,19 @@ const Login = () => {
             </div>
 
             {/* Remember Me / Forgot Password */}
-            <div className="flex items-center justify-between mt-2">
-              <div className="flex items-center gap-2">
-                {/* <input
+            <div className="flex items-center justify-end mt-2">
+              {/* <div className="flex items-center gap-2">
+                 <input
                   type="checkbox"
                   id="remember"
                   className="w-4 h-4 rounded border-slate-300 text-teal-700 focus:ring-teal-700 bg-white cursor-pointer"
                 />
                 <label htmlFor="remember" className="text-sm text-slate-600 font-medium select-none cursor-pointer">
                   Remember me
-                </label> */}
-              </div>
-              <button type="button" onClick={()=> navigate(`/forgot-password`)} className="text-sm cursor-pointer font-semibold text-teal-700 hover:text-teal-800 transition-colors">
+                </label> 
+              </div> */}
+              <button type="button" onClick={()=> navigate(`/forgot-password`)} 
+              className="text-sm cursor-pointer font-semibold text-teal-700 hover:text-teal-800 transition-colors">
                 Forgot password?
               </button>
             </div>
@@ -514,14 +515,14 @@ const Login = () => {
               fullWidth
               isLoading={isPending}
               rightIcon={!isPending ? "fa-solid fa-arrow-right" : undefined}
-              className="bg-teal-700 hover:bg-teal-800 text-white shadow-lg shadow-teal-700/20 border-none transition-all mt-6"
+              className="bg-teal-700 hover:bg-teal-800 text-white shadow-lg shadow-teal-700/20 border-none transition-all mt-3"
             >
               Sign in
             </Button>
-
+{/* 
             <div className="text-center text-sm text-slate-500 font-medium pt-4">
               Need help? <a href="#" className="font-semibold text-teal-700 hover:text-teal-800 underline underline-offset-4 transition-colors">Contact Support</a>
-            </div>
+            </div> */}
           </form>
 
         </div>
