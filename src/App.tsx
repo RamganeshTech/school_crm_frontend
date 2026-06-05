@@ -20,9 +20,9 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
-import AttendanceAnalyticsDashboard from './pages/attendance/AttendanceAnalyticsDashboard';
-import AttendanceSchoolWideYearlyAnalytics from './pages/attendance/components/AttendaceSchoolWideYearlyAnalytics';
-import AttendanceClassSpecificYearlyAnalytics from './pages/attendance/components/AttendanceClassSpecificYearlyAnalytics';
+const AttendanceAnalyticsDashboard = lazy(() => import('./pages/attendance/AttendanceAnalyticsDashboard'));
+const AttendanceSchoolWideYearlyAnalytics = lazy(() => import('./pages/attendance/components/AttendaceSchoolWideYearlyAnalytics'));
+const AttendanceClassSpecificYearlyAnalytics = lazy(() => import('./pages/attendance/components/AttendanceClassSpecificYearlyAnalytics'));
 
 
 const UserProfile = lazy(() => import('./pages/profile/UserProfile'));

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Doughnut, Line } from 'react-chartjs-2';
 import { useAuthData } from '../../../hooks/useAuthData';
 import { useGetExpenseReport } from '../../../api_services/expense_api/expenseApi';
@@ -72,6 +72,15 @@ export default function ExpenseReportWidget() {
     // const [category, setCategory] = useState(''); // NEW state
     const [paymentMode, setPaymentMode] = useState('');
 
+
+    // 2. 🌟 THE BRIDGE: Force the local state to stay updated when the parent changes
+    useEffect(() => {
+        if (currentYear) {
+            setAcademicYear(currentYear);
+        }
+    }, [currentYear]); // This runs every time defaultYear changes from the parent
+
+
     // --- 2. Fetch Data ---
     const { data: reportData, isLoading } = useGetExpenseReport({
         schoolId: schoolId!,
@@ -133,18 +142,28 @@ export default function ExpenseReportWidget() {
             {/* --- TOP BAR: COMPACT FILTERS --- */}
             <div className="bg-surface p-4 rounded-xl border border-border shadow-sm flex flex-wrap items-center justify-between gap-4">
 
-                {/* Left: Range Chips */}
-                <div className="flex items-center gap-2 bg-mainBg p-1 rounded-lg border border-border shrink-0">
-                    {['week', 'month', 'year'].map((r) => (
-                        <button
-                            key={r}
-                            onClick={() => setRange(r as any)}
-                            className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-colors ${range === r ? 'bg-primary text-inverse shadow-sm' : 'text-muted hover:text-foreground'
-                                }`}
-                        >
-                            {r}
-                        </button>
-                    ))}
+
+                {/* Left Side: Heading and Range Chips stacked vertically together */}
+                <div className="flex flex-col gap-2 items-start">
+                    <h3 className="text-lg text-primary font-bold tracking-tight">
+                        Expense Report
+                    </h3>
+
+                    {/* Range Chips */}
+                    <div className="flex items-center gap-1 bg-mainBg p-0.5 rounded-lg border border-border shrink-0">
+                        {['week', 'month', 'year'].map((r) => (
+                            <button
+                                key={r}
+                                onClick={() => setRange(r as any)}
+                                className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-colors ${range === r
+                                        ? 'bg-primary text-inverse shadow-sm'
+                                        : 'text-muted hover:text-foreground'
+                                    }`}
+                            >
+                                {r}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Right: Dropdown Filters */}
@@ -288,7 +307,7 @@ export default function ExpenseReportWidget() {
                             </h2>
                         </div>
                         <div className="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center text-success group-hover:scale-110 transition-transform duration-200">
-                            <i className="fas fa-shield-check text-sm"></i>
+                            <i className="fas fa-check text-sm"></i>
                         </div>
                     </div>
                     <div className="flex items-center gap-1.5 mt-2">
