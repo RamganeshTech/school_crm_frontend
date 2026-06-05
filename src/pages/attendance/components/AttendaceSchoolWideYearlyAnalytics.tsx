@@ -1,5 +1,5 @@
 // pages/AttendanceSchoolWideYearlyAnalytics.tsx
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useAuthData } from '../../../hooks/useAuthData';
 import { getAcademicYears } from '../../../utils/utils';
 import { useGetAcademicYearLeaderboards } from '../../../api_services/attendance_api/attendanceApi';

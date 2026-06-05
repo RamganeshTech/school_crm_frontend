@@ -71,6 +71,8 @@ export const downloadImageUtil = async ({ fileKey, originalName }: DownloadImage
             return;
         }
 
+        console.log("originalName", originalName)
+
         // Hit your newly registered download route
         const { data } = await axios.get(`${import.meta.env.VITE_APP_BASE_API}/api/download`, {
             params: { key: fileKey }

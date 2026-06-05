@@ -22,7 +22,7 @@ export default function AttendanceClassSpecificYearlyAnalytics() {
     const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 
     // 🌟 Fetch Classes & Sections using your existing hooks
-    const { data: classesData, isLoading: isClassesLoading } = useGetClasses(schoolId!);
+    const { data: classesData,  } = useGetClasses(schoolId!);
     const { data: sectionsData, isLoading: isSectionsLoading } = useGetSections({
         schoolId: schoolId!,
         classId: selectedClassId // This auto-fetches sections whenever the user picks a class

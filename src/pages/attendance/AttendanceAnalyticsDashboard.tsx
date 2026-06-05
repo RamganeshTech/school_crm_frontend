@@ -39,7 +39,7 @@ export default function AttendanceAnalyticsDashboard() {
 
     // 4. Fetch Form Options
     const academicYearOptions = useMemo(() => getAcademicYears(), []);
-    const { data: classesData, isLoading: isClassesLoading } = useGetAllClassesWithSections({ schoolId: schoolId! });
+    const { data: classesData,  } = useGetAllClassesWithSections({ schoolId: schoolId! });
     const classes: ClassWithSections[] = classesData || [];
     const selectedClass = classes.find(c => c._id === selectedClassId);
 

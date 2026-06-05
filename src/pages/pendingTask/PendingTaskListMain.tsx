@@ -9,13 +9,13 @@ import PendingTasksList from './PendingTasksList';
 export default function PendingTaskListMain() {
     const { currentRole } = useAuthData();
     const { data, isLoading } = useGetPendingTasks();
-    const [isOpen, setIsOpen] = useState(false);
+    const [_isOpen, setIsOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
     // Only render the bell if the user is a parent
     if (currentRole !== 'parent') return null;
 
-    const totalPending = data?.totalPending || 0;
+    // const totalPending = data?.totalPending || 0;
 
     // Handle clicking outside the dropdown to close it
     useEffect(() => {
