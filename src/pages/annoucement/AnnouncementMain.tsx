@@ -95,7 +95,6 @@ export default function AnnouncementMain() {
                 await deleteMutation.mutateAsync(id);
                 toast.success("Successfully Deleted")
             } catch (error: any) {
-                console.error("Failed to delete announcement", error);
                 toast.error(error.message || "Failed to Delete.");
 
 

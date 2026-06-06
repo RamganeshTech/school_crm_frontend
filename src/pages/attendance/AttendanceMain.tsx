@@ -389,9 +389,7 @@ export default function AttendanceMain() {
                                 {/* STUDENT LIST */}
                                 {students.map((student: any) => {
                                     const rec = attendanceMap[student._id];
-                                    console.log("attendanceMap", attendanceMap)
                                     const status = rec?.status || ''; // Defaults to empty
-                                    console.log("record", rec)
                                     const img = student?.studentImage?.url;
 
                                     return (

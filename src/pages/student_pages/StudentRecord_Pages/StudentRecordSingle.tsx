@@ -156,7 +156,6 @@ export default function StudentRecordSingle() {
             refetch(); // Refetches the Ghost record, which will now be a REAL record
         } catch (err: any) {
             toast.error(err?.message || "Failed to apply concession.");
-            console.error("Concession failed", err);
         }
     };
 
@@ -174,7 +173,6 @@ export default function StudentRecordSingle() {
             toast.success("Status Updated!");
         } catch (error: any) {
 
-            console.error("Toggle failed", error);
             // toast.error("Status not updated!");
             toast.error(error.message || "Status not updated!", 5000);
 
@@ -195,7 +193,6 @@ export default function StudentRecordSingle() {
             toast.success("Transaction reverted successfully!");
             refetch();
         } catch (error: any) {
-            console.error("Failed to revert fee", error);
             toast.error(error?.message || "Failed to revert transaction.");
         }
     };

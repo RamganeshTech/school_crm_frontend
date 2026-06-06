@@ -147,7 +147,7 @@ export const useCreateUser = () => {
           "correspondent", "administrator",
         ]);
 
-        const { data } = await Api.post<BaseResponse>(`/api/user/create`, userData);
+        const { data } = await Api.post<BaseResponse>(`/api/user/v1/create`, userData);
 
         if (data.ok) {
           return data;
@@ -202,16 +202,13 @@ export const useGetSingleUser = (userId: string | undefined) => {
     queryKey: ['user', userId],
     queryFn: async () => {
       try {
-        console.log("calling   1111")
 
         checkPermission(currentRole, [
           "correspondent", "teacher", "principal", "administrator", "viceprincipal", "parent", "accountant"
         ]);
 
-        console.log("calling  222")
         const { data } = await Api.get(`/api/user/${userId}`);
 
-        console.log("data", data)
 
         if (data.ok) {
           return data.data;

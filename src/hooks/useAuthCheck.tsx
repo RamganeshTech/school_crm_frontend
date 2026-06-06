@@ -48,20 +48,20 @@ export const useAuthCheck = () => {
 
         const verify = async () => {
             try {
-                console.log("1. Starting API call...");
+                // console.log("1. Starting API call...");
                 const response = await fetchAuthSession(currentRole);
 
-                console.log("2. API call successful. Response:", response);
+                // console.log("2. API call successful. Response:", response);
 
                 if (response.ok && response.data) {
                     const userData = response.data;
-                    console.log("3. Extracted userData:", userData);
+                    // console.log("3. Extracted userData:", userData);
 
                     const schoolIdString = typeof userData.schoolId === 'object'
                         ? userData.schoolId?._id
                         : userData.schoolId;
 
-                    console.log("4. Parsed schoolId:", schoolIdString);
+                    // console.log("4. Parsed schoolId:", schoolIdString);
 
                     // If it prints step 4 but fails here, there is a Redux slice mismatch
                     dispatch(setCredentials({
@@ -77,11 +77,11 @@ export const useAuthCheck = () => {
                         schoolName: userData?.schoolName || null
                     }));
 
-                    console.log("5. Redux state successfully dispatched!");
+                    // console.log("5. Redux state successfully dispatched!");
                 }
             } catch (error: any) {
                 // 🚩 THIS WILL TELL US EXACTLY WHAT WENT WRONG
-                console.error("❌ Auth verification failed at step:", error);
+                // console.error("❌ Auth verification failed at step:", error);
                 dispatch(logout());
             } finally {
                 setIsLoading(false);

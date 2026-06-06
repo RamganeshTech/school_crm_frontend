@@ -67,21 +67,6 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
         setSelectedIndex(null);
     };
 
-    // ⚡ MODIFIED: Uses the mutation hook rather than direct raw window href redirection
-    // const handleDownloadClick = (e: React.MouseEvent, image: IStudentUpload) => {
-    //     e.stopPropagation();
-    //     if (!image.key) {
-    //         console.error("Missing object s3/s4 identification structural reference key.");
-    //         return;
-    //     }
-        
-    //     // Triggers secure background signed links assembly
-    //     downloadMutation.mutate({
-    //         fileKey: image.key,
-    //         originalName: image.originalName
-    //     });
-    // };
-
     const handleDownloadClick = async (e: React.MouseEvent, image: IStudentUpload) => {
     e.stopPropagation();
     if (!image.key) return;
@@ -89,7 +74,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
     // Direct, synchronous action wrapper invocation
     await downloadImageUtil({
         fileKey: image.key,
-        originalName: image.originalName
+        // originalName: image.originalName
     });
 };
 

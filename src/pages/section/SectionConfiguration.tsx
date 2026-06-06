@@ -143,7 +143,6 @@ export default function SectionConfiguration() {
             refetch();
             closeForm();
         } catch (error: any) {
-            console.error("Failed to save section", error);
             toast.error(error.message || "Operation Failed");
 
         }
@@ -156,7 +155,6 @@ export default function SectionConfiguration() {
                 toast.success("Deleted Successfully!");
                 refetch();
             } catch (error: any) {
-                console.error("Failed to delete section", error);
                 toast.error(error.message || "Failed to delete section");
 
             }

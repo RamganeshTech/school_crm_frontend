@@ -83,7 +83,6 @@ export default function AssignClass({ isOpen, onClose, record, schoolId, refetch
             refetch();
             toast.success("Successfully Assigned!");
         } catch (err: any) {
-            console.error("Assignment failed", err);
             toast.error(err?.message || "Failed to assign class.");
         }
     };

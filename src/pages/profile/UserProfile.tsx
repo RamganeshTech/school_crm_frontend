@@ -98,19 +98,13 @@ export default function UserProfile() {
         }
     }, [user, isEditing]);
 
-    // Populate form data when edit mode opens or user data changes
-    // useEffect(() => {
-    //     if (user) {
-    //         setFormData({
-    //             userName: user.userName || '',
-    //             email: user.email || '',
-    //             phoneNo: user.phoneNo || ''
-    //         });
-    //     }
-    // }, [user, isEditing]);
+  
 
     if (isLoading) {
-        return <div className="p-4">Loading profile...</div>;
+        return  <div className="flex flex-col items-center justify-center h-full space-y-4 p-8">
+                <i className="fas fa-circle-notch fa-spin text-4xl text-primary opacity-50"></i>
+                <p className="text-sm font-semibold text-muted">Loading...</p>
+            </div>
     }
 
     if (isError || !user) {
@@ -151,7 +145,6 @@ export default function UserProfile() {
 
 
         } catch (error: any) {
-            // console.error("Failed to update profile:", error);
             toast.error(error.message || "Failed to Update");
 
         }

@@ -14,6 +14,7 @@ import { GlobalHeader } from '../../shared/components/GlobalHeader';
 // import { useCurrentStudent } from '../../hooks/useCurrentStudent';
 // import { useAuthData } from '../../hooks/useAuthData';
 import { useAuthorizedMenu } from '../../hooks/useAuthorizedMenu';
+import { toast } from '../../shared/ui/ToastContext';
 
 const DashboardChildrens: React.FC = () => {
     const navigate = useNavigate();
@@ -24,7 +25,7 @@ const DashboardChildrens: React.FC = () => {
 
     // const activeStudentId = studentId && studentId.length > 0 ? studentId[0] : null;
 
-    const { role, schoolName } = useSelector(
+    const { schoolName } = useSelector(
         (state: RootState) => state.auth
     );
 
@@ -45,8 +46,7 @@ const DashboardChildrens: React.FC = () => {
                 // showToast(response.message || 'Logged out successfully', 'success');
             }
         } catch (error: any) {
-            console.error("Server logout failed:", error.message);
-            // Optional: showToast("Session ended", "warning");
+            toast.error(error.message || "failed to logout");
         } finally {
             // 2. Clear Redux State (Resets to initialState)
             dispatch(logout());
@@ -59,7 +59,6 @@ const DashboardChildrens: React.FC = () => {
         }
     };
 
-    console.log("role from redux", role)
 
 
     // // Inside your component or a utils file:

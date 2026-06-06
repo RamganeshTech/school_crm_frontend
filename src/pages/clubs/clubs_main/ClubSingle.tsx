@@ -32,6 +32,7 @@ import { useGetAllClassesWithSections } from '../../../api_services/teacher_api/
 import { useGetAllStudents } from '../../../api_services/student_api/studentMainApi';
 import { SearchSelect } from '../../../shared/ui/SearchSelect';
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
+import { toast } from '../../../shared/ui/ToastContext';
 
 
 export default function ClubSingle() {
@@ -41,7 +42,7 @@ export default function ClubSingle() {
 
 
 
-    const { isCorrespondent, isAdmin , isTeacher} = useRoleCheck()
+    const { isCorrespondent, isAdmin, isTeacher } = useRoleCheck()
 
     const canModify = isAdmin || isCorrespondent
     const canUploadPdf = isAdmin || isCorrespondent || isTeacher
@@ -175,7 +176,9 @@ export default function ClubSingle() {
             setUploadData({ title: '', topic: '', level: 'general' });
             setVideoFile(null);
             setPdfFiles([]);
-        } catch (error) { console.error(error); }
+        } catch (error: any) {
+            toast.error(error.message || "Failed to upload.");
+        }
     };
 
     const openEditModal = (video: any) => {
@@ -205,7 +208,9 @@ export default function ClubSingle() {
                 await uploadPdfMutation.mutateAsync({ id: editingVideo._id, formData: pData });
             }
             setEditingVideo(null);
-        } catch (error) { console.error(error); }
+        } catch (error: any) {
+            toast.error(error.message || "Operation Failed");
+        }
     };
 
     const handleStudentToggle = async (studentId: string, isEnrolled: boolean) => {
@@ -217,15 +222,30 @@ export default function ClubSingle() {
             } else {
                 await addStudentMutation.mutateAsync(payload);
             }
-        } catch (error) { console.error(error); }
+        } catch (error: any) {
+            toast.error(error.message || "Operation Failed");
+        }
     };
 
     const handleClassToggle = async () => {
         if (!clubId || !selectedClassId) return;
         try {
             await toggleClassMutation.mutateAsync({ clubId, classId: selectedClassId });
-        } catch (error) { console.error(error); }
+        } catch (error: any) {
+            toast.error(error.message || "Operation Failed");
+        }
     };
+
+
+    const handleDeleteVideo = async (videoId: string) => {
+        try {
+            if (window.confirm("Permanently delete this video?")) {
+                await deleteVideoMutation.mutateAsync(videoId);
+            }
+        } catch (error: any) {
+            toast.error(error.message || "Operation Failed");
+        }
+    }
 
     if (isClubLoading) return <div className="flex h-full items-center justify-center"><i className="fas fa-circle-notch fa-spin text-primary text-4xl"></i></div>;
 
@@ -251,18 +271,18 @@ export default function ClubSingle() {
                 </div>
 
                 <div className='flex gap-3 items-center'>
-                    <Button variant="outline" leftIcon="fas fa-brain" onClick={() => navigate('quiz')} className="cursor-pointer">
+                    {/* <Button variant="outline" leftIcon="fas fa-brain" onClick={() => navigate('quiz')} className="cursor-pointer">
                         Quiz
-                    </Button>
+                    </Button> */}
 
-                        <div className="flex items-center gap-3">
-                            {canModify && <Button variant="outline" leftIcon="fas fa-users-cog" onClick={() => setIsStudentModalOpen(true)} className="cursor-pointer">
-                                Manage Members
-                            </Button>}
-                           {canUploadPdf && <Button variant="primary" leftIcon="fas fa-cloud-upload-alt" onClick={() => setIsUploadModalOpen(true)} className="cursor-pointer">
-                                Upload Lesson
-                            </Button>}
-                        </div>
+                    <div className="flex items-center gap-3">
+                        {canModify && <Button variant="outline" leftIcon="fas fa-users-cog" onClick={() => setIsStudentModalOpen(true)} className="cursor-pointer">
+                            Manage Members
+                        </Button>}
+                        {canUploadPdf && <Button variant="primary" leftIcon="fas fa-cloud-upload-alt" onClick={() => setIsUploadModalOpen(true)} className="cursor-pointer">
+                            Upload Lesson
+                        </Button>}
+                    </div>
                 </div>
 
             </header>
@@ -355,22 +375,48 @@ export default function ClubSingle() {
                                             )}
                                         </div>
 
-                                        {/* Admin Action Bar */}
-                                        {canModify && (
-                                            <div className="bg-gray-50 border-t border-gray-100 flex items-center justify-between p-1.5 px-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button onClick={() => openEditModal(vid)} className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 hover:text-primary transition-colors py-1.5 cursor-pointer">
-                                                    <i className="fas fa-pen"></i> EDIT SETTINGS
-                                                </button>
+                                        {/* <div className="bg-gray-50 border-t border-gray-100 flex items-center justify-between p-2 px-3 "> */}
 
-                                                <button
-                                                    onClick={() => { if (window.confirm("Permanently delete this video?")) deleteVideoMutation.mutateAsync(vid._id); }}
-                                                    className="flex items-center gap-1.5 text-[10px] font-bold text-rose-500 hover:text-rose-700 transition-colors py-1.5 cursor-pointer"
-                                                    disabled={deleteVideoMutation.isPending}
-                                                >
-                                                    <i className="fas fa-trash-alt"></i> DELETE
-                                                </button>
-                                            </div>
-                                        )}
+                                        {/* Student / General Access Button */}
+
+
+                                        {/* Admin Action Bar */}
+                                        <div className="bg-sub-header border-t border-gray-100 flex items-center justify-between p-1.5 px-3">
+
+                                            <Button
+                                                onClick={() => navigate(`quiz/${vid._id}`)}
+                                                leftIcon='fas fa-brain'
+                                                // className="bg-primary text-white text-xs font-bold py-2 rounded-md hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+                                                className=" text-[10px] font-bold"
+
+                                            >
+                                                Quiz Settings
+                                            </Button>
+
+                                            {canModify && <Button
+                                                variant='outline'
+                                                onClick={() => openEditModal(vid)}
+                                                className="text-[10px] font-bold"
+                                                leftIcon='fas fa-pen'
+                                            >
+                                                Edit Settings
+                                            </Button>
+                                            }
+
+
+                                            {canModify && <Button
+                                                onClick={() => handleDeleteVideo(vid._id)}
+                                                // className="flex items-center gap-1.5 text-[10px] font-bold text-rose-500 hover:text-rose-700 transition-colors py-1.5 cursor-pointer"
+                                                variant='danger'
+                                                isLoading={deleteVideoMutation.isPending}
+                                                leftIcon='fas fa-trash-alt'
+                                                className="text-[10px] font-bold"
+
+                                            >
+                                                Delete
+                                            </Button>}
+                                        </div>
+
                                     </div>
                                 ))}
                             </div>
@@ -403,7 +449,8 @@ export default function ClubSingle() {
 
                     <div className="flex flex-col gap-1.5 p-4 border border-gray-200 bg-gray-50 rounded-xl">
                         <Label>2. Attach Resource PDFs (Optional)</Label>
-                        <input type="file" accept="application/pdf" multiple className="text-sm bg-white p-1 rounded border border-gray-300 cursor-pointer" onChange={(e) => setPdfFiles(Array.from(e.target.files || []))} />
+                        <input type="file" accept="application/pdf" multiple className="text-sm bg-white p-1 rounded border border-gray-300 cursor-pointer"
+                            onChange={(e) => setPdfFiles(Array.from(e.target.files || []))} />
                         <span className="text-[10px] text-gray-500 mt-1">You can select multiple files at once.</span>
                     </div>
 

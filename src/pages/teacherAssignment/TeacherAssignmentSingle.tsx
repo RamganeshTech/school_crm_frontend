@@ -117,7 +117,6 @@ export default function TeacherAssignmentSingle() {
             toast.success("Assinged Successfully!");
 
         } catch (error: any) {
-            console.error("Save failed:", error);
             toast.error(error.message || "Operation Failed");
 
         }

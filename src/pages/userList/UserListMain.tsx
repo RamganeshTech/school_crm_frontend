@@ -109,7 +109,6 @@ export default function UserListMain() {
             }
 
 
-            // console.log("formData")
             await createUser({
                 ...formData,
                 schoolId: schoolId!

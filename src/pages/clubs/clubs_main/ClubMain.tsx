@@ -110,7 +110,6 @@ export default function ClubMain() {
             }
             setIsModalOpen(false);
         } catch (error: any) {
-            console.error("Action failed", error);
             toast.error(error.message || "Something went wrong")
 
         }
@@ -129,7 +128,6 @@ export default function ClubMain() {
             toast.success("Successfully Updated")
 
         } catch (error: any) {
-            console.error("Cover update failed", error);
             toast.error(error.message || "Failed to update the cover Image")
 
         } finally {
@@ -147,7 +145,6 @@ export default function ClubMain() {
                 toast.success("Successfully Deleted");
 
             } catch (error: any) {
-                console.error("Delete failed", error);
                 toast.error(error.message || "Failed to Delete.");
             } finally {
                 setDeletingId(null); // Stop spinner

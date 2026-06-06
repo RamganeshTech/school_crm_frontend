@@ -10,6 +10,7 @@ import {
 } from '../../api_services/announcement_api/announcementApi';
 import { ImageGallery } from '../../shared/components/ImageGallery';
 import { useRoleCheck } from '../../hooks/useRoleCheck';
+import { toast } from '../../shared/ui/ToastContext';
 
 interface AnnouncementSingleProps {
     mode: 'view' | 'edit' | 'create';
@@ -58,7 +59,7 @@ export default function AnnouncementSingle({
     const deleteAttachmentMutation = useDeleteAnnouncementAttachment();
 
 
-    const {isCorrespondent, isAdmin, isPrincipal} = useRoleCheck()
+    const { isCorrespondent, isAdmin, isPrincipal } = useRoleCheck()
 
     const canModify = isAdmin || isCorrespondent || isPrincipal
 
@@ -124,8 +125,9 @@ export default function AnnouncementSingle({
         try {
             await addAttachmentMutation.mutateAsync({ id: initialData._id, formData: uploadFormData });
             setSelectedFiles([]); // Clear queue on success
-        } catch (error) {
-            console.error("Failed to upload attachments", error);
+            toast.success("Attachment uploaded successfully")
+        } catch (error: any) {
+            toast.error(error.message || "Something went wrong")
         }
     };
 
@@ -134,8 +136,11 @@ export default function AnnouncementSingle({
         if (window.confirm("Are you sure you want to permanently delete this file?")) {
             try {
                 await deleteAttachmentMutation.mutateAsync({ announcementId: initialData._id, fileId });
-            } catch (error) {
-                console.error("Failed to delete attachment", error);
+                toast.success("Attachment deleted successfully")
+
+            } catch (error:any) {
+                toast.error(error.message || "Something went wrong")
+
             }
         }
     };
@@ -189,7 +194,7 @@ export default function AnnouncementSingle({
                                 {mode === 'create' ? 'Publish Now' : 'Save Changes'}
                             </Button>
                         </>
-                    ) :(canModify && isEditable && onEdit) ? (
+                    ) : (canModify && isEditable && onEdit) ? (
                         <Button variant="primary" leftIcon="fas fa-edit" onClick={onEdit}>
                             Edit Notice
                         </Button>
@@ -267,7 +272,7 @@ export default function AnnouncementSingle({
                                             <ImageGallery
                                                 images={initialData.attachments.filter((f: any) => f.type === 'image')}
                                                 // The gallery returns the whole image object, so we extract the _id here
-                                                {...(canModify ? {handleDelete:(image: any) => handleDeleteAttachment(image._id)} : {})}
+                                                {...(canModify ? { handleDelete: (image: any) => handleDeleteAttachment(image._id) } : {})}
                                                 // Using standard responsive classes to mimic your previous grid aspect ratio
                                                 heightClass="h-24 sm:h-28 md:h-32"
                                                 widthClass="w-full sm:w-32 md:w-40"

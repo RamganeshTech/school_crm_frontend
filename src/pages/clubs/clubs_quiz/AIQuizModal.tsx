@@ -3,6 +3,7 @@ import { useCreateAIClubQuiz } from '../../../api_services/clubs_api/club_quiz_a
 import { toast } from '../../../shared/ui/ToastContext';
 import { SideModal } from '../../../shared/ui/SideModal';
 import { Button } from '../../../shared/ui/Button';
+import { useGetClubVideoById } from '../../../api_services/clubs_api/clubVideoApi';
 // import { toast } from 'react-hot-toast';
 // import { useCreateAIClubQuiz } from '../../../hooks/useClubQuizHooks'; // Adjust path
 // // import { useGetAllClubVideos } from '../../../hooks/useClubVideoHooks'; // ⚠️ Import your actual video fetch hook here
@@ -12,32 +13,39 @@ import { Button } from '../../../shared/ui/Button';
 interface Props {
     onClose: () => void;
     clubId: string;
+    videoId: string;
+    academicYear:string
 }
 
-const AIQuizModal: React.FC<Props> = ({ onClose, clubId }) => {
+const AIQuizModal: React.FC<Props> = ({ onClose, clubId, videoId, academicYear }) => {
     const createAIQuizMutation = useCreateAIClubQuiz();
-    
+
     // ⚠️ Replace this with your actual video fetching logic so users can pick which PDF to analyze
-    // const { data: videoData } = useGetAllClubVideos({ clubId });
-    // const videos = videoData?.data || [];
-    const videos: any[] = []; // Temporary placeholder
+    const { data: videoData } = useGetClubVideoById(videoId);
+    const pdfs = videoData?.pdfs || [];
 
     // Form State
-    const [clubVideoId, setClubVideoId] = useState('');
+    const [selectedPdfId, setSelectedPdfId] = useState<string | null>(null);
     const [numberOfQuestions, setNumberOfQuestions] = useState(10);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!clubVideoId) {
-            return toast.error("Please select a lesson/video that contains a PDF.");
+        if(!selectedPdfId){
+            return toast.error("Please select a PDF.");
         }
+
+        // if (!videoId) {
+        //     return toast.error("Please select a lesson/video that contains a PDF.");
+        // }
 
         try {
             await createAIQuizMutation.mutateAsync({
                 clubId,
-                clubVideoId,
-                numberOfQuestions
+                academicYear,
+                clubVideoId: videoId,
+                numberOfQuestions,
+                pdfId: selectedPdfId
             });
             toast.success("AI Quiz successfully generated!");
             onClose();
@@ -49,9 +57,9 @@ const AIQuizModal: React.FC<Props> = ({ onClose, clubId }) => {
     return (
         <SideModal isOpen={true} onClose={onClose} title="Generate Quiz with AI">
             <form onSubmit={handleSubmit} className="flex flex-col h-full bg-background overflow-hidden">
-                
+
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-6">
-                    
+
                     {/* Header Banner */}
                     <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 flex gap-4">
                         <div className="mt-1">
@@ -67,21 +75,21 @@ const AIQuizModal: React.FC<Props> = ({ onClose, clubId }) => {
 
                     {/* Inputs */}
                     <div className="space-y-4 p-4 bg-surface border border-border rounded-xl">
-                        
+
                         <div>
                             <label className="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wide">Select Source Material *</label>
-                            <select 
-                                value={clubVideoId}
-                                onChange={(e) => setClubVideoId(e.target.value)}
+                            <select
+                                value={selectedPdfId || ""}
+                                onChange={(e) => setSelectedPdfId(String(e.target.value))}
                                 className="w-full bg-background border border-border text-foreground rounded-lg px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                                 required
                             >
                                 <option value="" disabled>Select a lesson to analyze...</option>
-                                {videos.length === 0 && <option value="" disabled>No videos/PDFs found for this club.</option>}
-                                
-                                {videos.map((video: any) => (
+                                {pdfs.length === 0 && <option value="" disabled>No PDFs found for this video.</option>}
+
+                                {pdfs.map((video: any) => (
                                     <option key={video._id} value={video._id}>
-                                        📄 {video.title}
+                                        📄 {video?.originalName}
                                     </option>
                                 ))}
                             </select>
@@ -95,10 +103,10 @@ const AIQuizModal: React.FC<Props> = ({ onClose, clubId }) => {
                                 <span>Number of Questions</span>
                                 <span className="text-primary">{numberOfQuestions}</span>
                             </label>
-                            <input 
-                                type="range" 
-                                min="5" 
-                                max="30" 
+                            <input
+                                type="range"
+                                min="5"
+                                max="30"
                                 step="1"
                                 value={numberOfQuestions}
                                 onChange={(e) => setNumberOfQuestions(Number(e.target.value))}
@@ -118,10 +126,10 @@ const AIQuizModal: React.FC<Props> = ({ onClose, clubId }) => {
                     <Button variant="outline" type="button" onClick={onClose} disabled={createAIQuizMutation.isPending}>
                         Cancel
                     </Button>
-                    <Button 
-                        variant="primary" 
-                        type="submit" 
-                        isLoading={createAIQuizMutation.isPending} 
+                    <Button
+                        variant="primary"
+                        type="submit"
+                        isLoading={createAIQuizMutation.isPending}
                         leftIcon={createAIQuizMutation.isPending ? "fas fa-spinner fa-spin" : "fas fa-magic"}
                     >
                         {createAIQuizMutation.isPending ? "Analyzing PDF..." : "Generate Quiz"}

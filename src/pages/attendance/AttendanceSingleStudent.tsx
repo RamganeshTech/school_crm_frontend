@@ -41,9 +41,7 @@ export default function AttendanceSingleStudent() {
      // Initial State (Defaulting to current month/year)
      const currentDate = new Date();
      const { data: schoolData } = useGetSchoolById(schoolId!);
-     console.log("schoolData", schoolData)
-     console.log("schoolId", schoolId)
-
+    
     const [filters, setFilters] = useState({
         month: currentDate.getMonth() + 1,
         year: currentDate.getFullYear(),

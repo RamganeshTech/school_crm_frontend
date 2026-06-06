@@ -27,9 +27,9 @@ export default function MarkReportConfig() {
     // --- Queries & Mutations ---
     const { data: schoolData } = useGetSchoolById(schoolId!);
     const currentAcademicYear = schoolData?.currentAcademicYear || "";
-     const { isCorrespondent, isAdmin, isTeacher } = useRoleCheck();
+    const { isCorrespondent, isAdmin, isTeacher } = useRoleCheck();
 
-    const canModify = isCorrespondent || isAdmin || isTeacher 
+    const canModify = isCorrespondent || isAdmin || isTeacher
 
     // 1. Security & Permissions
     const isRestrictedRole = ['parent'].includes(currentRole || '');
@@ -38,10 +38,10 @@ export default function MarkReportConfig() {
     // 2. Local Mode State 
     const [mode, setMode] = useState<'view' | 'edit' | 'create'>(studentId ? 'view' : 'create');
 
-   
+
     // 3. Fetch Data (Only runs if ID exists)
     const { data: reportPayload, isLoading: isFetching } = useGetMarkReportByIdV1({
-        studentId:studentId!,
+        studentId: studentId!,
         academicYear,
         classId,
         sectionId
@@ -79,7 +79,7 @@ export default function MarkReportConfig() {
                 // We should NOT send them to the staff '/dashboard/markreport' list.
                 // Instead, send them back to the previous page safely.
                 toast.error("No mark report is available for this student yet.");
-                navigate(-1); 
+                navigate(-1);
             } else if (markReport) {
                 // If the report exists, let the parent view it
                 setMode('view');
@@ -128,8 +128,9 @@ export default function MarkReportConfig() {
                 // Return to view mode seamlessly after saving
                 setMode('view');
             }
-        } catch (error) {
-            console.error("Submission failed", error);
+        } catch (error: any) {
+            toast.error(error.message || "Operation failed");
+
         }
     };
 

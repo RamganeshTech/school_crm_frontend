@@ -127,7 +127,6 @@ export default function HomeworkSubmissionMain() {
             setSelectedSubject(null);
         } catch (error: any) {
             toast.error(error.message || "Failed to update status.");
-            console.error("Failed to submit homework", error);
         }
     };
 

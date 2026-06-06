@@ -81,7 +81,6 @@ export default function AnnouncementConfig() {
                 setMode('view');
             }
         } catch (error: any) {
-            console.error("Submission failed", error);
             toast.error(error.message || "Operation Failed.");
         }
     };

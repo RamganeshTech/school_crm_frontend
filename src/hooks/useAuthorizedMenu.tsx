@@ -52,7 +52,7 @@ export const useAuthorizedMenu = () => {
     const academicYear = data?.currentAcademicYear
 
 
-    console.log("academicYear in auth menu", academicYear)
+    // console.log("academicYear in auth menu", academicYear)
     // const { studentId: activeStudentId } = useCurrentStudent();
     const {
         studentId: activeStudentId,

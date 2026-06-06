@@ -226,8 +226,6 @@ export default function SchoolListMain() {
             toast.success("Created Successfully!");
 
         } catch (error: any) {
-            console.error("Failed to create school", error);
-            // toast.error("Created Successfully!");
             toast.error(error.message || "Failed to Update");
 
 
@@ -242,7 +240,6 @@ export default function SchoolListMain() {
                 refetch();
                 toast.success("Deleted Successfully!");
             } catch (error: any) {
-                console.error("Failed to delete school", error);
                 toast.error(error.message || "Failed to delete school");
 
             }

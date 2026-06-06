@@ -21,13 +21,14 @@ import { getAcademicYears } from '../../../utils/utils';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthData } from '../../../hooks/useAuthData';
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
+import { toast } from '../../../shared/ui/ToastContext';
 // import { useGetAllStudents } from '../../../api_services/student_api/studentMainApi';
 //import { toast } from '../../../shared/ui/ToastContext';
 
 
 export default function StudentRecordMain() {
     // const { schoolId } = useSelector((state: RootState) => state.auth);
-    const {schoolId} = useAuthData()
+    const { schoolId } = useAuthData()
     const { isCorrespondent } = useRoleCheck();
 
 
@@ -42,8 +43,8 @@ export default function StudentRecordMain() {
     const [searchInput, setSearchInput] = useState('');
     const debouncedSearch = useDebounce(searchInput, 500);
 
-    const canDeleteStudentRecord = isCorrespondent; 
- 
+    const canDeleteStudentRecord = isCorrespondent;
+
 
     const [filters, setFilters] = useState({
         academicYear: schoolData?.currentAcademicYear || '2026-2027', // Set default or fetch dynamically
@@ -161,7 +162,9 @@ export default function StudentRecordMain() {
             try {
                 await deleteRecordMutation.mutateAsync(id);
                 refetch();
-            } catch (error) { console.error("Delete failed", error); }
+            } catch (error: any) {
+                toast.error(error.message || "Operation failed");
+            }
         }
     };
 
@@ -196,9 +199,9 @@ export default function StudentRecordMain() {
     return (
         <div className="w-full h-full flex flex-col p-2 space-y-4 overflow-hidden">
 
-            
-            
-               {/* <div>
+
+
+            {/* <div>
                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                         <i className="fas fa-file-invoice text-primary"></i>
                         Student Academic & Financial Records
@@ -207,7 +210,7 @@ export default function StudentRecordMain() {
                 </div>
             </div> */}
 
-            
+
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 px-2">
                 <div>
                     <h1 className="text-xl lg:text-2xl font-bold text-foreground flex items-center gap-3">
@@ -474,7 +477,7 @@ export default function StudentRecordMain() {
                                                 >
                                                     <i className={`fas fa-circle text-[8px] ${record.isActive ? 'text-success' : 'text-muted'}`}></i>
                                                 </button> */}
-                                                    {record.isActive ? 'Active' : 'Inactive'}
+                                                {record.isActive ? 'Active' : 'Inactive'}
                                             </Td>
 
                                             {/* Actions */}
@@ -494,7 +497,7 @@ export default function StudentRecordMain() {
                                                         {/* Manage */}
                                                         View
                                                     </Button>
-                                                  {canDeleteStudentRecord &&  <Button
+                                                    {canDeleteStudentRecord && <Button
                                                         variant="ghost" size="icon"
                                                         className="hover:text-danger hover:bg-danger/10 text-danger"
                                                         onClick={() => handleDelete(record._id, record.studentName)}

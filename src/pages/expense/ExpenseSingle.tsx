@@ -100,7 +100,6 @@ export default function ExpenseSingle() {
 
 
         } catch (error: any) {
-            console.error("Failed to update expense", error);
             toast.error(error.message || "failed to create expense")
 
 
@@ -114,7 +113,6 @@ export default function ExpenseSingle() {
             toast.success("Successfully Deleted");
 
         } catch (error: any) {
-            console.error("Failed to delete proof", error);
             toast.error(error.message || "Failed to Delete.");
 
         }
@@ -197,7 +195,7 @@ export default function ExpenseSingle() {
                                     <button
                                         onClick={() => downloadImageUtil({
                                             fileKey: pdf.key, // Ensure this matches what your backend expects (ID vs S3 Key) 
-                                            originalName: pdf.originalName || 'document.pdf'
+                                            // originalName: pdf.originalName || 'document.pdf'
                                         })}
                                         className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center bg-surface border border-border text-primary hover:bg-primary/10 transition-colors"
                                         title="Download PDF"

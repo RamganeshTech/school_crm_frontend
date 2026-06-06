@@ -106,7 +106,6 @@ export default function TimeTableMain() {
 
             setDayToAdd('');
         } catch (error: any) {
-            console.error("Failed to add day", error);
             toast.error(error.message || "Operation Failed");
 
         }
@@ -124,7 +123,6 @@ export default function TimeTableMain() {
             toast.success("Deleted Successfully!");
 
         } catch (error: any) {
-            console.error("Failed to delete day", error);
             toast.error(error.message || "Operation Failed");
 
         }
@@ -184,7 +182,6 @@ export default function TimeTableMain() {
             toast.success("Updated Successfully!");
 
         } catch (error: any) {
-            console.error("Failed to save period", error);
             toast.error(error.message || "Operation Failed");
 
         }
@@ -205,7 +202,6 @@ export default function TimeTableMain() {
             toast.success("Deleted Successfully!");
 
         } catch (error: any) {
-            console.error("Failed to delete period", error);
             toast.error(error.message || "Failed to delete student");
 
         }

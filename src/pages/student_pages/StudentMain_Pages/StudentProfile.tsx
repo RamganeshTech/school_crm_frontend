@@ -304,7 +304,6 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
 
     //         setIsEditing(false);
     //     } catch (error: any) {
-    //         console.error("Failed to save:", error);
     //         toast.error(error.message || "Failed to update");
 
     //     }
@@ -434,7 +433,6 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
             }
 
         } catch (error: any) {
-            console.error("Failed to save:", error);
             toast.error(error.message || "Failed to process update");
         }
     };

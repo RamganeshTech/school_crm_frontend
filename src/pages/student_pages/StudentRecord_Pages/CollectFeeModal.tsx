@@ -139,7 +139,6 @@ export default function CollectFeeModal({
             refetch();
             onClose(); // Close modal last
         } catch (err: any) {
-            console.error("Fee collection failed", err);
             toast.error(err?.message || "Fee collection failed. Please try again.");
         }
     };

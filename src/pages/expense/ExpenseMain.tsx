@@ -179,7 +179,6 @@ export default function ExpenseMain() {
             setWorkProofs([]);
             toast.success("Created Successfully")
         } catch (error: any) {
-            console.error("Failed to add expense", error);
             toast.error(error.message || "failed to create expense")
         }
     };
@@ -194,7 +193,6 @@ export default function ExpenseMain() {
 
             } catch (error: any) {
                 toast.error(error.message || "Failed to Delete.");
-                console.error("Failed to delete expense", error);
             }
         }
     };

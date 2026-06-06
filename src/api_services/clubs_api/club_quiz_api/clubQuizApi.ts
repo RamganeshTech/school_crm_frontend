@@ -39,6 +39,7 @@ export interface CreateAIQuizPayload {
     sectionId?: string;
     academicYear?: string;
     numberOfQuestions?: number;
+    pdfId:string
 }
 
 export interface QuizQueryParams {

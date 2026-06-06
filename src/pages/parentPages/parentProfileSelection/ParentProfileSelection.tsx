@@ -16,11 +16,9 @@ export default function ParentProfileSelection() {
     const { data: studentIds, isLoading: isListLoading, isError } = useGetParentStudents({ userId: _id! });
 
     const handleProfileSelect = (student: any) => {
-        console.log("studentId", student._id, student.currentClassId, student.currentSectionId)
         dispatch(setStudentId(student._id));
         dispatch(setClassId(student.currentClassId?._id || student?.currentClassId || null));
         dispatch(setSectionId(student.currentSectionId?._id || student?.currentSectionId || null));
-
         navigate(`/dashboard/student/record-profile/${student._id}`);
     };
 

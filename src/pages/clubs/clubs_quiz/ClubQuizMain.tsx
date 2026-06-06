@@ -10,6 +10,7 @@ import { Dropdown } from '../../../shared/ui/Dropdown';
 import type { UserRole } from '../../../features/slices/authSlice';
 import UpdateQuizModal from './UpdateQuizModal';
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
+import { useGetSchoolById } from '../../../api_services/schoolConfig_api/schoolapi';
 // import { useGetAllClubQuizzes } from '../../../hooks/useClubQuizHooks'; // Adjust path
 // import Button from '../../../components/ui/Button'; // Adjust path
 // import Spinner from '../../../components/ui/Spinner'; // Adjust path
@@ -17,10 +18,14 @@ import { useRoleCheck } from '../../../hooks/useRoleCheck';
 const CLUB_STAFF_ROLE: UserRole[] = ["correspondent", "administrator", "principal", "viceprincipal", "teacher"]
 
 const ClubQuizMain: React.FC = () => {
-    const { id } = useParams() as { id: string };
+    const { id , videoId} = useParams() as { id: string,videoId:string };
     const navigate = useNavigate();
     const location = useLocation();
-    const { currentRole } = useAuthData();
+    const { currentRole, schoolId } = useAuthData();
+
+    const {data} = useGetSchoolById(schoolId!)
+
+    const currentAcademicYear = data?.currentAcademicYear || ""
 
     const { isAdmin, isCorrespondent, isTeacher } = useRoleCheck()
 
@@ -95,14 +100,14 @@ const ClubQuizMain: React.FC = () => {
 
                 {canModify && (
                     <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                        {/* <Button
+                        <Button
                             variant="outline"
                             leftIcon="fas fa-robot"
                             onClick={() => setIsAIModalOpen(true)}
                             className="cursor-pointer text-xs md:text-sm border-primary text-primary hover:bg-primary/10"
                         >
                             AI Generate
-                        </Button> */}
+                        </Button>
                         <Button
                             variant="primary"
                             leftIcon="fas fa-plus"
@@ -239,7 +244,8 @@ const ClubQuizMain: React.FC = () => {
                     onClose={() => setQuizToUpdate(null)}
                 />
             )}
-            {isAIModalOpen && <AIQuizModal onClose={() => setIsAIModalOpen(false)} clubId={id} />}
+            {isAIModalOpen && <AIQuizModal onClose={() => setIsAIModalOpen(false)} 
+            videoId={videoId} clubId={id} academicYear={currentAcademicYear} />}
         </div>
     );
 };

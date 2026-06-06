@@ -248,7 +248,6 @@ export default function HomeworkMain() {
             });
             toast.success("Attachment deleted successfully");
         } catch (error: any) {
-            // console.error("Failed to delete attachment", error);
             toast.error(error.message || "Failed to delete attachment.");
         }
     };

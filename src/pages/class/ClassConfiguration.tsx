@@ -17,6 +17,7 @@ import { SideModal } from '../../shared/ui/SideModal';
 import { TableContainer, THead, Th, TBody, Tr, Td } from '../../shared/ui/TableLayout';
 import type { RootState } from '../../features/store/store';
 import { useRoleCheck } from '../../hooks/useRoleCheck';
+import { toast } from '../../shared/ui/ToastContext';
 
 export default function ClassConfiguration() {
     // --- Global State ---
@@ -93,9 +94,12 @@ export default function ClassConfiguration() {
                 });
             }
             // refetch()
+            toast.success("Class updated successfully")
+
             closeForm();
-        } catch (error) {
-            console.error("Failed to save class", error);
+        } catch (error: any) {
+            toast.error(error.message || "Something went wrong")
+
         }
     };
 
@@ -104,9 +108,11 @@ export default function ClassConfiguration() {
             try {
                 await deleteClassMutation.mutateAsync(id);
                 // refetch()
+                toast.success("Class Deleted successfully")
 
-            } catch (error) {
-                console.error("Failed to delete class", error);
+            } catch (error: any) {
+                toast.error(error.message || "Something went wrong")
+
             }
         }
     };

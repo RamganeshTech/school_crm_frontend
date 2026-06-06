@@ -43,6 +43,15 @@ export default function StudentMain() {
         sectionId: '',
         page: 1,
         limit: 10,
+
+        isActive: 'true', // Defaults to active students
+        newOld: '',
+        gender: '',
+        bloodGroup: '',
+        admissionNumber: '',
+        admissionDate: '',
+        rollNumber: '',
+        mobileNumber: ''
     });
 
     // // Reset to page 1 whenever the debounced search changes
@@ -153,7 +162,24 @@ export default function StudentMain() {
     };
 
     const clearFilters = () => {
-        setFilters({ search: '', classId: '', sectionId: '', page: 1, limit: 10 });
+        // setFilters({ search: '', classId: '', sectionId: '', page: 1, limit: 10 });
+        setSearchInput('');
+        setFilters({
+            search: '',
+            classId: '',
+            sectionId: '',
+            page: 1,
+            limit: 30,
+            isActive: 'true',
+            newOld: '',
+            gender: '',
+            bloodGroup: '',
+
+            admissionNumber: '',
+            admissionDate: '',
+            rollNumber: '',
+            mobileNumber: ''
+        });
     };
 
     const openCreateForm = () => {
@@ -204,6 +230,14 @@ export default function StudentMain() {
         }
     };
 
+    const handleFilterChange = (key: keyof typeof filters, value: string) => {
+        setFilters(prev => ({
+            ...prev,
+            [key]: value,
+            page: 1 // Reset pagination to page 1 whenever a filter is altered
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         try {
             e.preventDefault();
@@ -250,7 +284,6 @@ export default function StudentMain() {
             refetch();
             closeForm();
         } catch (error: any) {
-            console.error("Failed to save student", error);
             toast.error(error.message || "Operation Failed");
 
         }
@@ -265,7 +298,6 @@ export default function StudentMain() {
                 toast.success("Deleted Successfully!");
 
             } catch (error: any) {
-                console.error("Failed to delete student", error);
                 toast.error(error.message || "Failed to delete student");
 
             }
@@ -407,7 +439,7 @@ export default function StudentMain() {
 
 
                 {/* LEFT PANEL: Filters (Drawer on Mobile, Static on Desktop) */}
-                <div className={`
+                {/* <div className={`
             fixed inset-y-0 left-0 z-50 w-[280px] bg-surface border border-border rounded-xl p-5 flex flex-col gap-5 shadow-2xl transition-transform duration-300 ease-in-out
             lg:static lg:w-[25%] lg:min-w-[250px] lg:shrink-0 lg:rounded-xl lg:shadow-sm lg:translate-x-0 lg:border
             ${isMobileFilterOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -421,11 +453,9 @@ export default function StudentMain() {
                     </div>
 
                     <div className="space-y-4">
-                        {/* <SearchSelect label="Academic Year" options={academicYearOptions} value={filters.academicYear} onChange={(opt) => handleFilterChange('academicYear', String(opt.value))} placeholder="Select Year..." /> */}
                         <Input id="search" label="Search Records" placeholder="Name or Roll No..." leftIcon="fas fa-search" value={searchInput} onChange={handleSearchChange} />
 
                         <div className="grid grid-cols-2 gap-3">
-                            {/* <SearchSelect label="Class" options={classOptions} value={filters.classId} onChange={(opt) => { handleFilterChange('classId', String(opt.value)); handleFilterChange('sectionId', ''); }} placeholder="Class..." /> */}
                             <SearchSelect
                                 label="Class"
                                 options={classOptions}
@@ -434,7 +464,6 @@ export default function StudentMain() {
                                 placeholder="Select Class..."
                             />
                             <div className="relative">
-                                {/* <SearchSelect label="Section" options={sectionOptions} value={filters.sectionId} onChange={(opt) => handleFilterChange('sectionId', String(opt.value))} placeholder="Section..." /> */}
                                 <SearchSelect
                                     label="Section"
                                     options={sectionOptions}
@@ -445,6 +474,88 @@ export default function StudentMain() {
                                 {isSectionsLoading && <i className="fas fa-spinner fa-spin absolute right-3 top-[38px] text-muted text-sm"></i>}
 
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-auto pt-4 border-t border-border">
+                        <Button variant="outline" className="w-full" onClick={clearFilters}>Clear Filters</Button>
+                        <Button variant="primary" className="w-full lg:hidden mt-2" onClick={() => setIsMobileFilterOpen(false)}>Apply</Button>
+                    </div>
+                </div> */}
+
+
+                <div className={`
+    fixed inset-y-0 left-0 z-50 w-[280px] bg-surface border border-border rounded-xl p-5 flex flex-col gap-5 shadow-2xl transition-transform duration-300 ease-in-out
+    lg:static lg:w-[25%] lg:min-w-[250px] lg:shrink-0 lg:rounded-xl lg:shadow-sm lg:translate-x-0 lg:border
+    ${isMobileFilterOpen ? 'translate-x-0' : '-translate-x-full'}
+    overflow-y-auto custom-scrollbar
+`}>
+                    <div className="flex items-center justify-between lg:block border-b border-border pb-2">
+                        <h3 className="font-semibold text-foreground flex items-center gap-2">
+                            <i className="fas fa-filter text-muted"></i> Advanced Filters
+                        </h3>
+                        <button className="lg:hidden text-muted" onClick={() => setIsMobileFilterOpen(false)}>
+                            <i className="fas fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div className="space-y-4">
+                        {/* Core Search & Core Academic Structure */}
+                        <Input id="search" label="Search Records" placeholder="Name or SR ID..." leftIcon="fas fa-search" value={searchInput} onChange={handleSearchChange} />
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <SearchSelect label="Class" options={classOptions} value={filters.classId} onChange={handleClassFilterChange} placeholder="Select Class..." />
+                            <div className="relative">
+                                <SearchSelect label="Section" options={sectionOptions} value={filters.sectionId} onChange={handleSectionFilterChange} placeholder={isSectionsLoading ? "Loading..." : "Select Section..."} />
+                                {isSectionsLoading && <i className="fas fa-spinner fa-spin absolute right-3 top-[38px] text-muted text-sm"></i>}
+                            </div>
+                        </div>
+
+                        <hr className="border-border border-opacity-50" />
+
+                        {/* 🌟 NEW FILTERS SECTION --- */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <Input id="rollNumber" label="Roll No" placeholder="e.g. 12" value={filters.rollNumber} onChange={(e) => handleFilterChange('rollNumber', e.target.value)} />
+                            <Input id="admissionNumber" label="Admission No" placeholder="e.g. 4520" value={filters.admissionNumber} onChange={(e) => handleFilterChange('admissionNumber', e.target.value)} />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <Input id="mobileNumber" label="Mobile Number" placeholder="Search phone..." value={filters.mobileNumber} onChange={(e) => handleFilterChange('mobileNumber', e.target.value)} />
+                            <Input id="admissionDate" type="date" label="Admission Date" value={filters.admissionDate} onChange={(e) => handleFilterChange('admissionDate', e.target.value)} />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <SearchSelect
+                                label="Status"
+                                options={[{ label: 'Active', value: 'true' }, { label: 'Inactive', value: 'false' }]}
+                                value={filters.isActive}
+                                onChange={(opt) => handleFilterChange('isActive', String(opt.value))}
+                                placeholder="Status"
+                            />
+                            <SearchSelect
+                                label="Type"
+                                options={[{ label: 'New', value: 'new' }, { label: 'Old', value: 'old' }]}
+                                value={filters.newOld}
+                                onChange={(opt) => handleFilterChange('newOld', String(opt.value))}
+                                placeholder="New/Old"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <SearchSelect
+                                label="Gender"
+                                options={[{ label: 'Male', value: 'Male' }, { label: 'Female', value: 'Female' }, { label: 'Other', value: 'Other' }]}
+                                value={filters.gender}
+                                onChange={(opt) => handleFilterChange('gender', String(opt.value))}
+                                placeholder="Gender"
+                            />
+                            <SearchSelect
+                                label="Blood Group"
+                                options={['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(bg => ({ label: bg, value: bg }))}
+                                value={filters.bloodGroup}
+                                onChange={(opt) => handleFilterChange('bloodGroup', String(opt.value))}
+                                placeholder="Blood"
+                            />
                         </div>
                     </div>
 
@@ -464,7 +575,7 @@ export default function StudentMain() {
                                 <Th>Student Profile</Th>
                                 <Th>Father's Name</Th>
                                 <Th>DOB</Th>
-                                <Th>Current Section</Th>
+                                <Th>Class/Section</Th>
                                 <Th>Status</Th>
                                 <Th className="text-center">Actions</Th>
                             </tr>
@@ -493,7 +604,7 @@ export default function StudentMain() {
                                 <>
                                     {/* 1. Map through all the students first */}
                                     {students.map((student: any, index: number) => {
-                                        const sectionName = sectionOptions.find(sec => sec.value === student.currentSectionId)?.label || 'Not Assigned';
+                                        // const sectionName = sectionOptions.find(sec => sec.value === student.currentSectionId)?.label || 'Not Assigned';
 
                                         return (
                                             <Tr key={student._id} className="group hover:bg-background/50 transition-colors">
@@ -502,7 +613,7 @@ export default function StudentMain() {
                                                 </Td>
 
                                                 {/* 1. SR-ID & Student Name & Image */}
-                                                <Td>
+                                                <Td className="whitespace-normal">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-10 h-10 rounded-full bg-primary-soft text-primary flex items-center justify-center font-bold text-sm shrink-0 border border-primary/20 overflow-hidden">
                                                             {student.studentImage?.url ? (
@@ -511,9 +622,14 @@ export default function StudentMain() {
                                                                 student.studentName?.charAt(0).toUpperCase() || 'S'
                                                             )}
                                                         </div>
-                                                        <div>
-                                                            <p className="font-semibold text-foreground">{student.studentName}</p>
-                                                            <p className="text-xs text-muted">{student.srId || 'No SR-ID'}</p>
+                                                        <div className="max-w-[100px] min-w-0">
+                                                            {/* 🌟 2. Added break-words and truncate logic */}
+                                                            <p className="font-semibold text-foreground break-words leading-tight">
+                                                                {student.studentName}
+                                                            </p>
+                                                            <p className="text-xs text-muted truncate">
+                                                                {student.srId || 'No SR-ID'}
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 </Td>
@@ -534,9 +650,20 @@ export default function StudentMain() {
 
                                                 {/* 4. Current Section */}
                                                 <Td>
-                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface text-muted border border-border">
-                                                        {sectionName}
-                                                    </span>
+                                                    {/* <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface text-muted border border-border">
+                                                        {student?.currentClassId?.name} / {student?.currentSectionId?.name}
+                                                    </span> */}
+
+                                                    {(student?.currentClassId?.name || student?.currentSectionId?.name) ? (
+                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-surface text-muted border border-border">
+                                                            {/* Logic: Join with ' / ' only if both exist, otherwise just show what's available */}
+                                                            {[student?.currentClassId?.name, student?.currentSectionId?.name]
+                                                                .filter(Boolean) // This removes any null/undefined/empty values
+                                                                .join(' / ')}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-xs text-muted italic">Not Assigned</span>
+                                                    )}
                                                 </Td>
 
                                                 {/* 5. Status (Active/Inactive) */}

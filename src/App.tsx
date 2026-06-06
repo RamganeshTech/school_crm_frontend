@@ -198,7 +198,11 @@ function App() {
                   <Route path="student/pending-task" element={<PendingTaskListMain />} />
 
                   <Route path="student/club" element={<ClubMain />} >
-                    <Route path="single/:id" element={<ClubSingle />} />
+                    <Route path="single/:id" element={<ClubSingle />} >
+                      <Route path="quiz/:videoId" element={<ClubQuizMain />} >
+                        <Route path="attempt/:quizId" element={<ClubQuizAttempt />} />
+                      </Route>
+                    </Route>
                   </Route>
 
                   <Route path="student/markreport/:id" element={<MarkReportConfig />} />
@@ -303,7 +307,7 @@ function App() {
 
                   <Route path="club" element={<ClubMain />}>
                     <Route path="single/:id" element={<ClubSingle />} >
-                      <Route path="quiz" element={<ClubQuizMain />} >
+                      <Route path="quiz/:videoId" element={<ClubQuizMain />} >
                         <Route path="attempt/:quizId" element={<ClubQuizAttempt />} />
                       </Route>
                     </Route>

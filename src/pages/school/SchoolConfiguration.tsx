@@ -107,7 +107,6 @@ export default function SchoolConfiguration() {
             toast.success("Updated Successfully!");
 
         } catch (error: any) {
-            console.error("Failed to update school details", error);
             toast.error(error.message || "Failed to Update");
 
         }
@@ -127,7 +126,6 @@ export default function SchoolConfiguration() {
             toast.success("Updated Successfully!");
 
         } catch (error: any) {
-            console.error("Failed to update logo", error);
             toast.error(error.message || "Failed to Update");
 
         }
@@ -143,8 +141,6 @@ export default function SchoolConfiguration() {
 
         } catch (error: any) {
             toast.error(error.message || "Failed to Update");
-
-            console.error(`Failed to update ${platform}`, error);
         }
     };
 
