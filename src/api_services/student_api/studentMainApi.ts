@@ -221,6 +221,62 @@ export const useUpdateStudent = () => {
   });
 };
 
+
+// Define types for clean autocomplete
+interface UploadFilesPayload {
+  studentId: string;
+  formData: FormData; // Must contain the 'files' array appended via frontend
+}
+
+export const useUploadStudentFiles = () => {
+  const queryClient = useQueryClient();
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async ({ studentId, formData }: UploadFilesPayload) => {
+      try {
+        // 1. Guard route at frontend layer
+        checkPermission(currentRole, ["correspondent", "administrator", "accountant"]);
+
+        // 2. Make the API request with multipart headers
+        // Make sure your backend route includes the /:studentId param we added in the previous step!
+        const { data } = await Api.post<ApiResponse>(
+          `/api/student/v1/upload-files/${studentId}`, 
+          formData, 
+          {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          }
+        );
+
+        if (data.ok) {
+          return data;
+        } else {
+          throw new Error(data.message || 'Failed to upload student files');
+        }
+      } catch (error: any) {
+        const errorMessage = 
+          error.response?.data?.message || 
+          error.message || 
+          'An unexpected error occurred during document upload';
+        throw new Error(errorMessage);
+      }
+    },
+    
+    // 3. Keep cache crisp by invalidating relevant student views
+    onSuccess: (_data, variables) => {
+      // Invalidate the full student list
+      // queryClient.invalidateQueries({ queryKey: ['students', 'list'] });
+      
+      // 🌟 Pro-tip: Also invalidate the single student cache profile if you have one,
+      // so the new uploaded documents immediately pop up on their screen!
+      // queryClient.invalidateQueries({ queryKey: ['student', variables.studentId] });
+      queryClient.invalidateQueries({ queryKey: ['students', 'detail', variables.studentId] });
+
+    },
+  });
+};
+
+
 // ==========================================
 // 5. DELETE STUDENT PROFILE
 // ==========================================
@@ -250,6 +306,46 @@ export const useDeleteStudent = () => {
     },
   });
 };
+
+
+interface DeleteDocumentPayload {
+  studentId: string;
+  documentId: string;
+}
+
+// ==========================================
+// 🌟 DELETE STUDENT DOCUMENT
+// ==========================================
+export const useDeleteStudentDocument = () => {
+  const queryClient = useQueryClient();
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async ({ studentId, documentId }: DeleteDocumentPayload) => {
+      try {
+        checkPermission(currentRole, ["correspondent", "administrator", "accountant"]);
+
+        const { data } = await Api.delete<ApiResponse>(
+            `/api/student/v1/delete-document/${studentId}/${documentId}`
+        );
+
+        if (data.ok) return data;
+        throw new Error(data.message || 'Failed to delete document');
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'Error deleting document';
+        throw new Error(errorMessage);
+      }
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate both the list and the specific student to refresh the UI immediately
+      queryClient.invalidateQueries({ queryKey: ['students', 'list'] });
+      // queryClient.invalidateQueries({ queryKey: ['student', variables.studentId] });
+      queryClient.invalidateQueries({ queryKey: ['students', 'detail', variables.studentId] });
+
+    },
+  });
+};
+
 
 // ==========================================
 // 6. ASSIGN STUDENT TO PARENT

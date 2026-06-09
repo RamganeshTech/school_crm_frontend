@@ -483,12 +483,6 @@ export default function StudentRecordSingle() {
                         <i className="fas fa-wallet text-primary"></i>
                         <h3 className="font-semibold text-foreground">Financial Summary</h3>
                     </div>
-
-
-                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate(`fee-transaction`)}>
-                        <i className="fas fa-goto text-primary"></i>
-                        <h3 className="font-semibold text-foreground">Full View</h3>
-                    </div>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -565,30 +559,38 @@ export default function StudentRecordSingle() {
                     </div>
 
 
-                    {/* Right Side: Total Amount Paid */}
-                    {receipts.length > 0 && (
-                        <div className="flex items-center gap-3 bg-background border-l-4 border-primary px-4 py-2 rounded-r-xl shadow-sm shrink-0">
-                            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shadow-inner">
-                                <i className="fas fa-wallet text-sm"></i>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                    Total Amount
-                                </span>
-                                <span className="text-lg font-bold text-slate-800 leading-tight">
-                                    ₹{totalSuccessfullyPaid.toLocaleString('en-IN')}
-                                </span>
-                            </div>
+                    <div className='flex gap-2'>
+                        {/* Right Side: Total Amount Paid */}
+                        {receipts.length > 0 && (
+                            <div className="flex items-center gap-3 bg-background border-l-4 border-primary px-4 py-2 rounded-r-xl shadow-sm shrink-0">
+                                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+                                    <i className="fas fa-wallet text-sm"></i>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                        Total Amount
+                                    </span>
+                                    <span className="text-lg font-bold text-slate-800 leading-tight">
+                                        ₹{totalSuccessfullyPaid.toLocaleString('en-IN')}
+                                    </span>
+                                </div>
 
-                            <div className="flex flex-col">
-                                {/* <span className="text-[9px] font-bold text-muted uppercase tracking-widest">Transactions</span> */}
-                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                    Transactions
-                                </span>
-                                <span className="text-md font-bold text-foreground">{receipts.length} Receipts</span>
+                                <div className="flex flex-col">
+                                    {/* <span className="text-[9px] font-bold text-muted uppercase tracking-widest">Transactions</span> */}
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                        Transactions
+                                    </span>
+                                    <span className="text-md font-bold text-foreground">{receipts.length} Receipts</span>
+                                </div>
                             </div>
+                        )}
+
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate(`fee-transaction`)}>
+                            {/* <i className="fas fa-goto text-primary"></i> */}
+                            <i className="fas fa-arrow-up-right-from-square text-xs text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"></i>
+                            <h3 className="font-semibold text-foreground">Full View</h3>
                         </div>
-                    )}
+                    </div>
                 </section>
 
                 <div className="overflow-x-auto">

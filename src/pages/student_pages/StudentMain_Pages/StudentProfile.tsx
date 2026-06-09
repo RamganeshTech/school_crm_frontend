@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useGetStudentById, useUpdateStudent } from '../../../api_services/student_api/studentMainApi'; // Adjust paths as needed
+import { useDeleteStudentDocument, useGetStudentById, useUpdateStudent, useUploadStudentFiles } from '../../../api_services/student_api/studentMainApi'; // Adjust paths as needed
 import { Input, Label } from '../../../shared/ui/Input';
 import { Button } from '../../../shared/ui/Button';
 import { SearchSelect } from '../../../shared/ui/SearchSelect';
@@ -9,6 +9,7 @@ import { toast } from '../../../shared/ui/ToastContext';
 import { NO_IMAGE } from '../../../constants/constants';
 import { useSubmitProfileUpdateRequest } from '../../../api_services/student_api/studentProfileUpdateApi';
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
+import { ImageGallery } from '../../../shared/components/ImageGallery';
 
 // ==========================================
 // 1. EXACT TYPES (Mapped from Backend Schema)
@@ -97,6 +98,14 @@ export interface StudentData {
         marksObtainedPercentage?: string;
         daysAttendedLastYear?: string;
     };
+
+    documents: {
+        type: string;
+        key?: string;
+        url?: string;
+        originalName?: string;
+        uploadedAt: string;
+    }[]
 }
 
 // ==========================================
@@ -197,7 +206,8 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
     const { schoolId } = useAuthData()
 
     const { isParent, isAdmin, isCorrespondent, isPrincipal, isAccountant } = useRoleCheck()
-    const canEdit = isAdmin && isCorrespondent && isParent && isAccountant
+    const canEdit = isAdmin || isCorrespondent || isParent || isAccountant
+    const canDeleteDocument = isAdmin || isCorrespondent || isAccountant
 
 
     // --- Queries & Mutations ---
@@ -207,7 +217,7 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
     const student = rawData as StudentData | undefined;
 
     // --- State ---
-    const [activeTab, setActiveTab] = useState<'mandatory' | 'nonMandatory'>('mandatory');
+    const [activeTab, setActiveTab] = useState<'mandatory' | 'nonMandatory' | "documents">('mandatory');
     const [isEditing, setIsEditing] = useState<boolean>(false);
 
     const canEditPendingRequest = isParent || isAdmin || isCorrespondent || isPrincipal
@@ -309,6 +319,52 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
     //     }
     // };
 
+
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+
+    const uploadFilesMutation = useUploadStudentFiles();
+    const deleteDocumentMutation = useDeleteStudentDocument(); // 🌟 Add this
+
+    // 🌟 2. NEW: Upload Handler
+    const handleFileUploadSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!studentId || selectedFiles.length === 0) return;
+
+        const data = new FormData();
+        selectedFiles.forEach((file) => {
+            data.append('files', file); // Matches backend 'upload.array("files")'
+        });
+
+        try {
+            await uploadFilesMutation.mutateAsync({
+                studentId: studentId,
+                formData: data
+            });
+            toast.success("Documents uploaded successfully!");
+            setSelectedFiles([]); // Clear the selection after success
+        } catch (error: any) {
+            toast.error(error.message || "operation failed");
+        }
+    };
+
+    // 🌟 1. Create the Delete Handler
+    const handleDocumentDelete = async (imageOrId: string | { _id: string;[key: string]: any }) => {
+        // Extract the ID safely whether the call passed a string directly (PDFs) or an object (ImageGallery)
+        const documentId = typeof imageOrId === 'string' ? imageOrId : imageOrId._id;
+
+        if (!documentId) return;
+        if (!window.confirm("Are you sure you want to permanently delete this document?")) return;
+
+        try {
+            await deleteDocumentMutation.mutateAsync({
+                studentId: studentId!,
+                documentId: documentId
+            });
+            toast.success("Document deleted successfully.");
+        } catch (error: any) {
+            toast.error(error.message);
+        }
+    };
 
     const handleSave = async () => {
         try {
@@ -588,6 +644,12 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
                 >
                     Non-Mandatory Info
                 </button>
+                <button
+                    onClick={() => setActiveTab('documents')}
+                    className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 whitespace-nowrap ${activeTab === 'documents' ? 'text-primary border-primary' : 'text-muted border-transparent hover:text-foreground'}`}
+                >
+                    <i className="fas fa-folder-open mr-2"></i> Documents
+                </button>
             </div>
 
             {/* --- 3. FLAT, SCROLLABLE CONTENT AREA --- */}
@@ -741,6 +803,164 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
                                 </div>
                             </div>
                         </section>
+                    </div>
+                )}
+
+
+                {activeTab === 'documents' && (
+                    <div className="space-y-8 animate-in fade-in duration-200">
+
+                        {/* --- UPLOAD SECTION (Visible only to authorized editors) --- */}
+                        {canEdit && (
+                            <section>
+                                <h3 className="text-sm font-bold text-primary border-b border-border pb-1.5 mb-4 uppercase tracking-wider flex items-center gap-2">
+                                    <i className="fas fa-cloud-upload-alt"></i> Upload New Documents
+                                </h3>
+
+                                <div className="bg-surface border-2 border-dashed border-border rounded-xl p-6 transition-colors hover:border-primary/50 relative">
+                                    <input
+                                        type="file"
+                                        multiple
+                                        id="doc-upload"
+                                        className="hidden"
+                                        onChange={(e) => setSelectedFiles(Array.from(e.target.files || []))}
+                                    />
+
+                                    <label htmlFor="doc-upload" className="flex flex-col items-center justify-center cursor-pointer text-center w-full">
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                                            <i className="fas fa-file-import text-xl text-primary"></i>
+                                        </div>
+                                        <span className="text-sm font-semibold text-foreground">Click to browse files</span>
+                                        <span className="text-xs text-muted mt-1">Attach admission forms, fee receipts, TCs, or certificates.</span>
+                                    </label>
+
+                                    {/* Selected Files Preview & Submit */}
+                                    {selectedFiles.length > 0 && (
+                                        <div className="mt-6 pt-5 border-t border-border">
+                                            <p className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Selected Files ({selectedFiles.length})</p>
+                                            <ul className="flex flex-col gap-2 mb-4">
+                                                {selectedFiles.map((f, idx) => (
+                                                    <li key={idx} className="flex items-center gap-3 text-sm bg-background border border-border px-3 py-2 rounded-lg">
+                                                        <i className={`fas ${f.type.includes('pdf') ? 'fa-file-pdf text-rose-500' : 'fa-image text-blue-500'}`}></i>
+                                                        <span className="truncate flex-1 text-foreground font-medium">{f.name}</span>
+                                                        <span className="text-xs text-muted">{(f.size / 1024 / 1024).toFixed(2)} MB</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <div className="flex justify-end gap-3">
+                                                <Button variant="outline" size="sm" onClick={() => setSelectedFiles([])}>Clear</Button>
+                                                <Button
+                                                    variant="primary"
+                                                    size="sm"
+                                                    onClick={handleFileUploadSubmit}
+                                                    isLoading={uploadFilesMutation.isPending}
+                                                    leftIcon="fas fa-upload"
+                                                >
+                                                    Upload Files
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* --- DOCUMENT GALLERY SECTION --- */}
+                        <section>
+                            <h3 className="text-sm font-bold text-primary border-b border-border pb-1.5 mb-4 uppercase tracking-wider flex items-center gap-2">
+                                <i className="fas fa-archive"></i> Student Records & Files
+                            </h3>
+
+                            {(!student?.documents || student.documents.length === 0) ? (
+                                <div className="flex flex-col items-center justify-center py-10 bg-background/50 rounded-xl border border-border border-dashed">
+                                    <i className="fas fa-folder-open text-4xl text-muted/30 mb-3"></i>
+                                    <p className="text-sm font-medium text-muted">No documents uploaded yet.</p>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-8">
+
+                                    {/* --- 1. IMAGE PROOFS GALLERY --- */}
+                                    <div>
+                                        <p className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Image Records</p>
+                                        <ImageGallery
+                                            images={student.documents
+                                                .filter((doc: any) => doc.type === "image")
+                                                .map((proof: any) => ({
+                                                    type: 'image',
+                                                    key: proof._id,
+                                                    url: proof.url,
+                                                    originalName: proof.title || 'Student Photo Record',
+                                                    uploadedAt: proof.uploadedAt || new Date()
+                                                }))
+
+                                            }
+                                            // {...(canDeleteDocument ? { handleDelete: handleDocumentDelete } : {})}
+                                            {...(canDeleteDocument ? {
+                                                handleDelete: (imageObj: any) => handleDocumentDelete(imageObj.key || imageObj._id)
+                                            } : {})}
+                                            // Add your delete handler here if required: handleDelete={handleGalleryDelete}
+                                            heightClass="h-32 sm:h-40"
+                                            widthClass="w-full sm:w-48 md:w-52"
+                                        />
+                                    </div>
+
+
+                                    {/* --- 2. PDF DOCUMENTS GRID --- */}
+                                    {student.documents.filter((doc: any) => doc.type === "pdf").length > 0 && (
+                                        <div>
+                                            <p className="text-xs font-bold text-muted uppercase tracking-wider mb-3">PDF Documents</p>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                {student.documents
+                                                    .filter((doc: any) => doc.type === "pdf")
+                                                    .map((doc: any, index: number) => (
+                                                        <div
+                                                            key={doc._id || index}
+                                                            className="group flex items-center justify-between bg-surface border border-border rounded-xl p-3 hover:shadow-sm hover:border-rose-400 transition-all"
+                                                        >
+                                                            {/* Clickable Area to open PDF */}
+                                                            <a
+                                                                href={doc.url}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="flex items-center gap-3 overflow-hidden flex-1 cursor-pointer"
+                                                            >
+                                                                <div className="w-10 h-10 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+                                                                    <i className="fas fa-file-pdf text-xl"></i>
+                                                                </div>
+                                                                <div className="flex flex-col min-w-0 pr-2">
+                                                                    <span className="text-sm font-semibold text-foreground truncate" title={doc.title || "Uploaded Document"}>
+                                                                        {doc.title || `PDF Document ${index + 1}`}
+                                                                    </span>
+                                                                    <span className="text-[10px] text-muted">
+                                                                        {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'Record File'}
+                                                                    </span>
+                                                                </div>
+                                                            </a>
+
+                                                            {/* 🌟 New Action Buttons Area */}
+                                                            <div className="flex items-center gap-1 shrink-0">
+                                                                {canDeleteDocument && (
+                                                                    <button
+                                                                        onClick={() => handleDocumentDelete(doc._id)}
+                                                                        disabled={deleteDocumentMutation.isPending}
+                                                                        className="w-8 h-8 rounded-full bg-background flex items-center justify-center text-muted hover:bg-rose-50 hover:text-rose-500 transition-colors"
+                                                                        title="Delete Document"
+                                                                    >
+                                                                        <i className="fas fa-trash-alt text-xs"></i>
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                }
+                                            </div>
+                                        </div>
+                                    )}
+
+                                </div>
+                            )}
+                        </section>
+
                     </div>
                 )}
             </div>
