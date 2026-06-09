@@ -12,9 +12,9 @@ export default function FeeStructureSingle() {
     const { classId } = useParams();
     const navigate = useNavigate();
     const { schoolId } = useAuthData();
-    const { isAdmin, isCorrespondent } = useRoleCheck()
+    const { isAdmin, isCorrespondent, isAccountant } = useRoleCheck()
 
-    const canModify = isAdmin || isCorrespondent;
+    const canModify = isAdmin || isCorrespondent || isAccountant;
 
     // --- Queries ---
     const { data: classesData } = useGetClasses(schoolId!);
