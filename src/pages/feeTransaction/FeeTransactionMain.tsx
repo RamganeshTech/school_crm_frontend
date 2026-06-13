@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 // UI Components
-import { useGetAllFeeTransactions, useGetFeeTransactionById } from '../../api_services/feeTransaction_api/feeTransactionApi';
+import { useGetAllFeeTransactions, useGetFeeTransactionById, useUpdateFeeReceiptStatus } from '../../api_services/feeTransaction_api/feeTransactionApi';
 
 // UI Components
 import { TableContainer, THead, Th, TBody, Tr, Td } from '../../shared/ui/TableLayout';
@@ -10,6 +10,7 @@ import { SideModal } from '../../shared/ui/SideModal';
 import { Button } from '../../shared/ui/Button';
 import { Input } from '../../shared/ui/Input';
 import { SearchSelect } from '../../shared/ui/SearchSelect';
+import { toast } from '../../shared/ui/ToastContext';
 
 export default function FeeTransactionMain() {
     const { studentId } = useParams<{ studentrecordId: string; studentId: string }>();
@@ -20,6 +21,11 @@ export default function FeeTransactionMain() {
         isLoading,
         isError
     } = useGetAllFeeTransactions(studentId);
+
+    const updateStatusMutation = useUpdateFeeReceiptStatus();
+   const [statusUpdateMode, setStatusUpdateMode] = useState<boolean>(false);
+    const [updateRemarks, setUpdateRemarks] = useState<string>('');
+    const [selectedStatus, setSelectedStatus] = useState<string>(''); // NEW STATE
 
     // 2. Frontend Filter State
     const [filters, setFilters] = useState({
@@ -71,11 +77,47 @@ export default function FeeTransactionMain() {
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
+        setStatusUpdateMode(false); // 🌟 Reset mode
+        setUpdateRemarks('');
         setTimeout(() => setSelectedTxnId(null), 300);
     };
 
     const handleFilterChange = (key: string, value: string) => {
         setFilters(prev => ({ ...prev, [key]: value }));
+    };
+
+   // 🌟 Dedicated Handler for Status Update
+    const handleStatusUpdate = async () => {
+        if (!selectedStatus) {
+            return toast.error("Please select a status to update.");
+        }
+
+        // 🌟 Safeguard warning for BOTH bounced and cancelled
+        if (selectedStatus === 'bounced' || selectedStatus === 'cancelled') {
+            const actionText = selectedStatus === 'bounced' ? 'bounced' : 'cancelled';
+            if (!window.confirm(`Marking this transaction as ${actionText} will reverse the fee payment and update the student's dues. Continue?`)) {
+                return;
+            }
+        }
+
+        try {
+            // Using mutateAsync to properly catch errors in the block
+            await updateStatusMutation.mutateAsync({ 
+                id: singleTxn?._id!, 
+                status: selectedStatus, 
+                remarks: updateRemarks 
+            });
+            
+            toast.success(`Transaction successfully marked as ${selectedStatus}.`);
+            
+            // Clean up and close panel on success
+            setStatusUpdateMode(false);
+            setSelectedStatus('');
+            setUpdateRemarks('');
+            
+        } catch (error: any) {
+            toast.error(error.message || "Failed to update transaction status.");
+        }
     };
 
     // --- Dropdown Options ---
@@ -87,6 +129,13 @@ export default function FeeTransactionMain() {
         { label: 'Cancelled', value: 'cancelled' },
         { label: 'Draft', value: 'draft' }
     ];
+
+    const updateActionOptions = [
+        { label: 'Cleared (Success)', value: 'success' },
+        { label: 'Bounced (Failed)', value: 'bounced' },
+        { label: 'Cancelled', value: 'cancelled' }
+    ];
+
 
     const paymentModeOptions = [
         { label: 'All Modes', value: '' },
@@ -278,188 +327,6 @@ export default function FeeTransactionMain() {
             {/* =========================================================
                 RECEIPT DETAILS MODAL
             ========================================================= */}
-            {/* <SideModal isOpen={isModalOpen} onClose={handleCloseModal} title="Transaction Details">
-
-                
-                
-                <div className="flex flex-col h-full">
-                    {isSingleLoading ? (
-                        <div className="flex-1 flex flex-col items-center justify-center text-muted">
-                            <i className="fas fa-circle-notch fa-spin text-3xl text-primary mb-4"></i>
-                            <p className="text-sm font-medium">Retrieving receipt data...</p>
-                        </div>
-                    ) : !singleTxn ? (
-                        <div className="flex-1 flex flex-col items-center justify-center text-muted text-sm">
-                            <i className="fas fa-file-excel text-3xl mb-3 opacity-30"></i>
-                            <p>Receipt details not available.</p>
-                        </div>
-                    ) : (
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6 pb-6 animate-in fade-in duration-200">
-                            
-                            
-                            <div className="flex flex-col items-center justify-center p-6 bg-background border border-border rounded-xl text-center shadow-sm relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-[100px] pointer-events-none"></div>
-                                <div className="absolute bottom-0 left-0 w-16 h-16 bg-success/5 rounded-tr-[100px] pointer-events-none"></div>
-                                
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl mb-3 shadow-sm ${singleTxn.status === 'success' ? 'bg-success/10 text-success border border-success/20' : 'bg-warning/10 text-warning border border-warning/20'}`}>
-                                    <i className={`fas ${singleTxn.status === 'success' ? 'fa-check' : 'fa-exclamation'}`}></i>
-                                </div>
-                                <h3 className="text-3xl font-bold text-foreground tracking-tight">₹{singleTxn.amountPaid?.toLocaleString()}</h3>
-                                <p className="text-[10px] text-muted font-bold uppercase tracking-[0.2em] mt-1">{singleTxn.status} Payment</p>
-                            </div>
-
-                            
-                            <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-sm">
-                                <div className="px-4 py-3 border-b border-border bg-background/50 flex items-center gap-2">
-                                    <i className="fas fa-info-circle text-muted text-xs"></i>
-                                    <h4 className="text-xs font-bold text-muted uppercase tracking-wider">Transaction Info</h4>
-                                </div>
-                                <div className="p-4 space-y-4 text-sm">
-                                    <div className="flex justify-between items-center border-b border-border/50 pb-3">
-                                        <span className="text-muted text-xs">Receipt No.</span>
-                                        <span className="font-bold text-primary bg-primary/5 px-2 py-1 rounded border border-primary/10">{singleTxn.receiptNo}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center border-b border-border/50 pb-3">
-                                        <span className="text-muted text-xs">Date & Time</span>
-                                        <span className="font-medium text-foreground">
-                                            {new Date(singleTxn.paymentDate || singleTxn.createdAt).toLocaleString('en-IN', {
-                                                dateStyle: 'medium', timeStyle: 'short'
-                                            })}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center border-b border-border/50 pb-3">
-                                        <span className="text-muted text-xs">Payment Mode</span>
-                                        <span className="font-medium text-foreground capitalize flex items-center gap-2">
-                                            {singleTxn.paymentMode ? singleTxn.paymentMode.replace('_', ' ') : 'N/A'}
-                                        </span>
-                                    </div>
-
-                                    {(singleTxn.paymentMode === 'cheque' || singleTxn.paymentMode === 'bank_transfer' || singleTxn.paymentMode === 'upi') && (
-                                        <div className="bg-background border border-border p-3 rounded-lg space-y-2 mt-2">
-                                            {singleTxn.referenceNumber && (
-                                                <div className="flex justify-between text-xs">
-                                                    <span className="text-muted">Ref/Cheque No:</span>
-                                                    <span className="font-semibold text-foreground">{singleTxn.referenceNumber}</span>
-                                                </div>
-                                            )}
-                                            {singleTxn.bankName && (
-                                                <div className="flex justify-between text-xs">
-                                                    <span className="text-muted">Bank Name:</span>
-                                                    <span className="font-semibold text-foreground">{singleTxn.bankName}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            
-                            {singleTxn.allocation && singleTxn.allocation.length > 0 && (
-                                <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-sm">
-                                    <div className="px-4 py-3 border-b border-border bg-background/50 flex items-center gap-2">
-                                        <i className="fas fa-list-ul text-muted text-xs"></i>
-                                        <h4 className="text-xs font-bold text-muted uppercase tracking-wider">Fee Allocation</h4>
-                                    </div>
-                                    <div className="p-4 space-y-3 text-sm">
-                                        {singleTxn.allocation.map((alloc: any, index: number) => (
-                                            <div key={index} className="flex justify-between items-center">
-                                                <span className="text-muted text-xs font-medium">{alloc.feeHead || 'General Fee'}</span>
-                                                <span className="font-medium text-foreground">₹{alloc.amount?.toLocaleString()}</span>
-                                            </div>
-                                        ))}
-                                        <div className="pt-3 mt-2 border-t border-dashed border-border flex justify-between items-center">
-                                            <span className="font-bold text-foreground text-xs uppercase tracking-wider">Total Allocated</span>
-                                            <span className="font-bold text-foreground">₹{singleTxn.amountPaid?.toLocaleString()}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            
-                            {singleTxn.proofUpload && singleTxn.proofUpload.length > 0 && (
-                                <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-sm">
-                                    <div className="px-4 py-3 border-b border-border bg-background/50 flex items-center gap-2">
-                                        <i className="fas fa-paperclip text-muted text-xs"></i>
-                                        <h4 className="text-xs font-bold text-muted uppercase tracking-wider">Attached Proofs</h4>
-                                    </div>
-                                    <div className="p-4 grid grid-cols-2 gap-3">
-                                        {singleTxn.proofUpload.map((doc: any, index: number) => (
-                                            <a 
-                                                key={index} 
-                                                href={doc.url} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="flex items-center gap-2 p-2 border border-border rounded-lg hover:bg-background transition-colors group"
-                                            >
-                                                <div className="w-8 h-8 rounded bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-inverse transition-colors">
-                                                    <i className={`fas ${doc.type === 'pdf' ? 'fa-file-pdf' : 'fa-image'}`}></i>
-                                                </div>
-                                                <div className="truncate">
-                                                    <p className="text-xs font-semibold text-foreground truncate">{doc.originalName || 'Document'}</p>
-                                                    <p className="text-[10px] text-muted capitalize">{doc.type}</p>
-                                                </div>
-                                            </a>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            
-                            {singleTxn.paymentMode === 'cash' && singleTxn.cashDenominations && singleTxn.cashDenominations.length > 0 && (
-                                <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-sm">
-                                    <div className="px-4 py-3 border-b border-border bg-background/50 flex items-center gap-2">
-                                        <i className="fas fa-money-bill text-muted text-xs"></i>
-                                        <h4 className="text-xs font-bold text-muted uppercase tracking-wider">Cash Breakdown</h4>
-                                    </div>
-                                    <div className="p-4">
-                                        <div className="flex flex-wrap gap-2">
-                                            {singleTxn.cashDenominations.map((denom: any, index: number) => {
-                                                if (denom.count === 0) return null;
-                                                return (
-                                                    <div key={index} className="flex items-center gap-1.5 bg-background border border-border px-2 py-1 rounded shadow-sm">
-                                                        <span className="font-semibold text-success text-xs">₹{denom.label}</span>
-                                                        <span className="text-[10px] text-muted">x</span>
-                                                        <span className="font-bold text-foreground text-xs">{denom.count}</span>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            
-                            {singleTxn.remarks && (
-                                <div className="p-4 bg-warning/5 border border-warning/20 rounded-xl shadow-sm">
-                                    <p className="text-xs text-warning-800 font-bold uppercase tracking-wider mb-1">
-                                        <i className="fas fa-comment-dots mr-1.5"></i>Remarks
-                                    </p>
-                                    <p className="text-sm text-foreground">{singleTxn.remarks}</p>
-                                </div>
-                            )}
-
-                        </div>
-                    )}
-
-                    
-                    <div className="shrink-0 pt-4 border-t border-border mt-auto flex justify-end gap-3 bg-surface z-10">
-                        <Button variant="outline" onClick={handleCloseModal}>Close</Button>
-                        <Button 
-                            variant="primary" 
-                            leftIcon="fas fa-print" 
-                            disabled={isSingleLoading || !singleTxn}
-                            onClick={() => window.print()}
-                        >
-                            Print Receipt
-                        </Button>
-                    </div>
-                </div>
-            </SideModal> */}
-
-
-            {/* =========================================================
-                RECEIPT DETAILS MODAL
-            ========================================================= */}
             <SideModal isOpen={isModalOpen} onClose={handleCloseModal} title="Transaction Details">
 
                 {/* LOCALIZED PRINT STYLES - Only affects this specific receipt print */}
@@ -529,6 +396,77 @@ export default function FeeTransactionMain() {
                                 <h3 className="text-3xl font-bold text-foreground tracking-tight">₹{singleTxn.amountPaid?.toLocaleString()}</h3>
                                 <p className="text-[10px] text-muted font-bold uppercase tracking-[0.2em] mt-1">{singleTxn.status} Payment</p>
                             </div>
+
+                            {/* 🌟 Status Update Panel (Only for Pending Cheques/Transfers) */}
+                            {/* 🌟 Status Update Panel (Only for Pending Cheques/Transfers) */}
+                            {singleTxn.status === 'pending' && (singleTxn.paymentMode === 'cheque' || singleTxn.paymentMode === 'bank_transfer') && (
+                                <div className="bg-warning/10 border border-warning/30 rounded-xl p-4 shadow-sm print:hidden">
+                                    <h4 className="text-xs font-bold text-warning-800 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <i className="fas fa-tasks"></i> Pending Verification
+                                    </h4>
+                                    <p className="text-xs text-muted mb-4">Update the status once the {singleTxn.paymentMode.replace('_', ' ')} has cleared or bounced.</p>
+                                    
+                                    {!statusUpdateMode ? (
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            className="w-full text-warning-800 border-warning-800 hover:bg-warning hover:text-white"
+                                            onClick={() => setStatusUpdateMode(true)}
+                                        >
+                                            Update Status
+                                        </Button>
+                                    ) : (
+                                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                            
+                                            {/* Container to make inputs look neat together */}
+                                            <div className="bg-surface rounded-lg border border-border p-3 space-y-3">
+                                                <SearchSelect
+                                                    label="Select New Status"
+                                                    placeholder="Choose action..."
+                                                    options={updateActionOptions}
+                                                    value={selectedStatus}
+                                                    onChange={(opt: any) => setSelectedStatus(opt?.value || '')}
+                                                />
+
+                                                <Input
+                                                    id="statusRemarks"
+                                                    label="Remarks (Optional)"
+                                                    placeholder="Add reference or bounce reason..."
+                                                    value={updateRemarks}
+                                                    onChange={(e) => setUpdateRemarks(e.target.value)}
+                                                />
+                                            </div>
+
+                                            {/* Action Buttons */}
+                                            <div className="flex gap-2">
+                                                <Button 
+                                                    variant="primary" 
+                                                    size="sm" 
+                                                    className="flex-1"
+                                                    isLoading={updateStatusMutation.isPending}
+                                                    disabled={!selectedStatus}
+                                                    onClick={handleStatusUpdate}
+                                                >
+                                                    <i className="fas fa-save mr-2"></i> Save Update
+                                                </Button>
+                                                <Button 
+                                                    variant="outline" 
+                                                    size="sm" 
+                                                    className="flex-1"
+                                                    onClick={() => {
+                                                        setStatusUpdateMode(false);
+                                                        setSelectedStatus('');
+                                                        setUpdateRemarks('');
+                                                    }}
+                                                    disabled={updateStatusMutation.isPending}
+                                                >
+                                                    Cancel
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* 2. Core Transaction Details Box */}
                             <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-sm">

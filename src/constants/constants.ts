@@ -101,6 +101,7 @@ const baseManagementMenu: MenuItem[] = [
     { name: 'Announcement', path: "/dashboard/announcement", icon: 'fas fa-bullhorn' },
     { name: 'Clubs', path: "/dashboard/club", icon: 'fas fa-layer-group' },
     { name: 'Fee Structure', path: "/dashboard/fee-structure", icon: 'fas fa-coins' },
+    { name: 'Fee Config', path: "/dashboard/fee-configuration", icon: 'fas fa-sliders' },
     { name: 'Mark report', path: "/dashboard/markreport", icon: 'fas fa-file-invoice' },
     { name: 'Mark report Configuration', path: "/dashboard/markreport-config", icon: 'fas fa-file-invoice' },
 ];
@@ -157,6 +158,8 @@ export const accountantMenu: MenuItem[] = [
     { name: 'Expense', path: "/dashboard/expense", icon: 'fas fa-file-invoice-dollar' },
     { name: 'Finance', path: "/dashboard/finance", icon: 'fas fa-book-open' },
     { name: 'Fee Structure', path: "/dashboard/fee-structure", icon: 'fas fa-coins' },
+    // { name: 'Fee Config', path: "/dashboard/fee-configuration", icon: 'fas fa-coins-settings' },
+    { name: 'Fee Config', path: "/dashboard/fee-configuration", icon: 'fas fa-sliders' },
     // { name: 'Subscription', path: "/dashboard/subscription", icon: 'fas fa-crown' },
 ];
 

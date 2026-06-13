@@ -929,10 +929,10 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
                                                                 </div>
                                                                 <div className="flex flex-col min-w-0 pr-2">
                                                                     <span className="text-sm font-semibold text-foreground truncate" title={doc.title || "Uploaded Document"}>
-                                                                        {doc.title || `PDF Document ${index + 1}`}
+                                                                        {doc?.originalName || `PDF Document ${index + 1}`}
                                                                     </span>
                                                                     <span className="text-[10px] text-muted">
-                                                                        {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'Record File'}
+                                                                        {doc?.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'Record File'}
                                                                     </span>
                                                                 </div>
                                                             </a>

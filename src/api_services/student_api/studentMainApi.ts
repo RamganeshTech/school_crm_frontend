@@ -357,7 +357,7 @@ export const useAssignStudentToParent = () => {
   return useMutation({
     mutationFn: async (payload: AssignRemoveStudentParams) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator"]);
+        checkPermission(currentRole, ["correspondent", "administrator", "accountant"]);
 
         const { data } = await Api.put<ApiResponse>(`/api/student/assignstudent`, payload);
 
@@ -387,7 +387,7 @@ export const useRemoveStudentFromParent = () => {
   return useMutation({
     mutationFn: async (payload: AssignRemoveStudentParams) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator"]);
+        checkPermission(currentRole, ["correspondent", "administrator", "accountant"]);
 
         const { data } = await Api.put<ApiResponse>(`/api/student/removestudent`, payload);
 

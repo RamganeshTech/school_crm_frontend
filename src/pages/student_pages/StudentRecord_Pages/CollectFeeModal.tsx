@@ -4,7 +4,7 @@ import { Input, Label } from '../../../shared/ui/Input'; // Adjust path
 import { Button } from '../../../shared/ui/Button'; // Adjust path
 import { Toggle } from '../../../shared/ui/Toggle'; // Adjust path
 import { toast } from '../../../shared/ui/ToastContext'; // Adjust path
-import { useCollectFee } from '../../../api_services/student_api/studentRecordApi';
+import {  useCollectFeev1 } from '../../../api_services/student_api/studentRecordApi';
 // import { useCollectFeeAndManageRecord } from '../../../api_services/feeStructure_api/feeStructureApi'; // Adjust path to actual mutation hook
 
 interface CollectFeeModalProps {
@@ -14,6 +14,8 @@ interface CollectFeeModalProps {
     studentId: string;
     record: any; // The student record data
     refetch: () => void;
+    feeConfig: { feeHeads: string[] } | null;  // add this
+
 }
 
 export default function CollectFeeModal({
@@ -22,16 +24,20 @@ export default function CollectFeeModal({
     schoolId,
     studentId,
     record,
-    refetch
+    refetch,
+    feeConfig
 }: CollectFeeModalProps) {
-    const collectFeeMutation = useCollectFee(); // Replace with your actual hook name
+    // const collectFeeMutation = useCollectFee(); // Replace with your actual hook name
+    const collectFeeMutation = useCollectFeev1(); // Replace with your actual hook name
+
+    console.log("feeConfig student record", feeConfig)
 
     // Safe extraction of nested IDs
     const actualStudentId = typeof record?.studentId === 'object' ? record?.studentId?._id : record?.studentId;
     const actualClassId = typeof record?.classId === 'object' ? record?.classId?._id : record?.classId;
     const actualSectionId = typeof record?.sectionId === 'object' ? record?.sectionId?._id : record?.sectionId;
 
-    const fDues = record?.dues;
+    const fDues = record?.duesv1;
 
     // --- State Management ---
     const [feeData, setFeeData] = useState({
@@ -42,14 +48,20 @@ export default function CollectFeeModal({
         chequeDate: '',
         remarks: '',
         manualDueAllocation: false,
-        paidHeads: {
-            admissionFee: 0,
-            firstTermAmt: 0,
-            secondTermAmt: 0,
-            busFirstTermAmt: 0,
-            busSecondTermAmt: 0
-        }
+        // paidHeads: {
+        //     admissionFee: 0,
+        //     firstTermAmt: 0,
+        //     secondTermAmt: 0,
+        //     busFirstTermAmt: 0,
+        //     busSecondTermAmt: 0
+        // }
+
+        paidHeads: {} as Record<string, number>
+
     });
+
+
+    
 
     const [denominations, setDenominations] = useState({
         notes500: 0, notes200: 0, notes100: 0, notes50: 0, notes20: 0, notes10: 0
@@ -68,7 +80,7 @@ export default function CollectFeeModal({
         (denominations.notes50 * 50) +
         (denominations.notes20 * 20) +
         (denominations.notes10 * 10);
-        
+
     const isCashValid = feeData.paymentMode === 'cash' ? calculatedCashTotal === Number(feeData.amount) : true;
 
     const canSubmit = Number(feeData.amount) > 0 && isManualValid && isCashValid;
@@ -112,7 +124,7 @@ export default function CollectFeeModal({
             formData.append('referenceNumber', feeData.referenceNumber);
             formData.append('bankName', feeData.bankName);
             // Must strictly match the 'cheque' value from the select options
-            if (feeData.paymentMode === 'cheque') { 
+            if (feeData.paymentMode === 'cheque') {
                 formData.append('chequeDate', feeData.chequeDate);
             }
         }
@@ -126,15 +138,17 @@ export default function CollectFeeModal({
 
         try {
             await collectFeeMutation.mutateAsync(formData);
-            
+
             // Reset everything on success
             setFeeData({
                 amount: '', paymentMode: 'cash', referenceNumber: '', bankName: '', chequeDate: '', remarks: '', manualDueAllocation: false,
-                paidHeads: { admissionFee: 0, firstTermAmt: 0, secondTermAmt: 0, busFirstTermAmt: 0, busSecondTermAmt: 0 }
+                // paidHeads: { admissionFee: 0, firstTermAmt: 0, secondTermAmt: 0, busFirstTermAmt: 0, busSecondTermAmt: 0 }
+                paidHeads: {}
+
             });
             setFeeFiles(null);
             setDenominations({ notes500: 0, notes200: 0, notes100: 0, notes50: 0, notes20: 0, notes10: 0 });
-            
+
             toast.success("Fee collected successfully!");
             refetch();
             onClose(); // Close modal last
@@ -142,6 +156,8 @@ export default function CollectFeeModal({
             toast.error(err?.message || "Fee collection failed. Please try again.");
         }
     };
+
+    const totalDues = feeConfig?.feeHeads?.reduce((sum, head) => sum + Number(fDues?.[head] ?? 0), 0) ?? 0;
 
     // Performance Optimization: If modal is closed, don't render its heavy contents
     // if (!isOpen) return null;
@@ -153,8 +169,12 @@ export default function CollectFeeModal({
 
                     {/* Summary Box */}
                     <div className="bg-primary-soft/50 border border-primary/20 rounded-xl p-4 mb-2">
-                        <p className="text-sm font-semibold text-foreground">
+                        {/* <p className="text-sm font-semibold text-foreground">
                             Total Dues Available: ₹{(fDues?.admissionDues || 0) + (fDues?.firstTermDues || 0) + (fDues?.secondTermDues || 0) + (record?.isBusApplicable ? (fDues?.busfirstTermDues || 0) + (fDues?.busSecondTermDues || 0) : 0)}
+                        </p> */}
+
+                        <p className="text-sm font-semibold text-foreground">
+                            Total Dues Available: ₹{totalDues}
                         </p>
                     </div>
 
@@ -183,7 +203,7 @@ export default function CollectFeeModal({
                                     </span>
                                 </div>
 
-                                {fDues?.admissionDues > 0 && (
+                                {/* {fDues?.admissionDues > 0 && (
                                     <Input id="m_adm" type="number" label={`Admission Fee (Max ₹${fDues.admissionDues})`} value={feeData.paidHeads.admissionFee || ''} onChange={(e) => setFeeData({ ...feeData, paidHeads: { ...feeData.paidHeads, admissionFee: Number(e.target.value) } })} max={fDues.admissionDues} />
                                 )}
                                 {fDues?.firstTermDues > 0 && (
@@ -197,7 +217,27 @@ export default function CollectFeeModal({
                                 )}
                                 {record?.isBusApplicable && fDues?.busSecondTermDues > 0 && (
                                     <Input id="m_b2" type="number" label={`Bus Second Term (Max ₹${fDues.busSecondTermDues})`} value={feeData.paidHeads.busSecondTermAmt || ''} onChange={(e) => setFeeData({ ...feeData, paidHeads: { ...feeData.paidHeads, busSecondTermAmt: Number(e.target.value) } })} max={fDues.busSecondTermDues} />
-                                )}
+                                )} */}
+
+
+                                {feeConfig?.feeHeads?.map((head) => {
+                                    const due = Number(fDues?.[head] ?? 0);
+                                    // if (due <= 0) return null;
+                                    return (
+                                        <Input
+                                            key={head}
+                                            id={`m_${head}`}
+                                            type="number"
+                                            label={`${head} (Max ₹${due})`}
+                                            value={feeData.paidHeads[head] || ''}
+                                            onChange={(e) => setFeeData({
+                                                ...feeData,
+                                                paidHeads: { ...feeData.paidHeads, [head]: Math.max(0, Number(e.target.value)) }
+                                            })}
+                                            max={due}
+                                        />
+                                    );
+                                })}
 
                                 {!isManualValid && feeData.amount && (
                                     <div className="flex items-center gap-2 mt-2 text-xs text-danger bg-danger/5 p-2 rounded border border-danger/20">
@@ -255,9 +295,9 @@ export default function CollectFeeModal({
                     {/* --- BANK / CHEQUE UI --- */}
                     {(feeData.paymentMode === 'bank_transfer' || feeData.paymentMode === 'upi' || feeData.paymentMode === 'cheque') && (
                         <div className="space-y-4 bg-background border border-border rounded-xl p-4">
-                            <Input id="referenceNumber" label="Reference / Cheque Number" value={feeData.referenceNumber} onChange={(e) => setFeeData({ ...feeData, referenceNumber: e.target.value })} required />
+                            <Input id="referenceNumber" label={feeData.paymentMode === 'upi' ? "Upi ID" : "Reference / Cheque Number"} value={feeData.referenceNumber} onChange={(e) => setFeeData({ ...feeData, referenceNumber: e.target.value })} required />
                             <Input id="bankName" label="Bank Name" value={feeData.bankName} onChange={(e) => setFeeData({ ...feeData, bankName: e.target.value })} required />
-                            
+
                             {feeData.paymentMode === 'cheque' && (
                                 <Input id="chequeDate" type="date" label="Cheque Date" value={feeData.chequeDate} onChange={(e) => setFeeData({ ...feeData, chequeDate: e.target.value })} required />
                             )}
@@ -266,7 +306,7 @@ export default function CollectFeeModal({
 
                     {/* --- UPLOADS & REMARKS --- */}
                     <div className="flex flex-col gap-1.5">
-                        <Label>Upload Attachments (Optional)</Label>
+                        <Label>Upload Bill/Attachments (Optional)</Label>
                         <input type="file" multiple onChange={(e) => setFeeFiles(e.target.files)} className="w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-soft file:text-primary cursor-pointer" />
                     </div>
                     <Input id="remarks" label="Remarks / Note" value={feeData.remarks} onChange={(e) => setFeeData({ ...feeData, remarks: e.target.value })} />

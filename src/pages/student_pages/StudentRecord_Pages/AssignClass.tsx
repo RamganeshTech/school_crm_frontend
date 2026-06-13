@@ -9,7 +9,7 @@ import { SideModal } from '../../../shared/ui/SideModal'; // Adjust path
 import { useGetClasses } from '../../../api_services/schoolConfig_api/classApi';
 import { useGetSections } from '../../../api_services/schoolConfig_api/sectionApi';
 // Import your mutations (replace with your actual hook names/paths)
-import { useAssignStudentToClass, useRemoveStudentFromClass } from '../../../api_services/student_api/studentRecordApi';
+import { useAssignStudentToClassV1, useRemoveStudentFromClassV1 } from '../../../api_services/student_api/studentRecordApi';
 import { toast } from '../../../shared/ui/ToastContext';
 import { Toggle } from '../../../shared/ui/Toggle';
 import { getAcademicYears } from '../../../utils/utils';
@@ -35,8 +35,12 @@ export default function AssignClass({ isOpen, onClose, record, schoolId, refetch
     });
 
     // --- Mutations ---
-    const assignClassMutation = useAssignStudentToClass(); // Use your actual hook
-    const removeClassMutation = useRemoveStudentFromClass(); // Use your actual hook
+    // const assignClassMutation = useAssignStudentToClass(); // Use your actual hook
+    // const removeClassMutation = useRemoveStudentFromClass(); // Use your actual hook
+
+    const assignClassMutation = useAssignStudentToClassV1(); // Use your actual hook
+    const removeClassMutation = useRemoveStudentFromClassV1(); // Use your actual hook
+
 
     // --- Data Fetching ---
     const { data: classesData } = useGetClasses(schoolId);

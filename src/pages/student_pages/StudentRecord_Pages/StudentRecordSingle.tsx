@@ -7,9 +7,11 @@ import { type RootState } from '../../../features/store/store';
 import {
     useGetStudentRecordByIdV1,
     useToggleStudentRecordStatus,
-    useApplyConcession,
-    useRevertFeeTransaction,
+    // useApplyConcession,
+    // useRevertFeeTransaction,
     useVerifyConcession,
+    useRevertFeeTransactionv1,
+    useApplyConcessionv1,
 } from '../../../api_services/student_api/studentRecordApi';
 
 import { useGetClasses } from '../../../api_services/schoolConfig_api/classApi';
@@ -25,6 +27,7 @@ import AssignClass from './AssignClass';
 import CollectFeeModal from './CollectFeeModal';
 import { getAcademicYears } from '../../../utils/utils';
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
+import { useGetFeeConfig } from './../../../api_services/feeStructure_api/feeStructureConfigApi';
 
 export default function StudentRecordSingle() {
     const { studentId } = useParams() as { studentId: string }
@@ -50,12 +53,15 @@ export default function StudentRecordSingle() {
     // --- Data Fetching ---
     // const { data: record, isLoading, isError, refetch } = useGetStudentRecordById(schoolId!, studentId);
     const { data: record, isLoading, isError, refetch } = useGetStudentRecordByIdV1(schoolId!, studentId, selectedAcademicYear);
+    const { data: feeConfig } = useGetFeeConfig(schoolId!);
 
     // Mutations
     const toggleStatusMutation = useToggleStudentRecordStatus();
 
-    const applyConcessionMutation = useApplyConcession();
-    const revertFeeMutation = useRevertFeeTransaction();
+    // const applyConcessionMutation = useApplyConcession();
+    const applyConcessionMutation = useApplyConcessionv1();
+    // const revertFeeMutation = useRevertFeeTransaction();
+    const revertFeeMutation = useRevertFeeTransactionv1();
     const verifyMutation = useVerifyConcession();
 
     // --- Modal States ---
@@ -72,7 +78,7 @@ export default function StudentRecordSingle() {
         classId: record?.classId || '',
         sectionId: record?.sectionId || '',
         newOld: record?.newOld || "new",
-        isBusApplicable: record?.isBusApplicable || false,
+        // isBusApplicable: record?.isBusApplicable || false,
         busPoint: ''
     });
 
@@ -83,17 +89,29 @@ export default function StudentRecordSingle() {
     const isRecordCreated = !!record?._id;
 
     // Safe extraction with fallbacks
-    const fStruct = record?.feeStructure || {};
-    const fPaid = record?.feePaid || {};
-    const fDues = record?.dues || {};
+    // const fStruct = record?.feeStructure || {};
+    // const fPaid = record?.feePaid || {};
+    // const fDues = record?.dues || {};
+
+
+    // REPLACE WITH:
+    const fStruct = record?.feeStructurev1 || {};
+    const fPaid = record?.feePaidv1 || {};
+    const fDues = record?.duesv1 || {};
+    const orderedHeads: string[] = feeConfig?.feeHeads || [];
+
+    console.log("fStruct", fStruct);
+    console.log("fDues", fDues);
+    console.log("orderedHeads", orderedHeads);
+
     const concession = record?.concession || {};
     const receipts = record?.receipts || [];
     const profileImgUrl = record?.studentImage?.url || record?.studentId?.studentImage?.url;
     const actualRollNumber = record?.rollNumber || record?.nonMandatory?.rollNumber || 'N/A';
 
     // 🛑 THE FIX: Safely extract IDs whether they are populated objects or raw strings
-    const actualClassId = typeof record?.classId === 'object' ? record?.classId?._id : record?.classId;
-    const actualSectionId = typeof record?.sectionId === 'object' ? record?.sectionId?._id : record?.sectionId;
+    // const actualClassId = typeof record?.classId === 'object' ? record?.classId?._id : record?.classId;
+    // const actualSectionId = typeof record?.sectionId === 'object' ? record?.sectionId?._id : record?.sectionId;
     // const actualStudentId = typeof record?.studentId === 'object' ? record?.studentId?._id : record?.studentId;
 
     // Use populated names if the flat string fields are missing
@@ -137,10 +155,10 @@ export default function StudentRecordSingle() {
         if (concessionFile) formData.append('file', concessionFile);
 
         formData.append('newOld', concessionData.newOld);
-        formData.append('isBusApplicable', String(concessionData.isBusApplicable));
-        if (concessionData.isBusApplicable) {
-            formData.append('busPoint', concessionData.busPoint);
-        }
+        // formData.append('isBusApplicable', String(concessionData.isBusApplicable));
+        // if (concessionData.isBusApplicable) {
+        // }
+        formData.append('busPoint', concessionData.busPoint);
 
         // --- APPEND INITIALIZATION DATA IF RECORD IS GHOST ---
         if (!isRecordCreated) {
@@ -377,10 +395,10 @@ export default function StudentRecordSingle() {
                             <p className="font-medium text-foreground text-sm mt-0.5">
                                 {displayClassName} - {displaySectionName}
                             </p>
-                            <div className="mt-1 space-y-0.5">
+                            {/* <div className="mt-1 space-y-0.5">
                                 <p className="text-[10px] text-muted/70 truncate" title={actualClassId}>Class ID: {actualClassId || 'N/A'}</p>
                                 <p className="text-[10px] text-muted/70 truncate" title={actualSectionId}>Section ID: {actualSectionId || 'N/A'}</p>
-                            </div>
+                            </div> */}
                         </div>
 
                         <div>
@@ -390,10 +408,10 @@ export default function StudentRecordSingle() {
                         </div>
 
                         <div className="col-span-2 flex flex-wrap gap-3 pt-2 border-t border-border/50">
-                            <span className={`px-2.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 ${record?.isBusApplicable ? 'bg-primary-soft text-primary border-primary/20' : 'bg-surface text-muted border-border'}`}>
+                            {/* <span className={`px-2.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 ${record?.isBusApplicable ? 'bg-primary-soft text-primary border-primary/20' : 'bg-surface text-muted border-border'}`}>
                                 <i className={`fas fa-bus ${record?.isBusApplicable ? 'text-primary' : 'text-muted/50'}`}></i>
                                 Bus Subscriber: {record?.isBusApplicable ? 'Yes' : 'No'}
-                            </span>
+                            </span> */}
                             <span className={`px-2.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 ${record?.isFullyPaid ? 'bg-success/10 text-success border-success/20' : 'bg-surface text-muted border-border'}`}>
                                 <i className={`fas fa-check-double ${record?.isFullyPaid ? 'text-success' : 'text-muted/50'}`}></i>
                                 Fully Paid: {record?.isFullyPaid ? 'Yes' : 'No'}
@@ -496,7 +514,7 @@ export default function StudentRecordSingle() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
-                            <tr className="hover:bg-background/50 transition-colors">
+                            {/* <tr className="hover:bg-background/50 transition-colors">
                                 <td className="px-4 py-3 font-medium text-foreground">Admission Fee</td>
                                 <td className="px-4 py-3 text-right">₹{fStruct?.admissionFee || 0}</td>
                                 <td className="px-4 py-3 text-right text-success font-medium">₹{fPaid?.admissionFee || 0}</td>
@@ -529,9 +547,20 @@ export default function StudentRecordSingle() {
                                         <td className="px-4 py-3 text-right text-danger font-medium">₹{fDues?.busSecondTermDues || 0}</td>
                                     </tr>
                                 </>
-                            )}
-                            {/* TOTALS ROW */}
-                            <tr className="bg-primary-soft/30 border-t-2 border-border">
+                            )} */}
+
+
+                            {orderedHeads.map((head) => (
+                                <tr key={head} className="hover:bg-background/50 transition-colors">
+                                    <td className="px-4 py-3 font-medium text-foreground">{head}</td>
+                                    <td className="px-4 py-3 text-right">₹{fStruct?.[head] ?? 0}</td>
+                                    <td className="px-4 py-3 text-right text-success font-medium">₹{fPaid?.[head] ?? 0}</td>
+                                    <td className="px-4 py-3 text-right text-danger font-medium">₹{fDues?.[head] ?? 0}</td>
+                                </tr>
+                            ))}
+
+
+                            {/* <tr className="bg-primary-soft/30 border-t-2 border-border">
                                 <td className="px-4 py-4 font-bold text-foreground">Grand Total</td>
                                 <td className="px-4 py-4 text-right font-bold">
                                     ₹{(fStruct?.admissionFee || 0) + (fStruct?.firstTermAmt || 0) + (fStruct?.secondTermAmt || 0) + (record?.isBusApplicable ? (fStruct?.busFirstTermAmt || 0) + (fStruct?.busSecondTermAmt || 0) : 0)}
@@ -541,6 +570,20 @@ export default function StudentRecordSingle() {
                                 </td>
                                 <td className="px-4 py-4 text-right text-danger font-bold">
                                     ₹{(fDues?.admissionDues || 0) + (fDues?.firstTermDues || 0) + (fDues?.secondTermDues || 0) + (record?.isBusApplicable ? (fDues?.busfirstTermDues || 0) + (fDues?.busSecondTermDues || 0) : 0)}
+                                </td>
+                            </tr> */}
+
+                            {/* Grand Total row — replace all the hardcoded additions: */}
+                            <tr className="bg-primary-soft/30 border-t-2 border-border">
+                                <td className="px-4 py-4 font-bold text-foreground">Grand Total</td>
+                                <td className="px-4 py-4 text-right font-bold">
+                                    ₹{orderedHeads.reduce((sum, h) => sum + Number(fStruct?.[h] ?? 0), 0)}
+                                </td>
+                                <td className="px-4 py-4 text-right text-success font-bold">
+                                    ₹{orderedHeads.reduce((sum, h) => sum + Number(fPaid?.[h] ?? 0), 0)}
+                                </td>
+                                <td className="px-4 py-4 text-right text-danger font-bold">
+                                    ₹{orderedHeads.reduce((sum, h) => sum + Number(fDues?.[h] ?? 0), 0)}
                                 </td>
                             </tr>
                         </tbody>
@@ -685,6 +728,7 @@ export default function StudentRecordSingle() {
                 studentId={studentId!}
                 record={record}
                 refetch={refetch}
+                feeConfig={feeConfig!}
             />
 
 
@@ -767,6 +811,17 @@ export default function StudentRecordSingle() {
                             </div>
                         </div>
 
+                        <div className="flex items-start gap-2.5 bg-primary-soft/30 border border-primary/20 rounded-xl p-3.5 mt-1 animate-in fade-in duration-200">
+                            <i className="fas fa-info-circle text-primary text-sm mt-0.5 shrink-0"></i>
+                            <div className="flex flex-col gap-0.5">
+                                <p className="text-xs font-bold text-foreground">Deferred Allocation Rule</p>
+                                <p className="text-[10px] text-muted leading-relaxed">
+                                    {/* This concession will not change the master ledger balance immediately. The discount waterfall will apply dynamically during the student's first fee collection transaction. */}
+                                    This concession will not be applied to the student's balance right away. The amount will automatically adjust when you collect their first fee payment.
+                                </p>
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-4">
                             <Input
                                 id="value"
@@ -790,7 +845,7 @@ export default function StudentRecordSingle() {
                         </div>
 
                         <div className="flex flex-col gap-1.5 p-4 border border-border bg-surface rounded-xl">
-                            <Label>Upload Proof Document (Optional)</Label>
+                            <Label>Upload Proof Document</Label>
                             <input
                                 type="file"
                                 onChange={(e) => setConcessionFile(e.target.files ? e.target.files[0] : null)}
@@ -812,7 +867,7 @@ export default function StudentRecordSingle() {
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-1.5">
+                        {/* <div className="flex flex-col gap-1.5">
                             <Label>Bus Facility</Label>
                             <div className="flex bg-white rounded-lg border border-warning/30 p-1">
                                 <label className={`flex-1 text-center py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-colors ${concessionData.isBusApplicable ? 'bg-warning text-white' : 'text-warning-700 hover:bg-warning/10'}`}>
@@ -824,12 +879,14 @@ export default function StudentRecordSingle() {
                                     No
                                 </label>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
 
-                    {concessionData.isBusApplicable && (
-                        <Input id="busPoint" label="Bus Point Location" placeholder="e.g., Main Street" value={concessionData.busPoint} onChange={(e) => setConcessionData({ ...concessionData, busPoint: e.target.value })} required />
-                    )}
+                    {/* {concessionData.isBusApplicable && (
+
+                    )} */}
+
+                    <Input id="busPoint" label="Bus Point Location" placeholder="e.g., Main Street" value={concessionData.busPoint} onChange={(e) => setConcessionData({ ...concessionData, busPoint: e.target.value })} />
 
                     <div className="mt-auto pt-6 flex justify-end gap-3 border-t border-border">
                         <Button type="button" variant="outline" onClick={() => setIsConcessionModalOpen(false)} className="cursor-pointer">Cancel</Button>

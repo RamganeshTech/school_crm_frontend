@@ -258,6 +258,41 @@ export const useApplyConcession = () => {
   });
 };
 
+
+
+// ==========================================
+// 3. APPLY CONCESSION (Requires FormData for upload.single)
+// ==========================================
+export const useApplyConcessionv1 = () => {
+  const queryClient = useQueryClient();
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async (formData: FormData) => {
+      try {
+        checkPermission(currentRole, ["correspondent", "accountant", "principal", "administrator"]);
+
+        const { data } = await Api.post<ApiResponse>('/api/studentrecord/v1/applyconcession', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        if (data.ok) {
+          return data;
+        } else {
+          throw new Error(data.message || 'Failed to apply concession');
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['studentRecords'] });
+    },
+  });
+};
+
+
 // ==========================================
 // 4. UPDATE CONCESSION DETAILS (JSON)
 // ==========================================
@@ -271,6 +306,37 @@ export const useUpdateConcessionDetails = () => {
         checkPermission(currentRole, ["correspondent", "accountant", "principal", "administrator"]);
 
         const { data } = await Api.put<ApiResponse>('/api/studentrecord/updatevalue', payload);
+
+        if (data.ok) {
+          return data;
+        } else {
+          throw new Error(data.message || 'Failed to update concession details');
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['studentRecords'] });
+    },
+  });
+};
+
+
+// ==========================================
+// 4. UPDATE CONCESSION DETAILS (JSON)
+// ==========================================
+export const useUpdateConcessionDetailsv1 = () => {
+  const queryClient = useQueryClient();
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async (payload: UpdateConcessionParams) => {
+      try {
+        checkPermission(currentRole, ["correspondent", "accountant", "principal", "administrator"]);
+
+        const { data } = await Api.put<ApiResponse>('/api/studentrecord/v1/updatevalue', payload);
 
         if (data.ok) {
           return data;
@@ -381,6 +447,41 @@ export const useCollectFee = () => {
   });
 };
 
+
+
+// ==========================================
+// 6. COLLECT FEE (Requires FormData for upload.array)
+// ==========================================
+export const useCollectFeev1 = () => {
+  const queryClient = useQueryClient();
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async (formData: FormData) => {
+      try {
+        checkPermission(currentRole, ["correspondent", "accountant"]);
+
+        const { data } = await Api.post<ApiResponse>('/api/studentrecord/v1/collectfee', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        if (data.ok) {
+          return data;
+        } else {
+          throw new Error(data.message || 'Failed to collect fee');
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['studentRecords'] });
+      // You may also want to invalidate receipt queries if you have them
+    },
+  });
+};
+
 // ==========================================
 // 7. REVERT RECEIPT TRANSACTION
 // ==========================================
@@ -410,6 +511,39 @@ export const useRevertFeeTransaction = () => {
     },
   });
 };
+
+
+
+// ==========================================
+// 7. REVERT RECEIPT TRANSACTION
+// ==========================================
+export const useRevertFeeTransactionv1 = () => {
+  const queryClient = useQueryClient();
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async (payload: RevertReceiptParams) => {
+      try {
+        checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+
+        const { data } = await Api.put<ApiResponse>('/api/studentrecord/v1/revertreceipt', payload);
+
+        if (data.ok) {
+          return data;
+        } else {
+          throw new Error(data.message || 'Failed to revert fee transaction');
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['studentRecords'] });
+    },
+  });
+};
+
 
 // ==========================================
 // 8. ASSIGN STUDENT TO CLASS
@@ -441,10 +575,42 @@ export const useAssignStudentToClass = () => {
   });
 };
 
+
+
+// ==========================================
+// 8. ASSIGN STUDENT TO CLASS
+// ==========================================
+export const useAssignStudentToClassV1 = () => {
+  const queryClient = useQueryClient();
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async (payload: AssignStudentParams) => {
+      try {
+        checkPermission(currentRole, ["correspondent", "administrator"]);
+
+        const { data } = await Api.put<ApiResponse>('/api/studentrecord/v1/assign', payload);
+
+        if (data.ok) {
+          return data;
+        } else {
+          throw new Error(data.message || 'Failed to assign student to class');
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['studentRecords'] });
+    },
+  });
+};
+
 // ==========================================
 // 9. REMOVE STUDENT FROM CLASS
 // ==========================================
-export const useRemoveStudentFromClass = () => {
+export const useRemoveStudentFromClassV1 = () => {
   const queryClient = useQueryClient();
   const { currentRole } = useAuthData();
 
@@ -453,7 +619,7 @@ export const useRemoveStudentFromClass = () => {
       try {
         checkPermission(currentRole, ["correspondent", "administrator"]);
 
-        const { data } = await Api.put<ApiResponse>('/api/studentrecord/remove', payload);
+        const { data } = await Api.put<ApiResponse>('/api/studentrecord/v1/remove', payload);
 
         if (data.ok) {
           return data;

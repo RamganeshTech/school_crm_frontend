@@ -1,7 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuthData } from '../../hooks/useAuthData';
 import { checkPermission } from '../../utils/utils';
 import { Api } from '../../lib/api';
+import { queryClient } from '../../lib/queryClient';
 
 
 
@@ -85,7 +86,7 @@ export const useGetAllFeeTransactions = (studentId: string | undefined) => {
                 // Passing the studentRecordId as a query parameter.
                 // NOTE: Make sure your backend controller uses req.query.recordId (or studentRecordId) to filter!
                 const { data } = await Api.get<GetAllFeeTransactionsResponse>(`/api/fee/receipt/getall`, {
-                    params: { studentId: studentId } 
+                    params: { studentId: studentId }
                 });
 
                 if (data.ok) {
@@ -131,6 +132,39 @@ export const useGetFeeTransactionById = (transactionId: string | null) => {
             }
         },
         // Only fetch when a transaction is explicitly clicked/selected
-        enabled: !!transactionId, 
+        enabled: !!transactionId,
+    });
+};
+
+
+export const useUpdateFeeReceiptStatus = () => {
+    const { currentRole } = useAuthData();
+
+    return useMutation({
+        mutationFn: async ({ id, status, remarks }: { id: string, status: string, remarks?: string }) => {
+
+            try {
+                // Access control mirroring the backend route
+                checkPermission(currentRole, [
+                    "correspondent", "administrator", "accountant",
+                ]);
+
+                // const { data } = await Api.get<GetFeeTransactionByIdResponse>(`/api/fee/receipt/get/${transactionId}`);
+
+                const { data } = await Api.patch(`/api/fee/receipt/v1/update-status/${id}`, { status, remarks });
+                if (!data.ok) throw new Error(data.message || 'Failed to update status');
+                return data.data;
+
+
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage);
+            }
+        },
+        onSuccess: (_, variable) => {
+            // Refetch transactions to instantly update the UI table and modal
+            queryClient.invalidateQueries({ queryKey: ['feeTransactions', 'list'] });
+            queryClient.invalidateQueries({ queryKey: ['feeTransaction', 'single', variable.id] });
+        },
     });
 };

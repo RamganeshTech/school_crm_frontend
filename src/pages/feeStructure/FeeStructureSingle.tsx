@@ -4,9 +4,10 @@ import { useAuthData } from '../../hooks/useAuthData';
 import { useGetClasses } from '../../api_services/schoolConfig_api/classApi';
 import { useGetFeeStructureByClass, useSetFeeStructure } from '../../api_services/feeStructure_api/feeStructureApi';
 import { toast } from '../../shared/ui/ToastContext';
-import { Input, Label } from '../../shared/ui/Input';
+import { Input } from '../../shared/ui/Input';
 import { Button } from '../../shared/ui/Button';
 import { useRoleCheck } from '../../hooks/useRoleCheck';
+import { useGetFeeConfig } from '../../api_services/feeStructure_api/feeStructureConfigApi';
 
 export default function FeeStructureSingle() {
     const { classId } = useParams();
@@ -17,8 +18,35 @@ export default function FeeStructureSingle() {
     const canModify = isAdmin || isCorrespondent || isAccountant;
 
     // --- Queries ---
+    // const { data: classesData } = useGetClasses(schoolId!);
+    // const { data: feeStructures, isLoading } = useGetFeeStructureByClass(schoolId!, classId);
+    // const setFeeMutation = useSetFeeStructure();
+
+    // // --- Class Name Helper ---
+    // const className = useMemo(() => {
+    //     return classesData?.find((c: any) => c._id === classId)?.name || 'Unknown Class';
+    // }, [classesData, classId]);
+
+    // // --- UI State ---
+    // // Toggle between editing New Student vs Old Student fees
+    // const [activeTab, setActiveTab] = useState<'new' | 'old'>('new');
+
+    // const [feeData, setFeeData] = useState({
+    //     admissionFee: '',
+    //     firstTermAmt: '',
+    //     secondTermAmt: '',
+    //     busFirstTermAmt: '',
+    //     busSecondTermAmt: ''
+    // });
+
+    // --- Queries ---
     const { data: classesData } = useGetClasses(schoolId!);
-    const { data: feeStructures, isLoading } = useGetFeeStructureByClass(schoolId!, classId);
+    const { data: feeStructures, isLoading: isFeesLoading } = useGetFeeStructureByClass(schoolId!, classId);
+    
+    // 🌟 Fetch global config to know which inputs to generate
+    const { data: configData, isLoading: _isConfigLoading } = useGetFeeConfig(schoolId!);
+    const globalFeeHeads: string[] = useMemo(() => configData?.feeHeads || [], [configData]);
+
     const setFeeMutation = useSetFeeStructure();
 
     // --- Class Name Helper ---
@@ -27,39 +55,86 @@ export default function FeeStructureSingle() {
     }, [classesData, classId]);
 
     // --- UI State ---
-    // Toggle between editing New Student vs Old Student fees
     const [activeTab, setActiveTab] = useState<'new' | 'old'>('new');
 
-    const [feeData, setFeeData] = useState({
-        admissionFee: '',
-        firstTermAmt: '',
-        secondTermAmt: '',
-        busFirstTermAmt: '',
-        busSecondTermAmt: ''
-    });
+    // 🌟 Dynamic state to hold all fee amounts based on config
+    const [feeData, setFeeData] = useState<Record<string, string>>({});
+
+    // // --- Sync Data when switching tabs or loading ---
+    // useEffect(() => {
+    //     if (feeStructures) {
+    //         const targetData = feeStructures.find((f: any) => f.type === activeTab);
+    //         if (targetData && targetData.feeHead) {
+    //             setFeeData({
+    //                 admissionFee: targetData.feeHead.admissionFee?.toString() || '',
+    //                 firstTermAmt: targetData.feeHead.firstTermAmt?.toString() || '',
+    //                 secondTermAmt: targetData.feeHead.secondTermAmt?.toString() || '',
+    //                 busFirstTermAmt: targetData.feeHead.busFirstTermAmt?.toString() || '',
+    //                 busSecondTermAmt: targetData.feeHead.busSecondTermAmt?.toString() || ''
+    //             });
+    //         } else {
+    //             // Reset if no data exists for this type yet
+    //             setFeeData({ admissionFee: '', firstTermAmt: '', secondTermAmt: '', busFirstTermAmt: '', busSecondTermAmt: '' });
+    //         }
+    //     }
+    // }, [feeStructures, activeTab]);
+
+    // // --- Handlers ---
+    // const handleInputChange = (field: string, value: string) => {
+    //     // Only allow numbers
+    //     if (value === '' || /^\d+$/.test(value)) {
+    //         setFeeData(prev => ({ ...prev, [field]: value }));
+    //     }
+    // };
+
+    // const handleSubmit = async (e: React.FormEvent) => {
+    //     e.preventDefault();
+    //     try {
+    //         await setFeeMutation.mutateAsync({
+    //             schoolId: schoolId!,
+    //             classId: classId!,
+    //             type: activeTab,
+    //             feeHead: {
+    //                 admissionFee: Number(feeData.admissionFee) || 0,
+    //                 firstTermAmt: Number(feeData.firstTermAmt) || 0,
+    //                 secondTermAmt: Number(feeData.secondTermAmt) || 0,
+    //                 busFirstTermAmt: Number(feeData.busFirstTermAmt) || 0,
+    //                 busSecondTermAmt: Number(feeData.busSecondTermAmt) || 0
+    //             }
+    //         });
+    //         toast.success(`Fee structure for ${activeTab.toUpperCase()} students saved!`);
+    //     } catch (error: any) {
+    //         toast.error(error.message || "Failed to save fee structure");
+    //     }
+    // };
+
+    // // Auto-calculate preview total
+    // const previewTotal =
+    //     (Number(feeData.admissionFee) || 0) +
+    //     (Number(feeData.firstTermAmt) || 0) +
+    //     (Number(feeData.secondTermAmt) || 0) +
+    //     (Number(feeData.busFirstTermAmt) || 0) +
+    //     (Number(feeData.busSecondTermAmt) || 0);
 
     // --- Sync Data when switching tabs or loading ---
     useEffect(() => {
-        if (feeStructures) {
-            const targetData = feeStructures.find((f: any) => f.type === activeTab);
-            if (targetData && targetData.feeHead) {
-                setFeeData({
-                    admissionFee: targetData.feeHead.admissionFee?.toString() || '',
-                    firstTermAmt: targetData.feeHead.firstTermAmt?.toString() || '',
-                    secondTermAmt: targetData.feeHead.secondTermAmt?.toString() || '',
-                    busFirstTermAmt: targetData.feeHead.busFirstTermAmt?.toString() || '',
-                    busSecondTermAmt: targetData.feeHead.busSecondTermAmt?.toString() || ''
-                });
-            } else {
-                // Reset if no data exists for this type yet
-                setFeeData({ admissionFee: '', firstTermAmt: '', secondTermAmt: '', busFirstTermAmt: '', busSecondTermAmt: '' });
-            }
+        if (globalFeeHeads.length > 0) {
+            const targetData = feeStructures?.find((f: any) => f.type === activeTab);
+            const newFeeData: Record<string, string> = {};
+
+            // Safely look for feeHeads property
+            const savedHeads = targetData?.feeHeads || {};
+
+            globalFeeHeads.forEach(head => {
+                newFeeData[head] = savedHeads[head] !== undefined ? savedHeads[head].toString() : '';
+            });
+            
+            setFeeData(newFeeData);
         }
-    }, [feeStructures, activeTab]);
+    }, [feeStructures, activeTab, globalFeeHeads]);
 
     // --- Handlers ---
     const handleInputChange = (field: string, value: string) => {
-        // Only allow numbers
         if (value === '' || /^\d+$/.test(value)) {
             setFeeData(prev => ({ ...prev, [field]: value }));
         }
@@ -67,32 +142,36 @@ export default function FeeStructureSingle() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (globalFeeHeads.length === 0) return toast.error("Global fee configuration is empty.");
+
+        // Build the dynamic payload object
+        const submittedFeeHeads: Record<string, number> = {};
+        globalFeeHeads.forEach(head => {
+            submittedFeeHeads[head] = Number(feeData[head]) || 0;
+        });
+
         try {
             await setFeeMutation.mutateAsync({
                 schoolId: schoolId!,
                 classId: classId!,
                 type: activeTab,
-                feeHead: {
-                    admissionFee: Number(feeData.admissionFee) || 0,
-                    firstTermAmt: Number(feeData.firstTermAmt) || 0,
-                    secondTermAmt: Number(feeData.secondTermAmt) || 0,
-                    busFirstTermAmt: Number(feeData.busFirstTermAmt) || 0,
-                    busSecondTermAmt: Number(feeData.busSecondTermAmt) || 0
-                }
-            });
+                feeHead: submittedFeeHeads // 🌟 Sending dynamic object to backend
+            } as any); 
+            
             toast.success(`Fee structure for ${activeTab.toUpperCase()} students saved!`);
         } catch (error: any) {
             toast.error(error.message || "Failed to save fee structure");
         }
     };
 
-    // Auto-calculate preview total
-    const previewTotal =
-        (Number(feeData.admissionFee) || 0) +
-        (Number(feeData.firstTermAmt) || 0) +
-        (Number(feeData.secondTermAmt) || 0) +
-        (Number(feeData.busFirstTermAmt) || 0) +
-        (Number(feeData.busSecondTermAmt) || 0);
+    // 🌟 Auto-calculate preview total dynamically
+    const previewTotal = useMemo(() => {
+        return Object.values(feeData).reduce((sum, val) => sum + (Number(val) || 0), 0);
+    }, [feeData]);
+
+    // Helper to format labels cleanly on the UI
+    const toTitleCase = (str: string) => str.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
 
     return (
@@ -140,7 +219,7 @@ export default function FeeStructureSingle() {
                         </button>
                     </div>
 
-                    {isLoading ? (
+                    {isFeesLoading ? (
                         <div className="flex justify-center py-20"><i className="fas fa-circle-notch fa-spin text-primary text-3xl"></i></div>
                     ) : (
                         <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col md:flex-row">
@@ -151,7 +230,7 @@ export default function FeeStructureSingle() {
                                     Define {activeTab.toUpperCase()} Student Heads
                                 </h3>
 
-                                <div className="space-y-4 sm:space-y-5">
+                                {/* <div className="space-y-4 sm:space-y-5">
                                     <Input
                                         label="Admission Fee (₹)"
                                         value={feeData.admissionFee}
@@ -159,7 +238,6 @@ export default function FeeStructureSingle() {
                                         placeholder="0"
                                     />
 
-                                    {/* FIX: Changed to grid-cols-1 sm:grid-cols-2 so inputs stack on tiny mobile screens */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <Input
                                             label="First Term Fee (₹)"
@@ -177,7 +255,6 @@ export default function FeeStructureSingle() {
 
                                     <div className="pt-4 border-t border-border">
                                         <Label className="mb-3 block text-muted">Bus Transportation Fees</Label>
-                                        {/* FIX: Stack on mobile, side-by-side on sm+ */}
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <Input
                                                 label="Bus First Term (₹)"
@@ -192,6 +269,21 @@ export default function FeeStructureSingle() {
                                                 placeholder="0"
                                             />
                                         </div>
+                                    </div>
+                                </div> */}
+
+                                <div className="space-y-4 sm:space-y-5">
+                                    {/* 🌟 Dynamic Inputs Grid */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {globalFeeHeads.map((head) => (
+                                            <Input
+                                                key={head}
+                                                label={`${toTitleCase(head)} (₹)`}
+                                                value={feeData[head] || ''}
+                                                onChange={(e) => handleInputChange(head, e.target.value)}
+                                                placeholder="0"
+                                            />
+                                        ))}
                                     </div>
                                 </div>
 
@@ -208,7 +300,7 @@ export default function FeeStructureSingle() {
                             </form>
 
                             {/* PREVIEW SUMMARY SECTION */}
-                            <div className="w-full md:w-[35%] lg:w-1/3 bg-sub-header p-5 sm:p-6 md:p-8 flex flex-col">
+                            {/* <div className="w-full md:w-[35%] lg:w-1/3 bg-sub-header p-5 sm:p-6 md:p-8 flex flex-col">
                                 <h3 className="text-[10px] sm:text-xs font-bold text-muted uppercase tracking-widest mb-4 sm:mb-6">Live Preview</h3>
 
                                 <div className="flex-1 space-y-3 sm:space-y-4 text-xs sm:text-sm">
@@ -240,7 +332,28 @@ export default function FeeStructureSingle() {
                                         ₹{previewTotal.toLocaleString('en-IN')}
                                     </p>
                                 </div>
-                            </div>
+                            </div> */}
+
+                            <div className="flex-1 space-y-3 sm:space-y-4 text-xs sm:text-sm p-5 sm:p-6 md:p-8 ">
+                                    {/* 🌟 Dynamic Preview Rows */}
+                                    {globalFeeHeads.map((head) => {
+                                        return (
+                                            <div key={head} className="flex justify-between text-muted">
+                                                <span className="font-medium capitalize">{head}</span>
+                                                <span className="font-bold text-foreground">
+                                                    ₹{Number(feeData[head] || 0).toLocaleString('en-IN')}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+
+                                     <div className="mt-6 pt-4 sm:pt-5 border-t-2 border-dashed border-border">
+                                    <p className="text-[9px] sm:text-[10px] text-muted font-bold uppercase tracking-widest mb-1">Calculated Total</p>
+                                    <p className="text-2xl sm:text-3xl font-bold text-primary">
+                                        ₹{previewTotal.toLocaleString('en-IN')}
+                                    </p>
+                                </div>
+                                </div>
 
                         </div>
                     )}

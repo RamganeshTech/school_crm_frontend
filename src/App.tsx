@@ -20,6 +20,7 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
+const FeeStructureConfig  = lazy(() => import('./pages/feeStructure_config/FeeStructureConfig'));
 const AttendanceAnalyticsDashboard = lazy(() => import('./pages/attendance/AttendanceAnalyticsDashboard'));
 const AttendanceSchoolWideYearlyAnalytics = lazy(() => import('./pages/attendance/components/AttendaceSchoolWideYearlyAnalytics'));
 const AttendanceClassSpecificYearlyAnalytics = lazy(() => import('./pages/attendance/components/AttendanceClassSpecificYearlyAnalytics'));
@@ -264,6 +265,8 @@ function App() {
                   <Route path="fee-structure" element={<FeeStructureMain />}>
                     <Route path="single/:classId" element={<FeeStructureSingle />} />
                   </Route>
+                  <Route path="fee-configuration" element={<FeeStructureConfig />}/>
+
 
                 </Route>
 
@@ -271,7 +274,7 @@ function App() {
                   <Route path="subscription" element={<SubscriptionMain />} />
                 </Route>
 
-
+ 
 
                 {/* ========================================== */}
                 {/* STAFF: ACADEMIC & MANAGEMENT               */}
