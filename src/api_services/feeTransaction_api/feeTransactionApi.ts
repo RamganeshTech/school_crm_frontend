@@ -70,7 +70,7 @@ export interface GetFeeTransactionByIdResponse {
 // ==========================================
 // HOOK 1: GET ALL TRANSACTIONS BY RECORD ID
 // ==========================================
-export const useGetAllFeeTransactions = (studentId: string | undefined) => {
+export const useGetAllFeeTransactions = ({studentId, schoolId}:{studentId: string | undefined, schoolId:string}) => {
     const { currentRole } = useAuthData();
 
     return useQuery({
@@ -86,7 +86,7 @@ export const useGetAllFeeTransactions = (studentId: string | undefined) => {
                 // Passing the studentRecordId as a query parameter.
                 // NOTE: Make sure your backend controller uses req.query.recordId (or studentRecordId) to filter!
                 const { data } = await Api.get<GetAllFeeTransactionsResponse>(`/api/fee/receipt/getall`, {
-                    params: { studentId: studentId }
+                    params: { studentId: studentId, schoolId: schoolId }
                 });
 
                 if (data.ok) {

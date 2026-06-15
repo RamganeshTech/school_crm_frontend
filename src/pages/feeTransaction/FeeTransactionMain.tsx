@@ -11,16 +11,18 @@ import { Button } from '../../shared/ui/Button';
 import { Input } from '../../shared/ui/Input';
 import { SearchSelect } from '../../shared/ui/SearchSelect';
 import { toast } from '../../shared/ui/ToastContext';
+import { useAuthData } from '../../hooks/useAuthData';
 
 export default function FeeTransactionMain() {
     const { studentId } = useParams<{ studentrecordId: string; studentId: string }>();
 
+    const {schoolId} = useAuthData()
     // 1. Table State (Backend Data)
     const {
         data: transactions,
         isLoading,
         isError
-    } = useGetAllFeeTransactions(studentId);
+    } = useGetAllFeeTransactions({studentId, schoolId:schoolId!});
 
     const updateStatusMutation = useUpdateFeeReceiptStatus();
    const [statusUpdateMode, setStatusUpdateMode] = useState<boolean>(false);
@@ -604,7 +606,7 @@ export default function FeeTransactionMain() {
                     {/* --- Modal Actions (ADDED print:hidden) --- */}
                     <div className="shrink-0 pt-4 border-t border-border mt-auto flex justify-end gap-3 bg-surface z-10 print:hidden">
                         <Button variant="outline" onClick={handleCloseModal}>Close</Button>
-                        <Button
+                        {/* <Button
                             variant="primary"
                             leftIcon="fas fa-print"
                             disabled={isSingleLoading || !singleTxn}
@@ -613,7 +615,7 @@ export default function FeeTransactionMain() {
                             }}
                         >
                             Print Receipt
-                        </Button>
+                        </Button> */}
                     </div>
                 </div>
             </SideModal>

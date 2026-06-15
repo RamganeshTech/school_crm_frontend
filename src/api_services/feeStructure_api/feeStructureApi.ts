@@ -208,7 +208,7 @@ export const useGetAllFeeStructures = (schoolId: string | undefined) => {
         queryFn: async () => {
             try {
                 checkPermission(currentRole, VIEW_ROLES);
-                const { data } = await Api.get<BaseResponse<IFeeStructure[]>>('/api/feestructure/v1/getall', {
+                const { data } = await Api.get<BaseResponse<IFeeStructure[]>>('/api/feestructure/getall', {
                     params: { schoolId }
                 });
                 if (data.ok) return data.data;
@@ -278,7 +278,7 @@ export const useDeleteFeeStructure = () => {
         mutationFn: async (id: string) => {
             try {
                 checkPermission(currentRole, ADMIN_ROLES);
-                const { data } = await Api.delete<BaseResponse>(`/api/feestructure/v1/delete/${id}`);
+                const { data } = await Api.delete<BaseResponse>(`/api/feestructure/delete/${id}`);
                 if (!data.ok) throw new Error(data.message || 'Failed to delete fee structure');
                 return data;
             } catch (error: any) {
