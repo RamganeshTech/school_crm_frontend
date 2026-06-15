@@ -5,12 +5,20 @@ import { useGetParentStudents } from '../../../api_services/auth_api/authApi';
 import { useGetStudentById } from '../../../api_services/student_api/studentMainApi';
 import { clearCurrentstudent, setClassId, setSectionId, setStudentId } from '../../../features/slices/activeStudentSlice';
 import { useEffect } from 'react';
+import { useAuthData } from '../../../hooks/useAuthData';
+import { useGetSchoolById } from '../../../api_services/schoolConfig_api/schoolapi';
 
 export default function ParentProfileSelection() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
     const { userName: parentName, _id } = useSelector((state: RootState) => state.auth);
+
+    // Get the schoolId from your auth/redux state
+    const { schoolId } = useAuthData();
+
+    // Fetch the school details
+    const { data: schoolData, isLoading: isSchoolLoading } = useGetSchoolById(schoolId!);
 
     // Dynamic Fetch: Pull student array directly from specialized
     const { data: studentIds, isLoading: isListLoading, isError } = useGetParentStudents({ userId: _id! });
@@ -19,7 +27,8 @@ export default function ParentProfileSelection() {
         dispatch(setStudentId(student._id));
         dispatch(setClassId(student.currentClassId?._id || student?.currentClassId || null));
         dispatch(setSectionId(student.currentSectionId?._id || student?.currentSectionId || null));
-        navigate(`/dashboard/student/record-profile/${student._id}`);
+        // navigate(`/dashboard/student/record-profile/${student._id}`);
+        navigate(`/dashboard/student/club`);
     };
 
 
@@ -38,9 +47,50 @@ export default function ParentProfileSelection() {
 
             {/* Top Branding Section */}
             <div className="text-center mb-12 space-y-3 max-w-2xl">
-                <p className="text-[10px] font-bold tracking-[0.2em] text-primary uppercase">
+                {/* <p className="text-[10px] font-bold tracking-[0.2em] text-primary uppercase">
                     Academic Workspace Portal
-                </p>
+                </p> */}
+
+                {/* --- SCHOOL BRANDING BANNER --- */}
+                <div className="shrink-0 bg-surface border border-border rounded-xl shadow-sm p-4 sm:p-5 mb-6 flex flex-col sm:flex-row sm:items-center gap-4 z-10 animate-in fade-in">
+
+                    <div className="flex items-center gap-4 mx-auto">
+                        {/* Conditional Logo Rendering */}
+                        {schoolData?.logo?.url ? (
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-full bg-background border border-border overflow-hidden flex items-center justify-center shadow-sm p-1">
+                                <img
+                                    src={schoolData.logo.url}
+                                    alt={schoolData?.name || "School Logo"}
+                                    className="w-full h-full object-contain"
+                                    onError={(e) => {
+                                        // Fallback just in case the URL is broken
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                        (e.target as HTMLImageElement).parentElement?.classList.add('bg-primary/10', 'text-primary', 'after:content-["🏫"]', 'after:font-["Font_Awesome_5_Free"]', 'after:font-bold');
+                                    }}
+                                />
+                            </div>
+                        ) : (
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-xl shadow-sm">
+                                {schoolData?.name?.charAt(0) || <i className="fas fa-school"></i>}
+                            </div>
+                        )}
+
+                        {/* School Name & Portal Tagline */}
+                        <div className="flex flex-col">
+                            {isSchoolLoading ? (
+                                <div className="h-6 w-48 bg-border/50 rounded animate-pulse mb-1"></div>
+                            ) : (
+                                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground line-clamp-1">
+                                    {schoolData?.name || 'School Portal'}
+                                </h1>
+                            )}
+                            <p className="text-[10px] sm:text-xs font-semibold text-muted tracking-wide mt-0.5">
+                                Parent Portal
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <h1 className="text-3xl font-bold text-foreground tracking-tight md:text-4xl">
                     Welcome back, {parentName}
                 </h1>

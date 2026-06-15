@@ -100,9 +100,7 @@ export default function StudentRecordSingle() {
     const fDues = record?.duesv1 || {};
     const orderedHeads: string[] = feeConfig?.feeHeads || [];
 
-    console.log("fStruct", fStruct);
-    console.log("fDues", fDues);
-    console.log("orderedHeads", orderedHeads);
+   
 
     const concession = record?.concession || {};
     const receipts = record?.receipts || [];

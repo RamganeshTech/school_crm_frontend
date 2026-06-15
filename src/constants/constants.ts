@@ -2,6 +2,8 @@
 //     // Public
 //     LOGIN: '/login',
 import noimg from '../assets/no image.jpeg'
+import DLogo from '../assets/daily-grades-app-icon-generic-square.png'
+
 
 import { type UserRole } from "../features/slices/authSlice";
 
@@ -27,6 +29,7 @@ import { type UserRole } from "../features/slices/authSlice";
 
 
 export const DOMAIN_NAME = "Daily Grades"
+export const DOMAIN_IMG = DLogo
 
 export const NO_IMAGE = noimg
 
@@ -64,11 +67,12 @@ export const FINANCE_ACCESS: UserRole[] = ["correspondent", "administrator", "pr
 // Staff handling classes/grading + Management
 export const ACADEMIC_ACCESS: UserRole[] = ["correspondent", "administrator", "principal", "viceprincipal", "teacher"];
 
-export const HIGHER_OFFICIALS: UserRole[] = ["correspondent",  "principal",];
+export const HIGHER_OFFICIALS: UserRole[] = ["correspondent", "principal",];
 
 
 
 export interface SubMenuItem {
+    icon:string
     name: string;
     path: string;
 }
@@ -104,6 +108,8 @@ const baseManagementMenu: MenuItem[] = [
     { name: 'Fee Config', path: "/dashboard/fee-configuration", icon: 'fas fa-sliders' },
     { name: 'Mark report', path: "/dashboard/markreport", icon: 'fas fa-file-invoice' },
     { name: 'Mark report Configuration', path: "/dashboard/markreport-config", icon: 'fas fa-file-invoice' },
+    { name: 'Fee Collection', path: "/dashboard/fee-collection", icon: 'fas fa-cash-register' },
+
 ];
 
 // export const principalMenu: MenuItem[] = [
@@ -144,7 +150,7 @@ export const principalMenu: MenuItem[] = [
 ];
 
 export const vicePrincipalMenu: MenuItem[] = [
-        ...baseManagementMenu,
+    ...baseManagementMenu,
 ]
 
 // --- NEW: ACCOUNTANT MENU ---
@@ -160,6 +166,8 @@ export const accountantMenu: MenuItem[] = [
     { name: 'Fee Structure', path: "/dashboard/fee-structure", icon: 'fas fa-coins' },
     // { name: 'Fee Config', path: "/dashboard/fee-configuration", icon: 'fas fa-coins-settings' },
     { name: 'Fee Config', path: "/dashboard/fee-configuration", icon: 'fas fa-sliders' },
+    { name: 'Fee Collection Module', path: "/dashboard/fee-collection", icon: 'fas fa-cash-register' },
+
     // { name: 'Subscription', path: "/dashboard/subscription", icon: 'fas fa-crown' },
 ];
 
@@ -174,6 +182,10 @@ export const teacherMenu: MenuItem[] = [
     { name: 'Mark report', path: "/dashboard/markreport", icon: 'fas fa-file-invoice' },
     { name: 'Mark report Configuration', path: "/dashboard/markreport-config", icon: 'fas fa-file-invoice' },
 ];
+
+export const cashierMenu: MenuItem[] = [
+    { name: 'Fee Collection Module', path: "/dashboard/fee-collection", icon: 'fa-cash-register' },
+]
 
 export const getParentInitialMenu = (): MenuItem[] => [
     {
@@ -218,19 +230,32 @@ export const getParentMenu = ({ studentId, classId, sectionId, academicYear }: P
     const queryStr = studentId ? `?studentId=${studentId}` : '';
 
     // 🌟 Specific query string just for the Mark Report route
-    const markReportQuery = studentId 
-        ? `?classId=${classId || ''}&sectionId=${sectionId || ''}&academicYear=${academicYear || ''}` 
+    const markReportQuery = studentId
+        ? `?classId=${classId || ''}&sectionId=${sectionId || ''}&academicYear=${academicYear || ''}`
         : '';
 
     return [
         { name: 'Profile Selection', path: "/dashboard/profile-selection", icon: 'fas fa-user-group' },
-        { name: 'Profile', path: `/dashboard/parent/profile`, icon: 'fas fa-user' },
-        { name: 'My Homework Submissions', path: `/dashboard/student/homework-submission${queryStr}`, icon: 'fas fa-check-circle' },
+        { name: 'Parent Profile', path: `/dashboard/parent/profile`, icon: 'fas fa-user' },
+        { name: 'Clubs', path: "/dashboard/student/club", icon: 'fas fa-layer-group' },
+        { 
+            name: 'Academics', 
+            path: '#', // Acts as a toggle/wrapper, not a direct link
+            icon: 'fas fa-book-open', 
+            subMenu: [
+                { name: 'Announcements', path: "/dashboard/student/announcement", icon: 'fas fa-bullhorn' },
+                { name: 'Homework Submissions', path: `/dashboard/student/homework-submission${queryStr}`, icon: 'fas fa-check-circle'  },
+                { name: 'Attendance', path: `/dashboard/student/attendace/${studentId}`, icon: 'fas fa-clipboard' },
+                { name: 'Mark Report', path: `/dashboard/student/markreport/${studentId}${markReportQuery}`, icon: 'fas fa-file-invoice' },
+            ]
+        },
+        
         { name: 'Student Profile', path: `/dashboard/student/record-profile/${studentId}`, icon: 'fas fa-user-group' },
         { name: 'Student Main', path: `/dashboard/student/main-profile/${studentId}`, icon: 'fas fa-user-group' },
-        { name: 'Attedance', path: `/dashboard/student/attendace/${studentId}`, icon: 'fas fa-clipboard' },
-        { name: 'Mark report', path: `/dashboard/student/markreport/${studentId}${markReportQuery}`, icon: 'fas fa-file-invoice' },
-        { name: 'Annoucement', path: "/dashboard/student/announcement", icon: 'fas fa-bullhorn' },
-        { name: 'Clubs', path: "/dashboard/student/club", icon: 'fas fa-layer-group' },
+        // --- Grouped Academics Menu ---
+        // { name: 'Annoucement', path: "/dashboard/student/announcement", icon: 'fas fa-bullhorn' },
+        // { name: 'My Homework Submissions', path: `/dashboard/student/homework-submission${queryStr}`, icon: 'fas fa-check-circle' },
+        // { name: 'Attedance', path: `/dashboard/student/attendace/${studentId}`, icon: 'fas fa-clipboard' },
+        // { name: 'Mark report', path: `/dashboard/student/markreport/${studentId}${markReportQuery}`, icon: 'fas fa-file-invoice' },
     ];
 };

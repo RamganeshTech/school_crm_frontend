@@ -10,6 +10,7 @@ import { useDispatch } from 'react-redux';
 import { setSchool } from '../../features/slices/authSlice';
 
 export interface SubMenuItem {
+    icon: string;
     name: string;
     path: string;
 }
@@ -60,9 +61,9 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
 
 
     // 🌟 2. Handle the school selection
-    const handleSchoolChange = ({selectedSchoolId, selectedSchoolName }: {selectedSchoolId:string, selectedSchoolName:string }) => {
+    const handleSchoolChange = ({ selectedSchoolId, selectedSchoolName }: { selectedSchoolId: string, selectedSchoolName: string }) => {
         // Dispatch the ID into your authSlice exactly as you structured it
-        dispatch(setSchool({ schoolId: selectedSchoolId , schoolName:selectedSchoolName}));
+        dispatch(setSchool({ schoolId: selectedSchoolId, schoolName: selectedSchoolName }));
 
         // Close the dropdown and navigate to the dashboard root
         setIsSchoolDropdownOpen(false);
@@ -156,7 +157,7 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
                                     schools?.map((school: any) => (
                                         <button
                                             key={school._id}
-                                            onClick={() => handleSchoolChange({selectedSchoolId:school._id, selectedSchoolName:school.name})}
+                                            onClick={() => handleSchoolChange({ selectedSchoolId: school._id, selectedSchoolName: school.name })}
                                             className="flex cursor-pointer items-center gap-3 w-full text-left px-2 py-2 text-sm font-medium text-foreground hover:bg-primary/10 hover:text-primary rounded-lg transition-colors group"
                                         >
                                             {school.logo?.url ? (
@@ -237,31 +238,41 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
                             {hasSubMenu && isExpanded && (
                                 <div className={`grid transition-all duration-300 ease-in-out ${isSubMenuOpen ? 'grid-rows-[1fr] opacity-100 mt-1' : 'grid-rows-[0fr] opacity-0'}`}>
                                     <div className="overflow-hidden">
-                                        <div className="ml-8 pl-4 pr-3 py-2 space-y-1 border-l border-border flex flex-col">
+                                        <div className="ml-4 pl-4 pr-3 py-2 space-y-1 border-l border-border flex flex-col">
                                             {item.subMenu?.map((sub) => {
-                                                const isChildActive = location.pathname === sub.path;
+                                                // const isChildActive = location.pathname === sub.path;
+                                                const isChildActive = location.pathname === sub.path || location.pathname.startsWith(`${sub.path}/`);
                                                 return (
-                                                    <Link
-                                                        key={sub.path}
-                                                        to={sub.path}
-                                                        className={`flex items-center gap-2 w-full text-left py-2 px-3 rounded-lg text-sm font-medium transition-colors
+                                                    <button key={sub.path}
+                                                        onClick={() => navigate(sub.path)}
+                                                        className={`flex cursor-pointer items-center gap-2 w-full text-left py-2 px-2 rounded-lg text-sm font-medium transition-colors
                               ${isChildActive
                                                                 ? 'text-primary bg-primary-soft'
                                                                 : 'text-muted hover:text-foreground hover:bg-surface'}`}
                                                     >
+
+
+                                                        <i className={`${sub.icon} text-xl shrink-0 transition-colors w-6 md:w-6 text-left md:text-center ${isParentActive ? 'text-inverse' : 'group-hover:text-primary'}`}></i>
+
+
+                                                        {/* <Link */}
+
                                                         {isChildActive ? (
                                                             <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                                                         ) : (
-                                                            <div className="w-1.5 h-1.5 shrink-0" />
+                                                            // <div className="w-1.5 h-1.5 shrink-0" />
+                                                            <></>
                                                         )}
                                                         <span className="truncate">{sub.name}</span>
-                                                    </Link>
+                                                        {/* </Link> */}
+                                                    </button>
                                                 );
                                             })}
                                         </div>
                                     </div>
                                 </div>
-                            )}
+                            )
+                            }
                         </div>
                     );
                 })}
@@ -290,6 +301,6 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
                     </span>
                 </button>
             </div>
-        </aside>
+        </aside >
     );
 }

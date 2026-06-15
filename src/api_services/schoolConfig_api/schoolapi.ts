@@ -21,7 +21,7 @@ export interface SchoolData {
   phoneNo: string;
   address: string;
   currentAcademicYear: string;
-  logo?: string;
+  logo?: {url:string} | null;
   socialPlatforms?: Record<string, string>;
 }
 

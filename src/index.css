@@ -32,7 +32,8 @@ html {
   /* --bg-background: #f8fafc; */
   --bg-background: #ffffffc8;
   /* --bg-mainBg: #fffffa; */
-  --bg-mainBg: #fffff9;
+  --bg-mainBg: #fffffc;
+  /* --bg-mainBg: #fffffd; //old one */
   --bg-surface: #ffffff;
 
   --bg-header: #cad5e2;

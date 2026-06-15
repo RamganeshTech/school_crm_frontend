@@ -151,7 +151,7 @@ export default function StudentRecordMain() {
     const clearFilters = () => {
         setSearchInput('');
         setFilters({
-            academicYear: '2025-2026',
+            academicYear: '2026-2027',
             classId: '', sectionId: '', newOld: '', isActive: '',
             isBusApplicable: '', isFullyPaid: '', hasConcession: '', limit: 15
         });

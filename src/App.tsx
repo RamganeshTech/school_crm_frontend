@@ -20,7 +20,9 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
-const FeeStructureConfig  = lazy(() => import('./pages/feeStructure_config/FeeStructureConfig'));
+const FeeCollectionMain = lazy(() => import( './pages/fee_collection_pages/FeeCollectionMain'));
+const FeeCollectionSingle = lazy(() => import( './pages/fee_collection_pages/FeeCollectionSingle'));
+const FeeStructureConfig = lazy(() => import('./pages/feeStructure_config/FeeStructureConfig'));
 const AttendanceAnalyticsDashboard = lazy(() => import('./pages/attendance/AttendanceAnalyticsDashboard'));
 const AttendanceSchoolWideYearlyAnalytics = lazy(() => import('./pages/attendance/components/AttendaceSchoolWideYearlyAnalytics'));
 const AttendanceClassSpecificYearlyAnalytics = lazy(() => import('./pages/attendance/components/AttendanceClassSpecificYearlyAnalytics'));
@@ -265,8 +267,13 @@ function App() {
                   <Route path="fee-structure" element={<FeeStructureMain />}>
                     <Route path="single/:classId" element={<FeeStructureSingle />} />
                   </Route>
-                  <Route path="fee-configuration" element={<FeeStructureConfig />}/>
+                  <Route path="fee-configuration" element={<FeeStructureConfig />} />
 
+
+
+                  <Route path="fee-collection" element={<FeeCollectionMain />} >
+                    <Route path="single/:studentId" element={<FeeCollectionSingle />} />
+                  </Route>
 
                 </Route>
 
@@ -274,7 +281,7 @@ function App() {
                   <Route path="subscription" element={<SubscriptionMain />} />
                 </Route>
 
- 
+
 
                 {/* ========================================== */}
                 {/* STAFF: ACADEMIC & MANAGEMENT               */}
@@ -319,6 +326,11 @@ function App() {
                     <Route path="single/:id" element={<AnnouncementConfig />} />
                     <Route path="create" element={<AnnouncementConfig />} />
                   </Route>
+                </Route>
+
+
+                <Route element={<ProtectedRoute allowedRoles={MANAGEMENT_ONLY} />}>
+
                 </Route>
 
                 {/* <Route path="timetable" element={<TimeTableMain />} />

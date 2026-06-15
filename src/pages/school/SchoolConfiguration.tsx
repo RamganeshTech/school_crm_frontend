@@ -1,13 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-// import { type UserRole } from '../../features/store/store'; // Adjust path
-// import { 
-//     useGetSchoolById, 
-//     useUpdateSchool, 
-//     useUpdateSchoolLogo, 
-//     useGetSchoolSocialPlatforms, 
-//     useUpdateSocialPlatform 
-// } from '../../api_services/schoolConfig_api/schoolApi'; // Adjust path
+
 import { Button } from '../../shared/ui/Button';
 import { Input, Label } from '../../shared/ui/Input';
 import { Card, CardHeader, CardContent } from '../../shared/ui/Card'; // Adjust path
@@ -23,16 +16,20 @@ import { toast } from '../../shared/ui/ToastContext';
 import { SearchSelect } from '../../shared/ui/SearchSelect';
 import { getAcademicYears } from '../../utils/utils';
 import { useRoleCheck } from '../../hooks/useRoleCheck';
+import BillBookConfig from './BillBookConfig';
 
-type TabOptions = 'details' | 'socials';
+// type TabOptions = 'details' | 'socials';
+
+type TabOptions = 'details' | 'socials' | 'billbook';
 
 export default function SchoolConfiguration() {
     // --- Global State ---
     const { schoolId } = useSelector((state: RootState) => state.auth);
 
-    const {isCorrespondent } = useRoleCheck()
+    const { isCorrespondent, isAdmin } = useRoleCheck()
 
     const canModify = isCorrespondent
+    const canManageBillBook = isCorrespondent || isAdmin;
 
     // --- API Hooks ---
     const { data: schoolData, isLoading: isSchoolLoading } = useGetSchoolById(schoolId!);
@@ -178,16 +175,26 @@ export default function SchoolConfiguration() {
             <div className="flex items-center gap-6 border-b border-divider">
                 <button
                     onClick={() => setActiveTab('details')}
-                    className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
+                    className={`pb-3 cursor-pointer text-sm font-medium transition-colors border-b-2 ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
                 >
                     <i className="fas fa-info-circle mr-2"></i> General Details
                 </button>
                 <button
                     onClick={() => setActiveTab('socials')}
-                    className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === 'socials' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
+                    className={`pb-3 cursor-pointer text-sm font-medium transition-colors border-b-2 ${activeTab === 'socials' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
                 >
                     <i className="fas fa-hashtag mr-2"></i> Social Links
                 </button>
+
+                {/* 🌟 Conditionally rendered Bill Book Tab */}
+                {canManageBillBook && (
+                    <button
+                        onClick={() => setActiveTab('billbook')}
+                        className={`pb-3 cursor-pointer text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === 'billbook' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
+                    >
+                        <i className="fas fa-file-invoice-dollar mr-2"></i> Bill Book
+                    </button>
+                )}
             </div>
 
             {/* --- TAB CONTENT: DETAILS --- */}
@@ -253,7 +260,7 @@ export default function SchoolConfiguration() {
 
                                 <Input id="address" label="Full Address" leftIcon="fas fa-map-marker-alt" value={detailsForm.address} onChange={handleDetailsChange} disabled={updateSchoolMutation.isPending} />
 
-                              {canModify &&  <div className="flex justify-end pt-4">
+                                {canModify && <div className="flex justify-end pt-4">
                                     <Button type="submit" variant="primary" isLoading={updateSchoolMutation.isPending}>
                                         Save Changes
                                     </Button>
@@ -305,6 +312,14 @@ export default function SchoolConfiguration() {
                         )}
                     </CardContent>
                 </Card>
+            )}
+
+
+            {/* --- 🌟 TAB CONTENT: BILL BOOK --- */}
+            {activeTab === 'billbook' && canManageBillBook && (
+                <div className="animate-in fade-in duration-300">
+                    <BillBookConfig />
+                </div>
             )}
 
         </div>

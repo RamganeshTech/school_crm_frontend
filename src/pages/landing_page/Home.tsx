@@ -19,7 +19,7 @@ import { Button } from '../../shared/ui/Button';
 import { useAuthData } from '../../hooks/useAuthData';
 import RolesSection from './RolesSection';
 import FeaturesSection from './FeaturesSection';
-import { DOMAIN_NAME } from '../../constants/constants';
+import { DOMAIN_IMG, DOMAIN_NAME } from '../../constants/constants';
 
 // ==========================================
 // PREMIUM SAAS THEME: OCEAN & CORAL
@@ -90,8 +90,13 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between">
           <div className="flex items-center gap-1 sm:gap-3 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
             <div className="w-10 h-10 bg-[var(--brand)] rounded-xl flex items-center justify-center
-             shadow-lg group-hover:scale-105 transition-transform duration-300">
-              <i className="fa-solid fa-graduation-cap text-xl text-white"></i>
+              group-hover:scale-105 transition-transform duration-300">
+              {/* <i className="fa-solid fa-graduation-cap text-xl text-white"></i> */}
+              <img
+                src={DOMAIN_IMG}
+                alt="Logo"
+                className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
+              />
             </div>
             <span className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
               {DOMAIN_NAME}
@@ -381,7 +386,12 @@ const Home = () => {
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
-                  <i className="fa-solid fa-graduation-cap text-sm text-white"></i>
+                  {/* <i className="fa-solid fa-graduation-cap text-sm text-white"></i> */}
+                   <img
+                src={DOMAIN_IMG}
+                alt="Logo"
+                className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
+              />
                 </div>
                 <span className="text-lg font-bold tracking-tight text-slate-900">{DOMAIN_NAME}</span>
               </div>
