@@ -251,8 +251,8 @@ export const getParentMenu = ({ studentId, classId, sectionId, academicYear }: P
             ]
         },
         
-        { name: 'Student Profile', path: `/dashboard/student/record-profile/${studentId}`, icon: 'fas fa-user-group' },
-        { name: 'Student Main', path: `/dashboard/student/main-profile/${studentId}`, icon: 'fas fa-user-group' },
+        // { name: 'Student Profile', path: `/dashboard/student/record-profile/${studentId}`, icon: 'fas fa-user-group' },
+        { name: 'Student Profile', path: `/dashboard/student/main-profile/${studentId}`, icon: 'fas fa-user-group' },
         // --- Grouped Academics Menu ---
         // { name: 'Annoucement', path: "/dashboard/student/announcement", icon: 'fas fa-bullhorn' },
         // { name: 'My Homework Submissions', path: `/dashboard/student/homework-submission${queryStr}`, icon: 'fas fa-check-circle' },
