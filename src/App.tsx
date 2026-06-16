@@ -20,8 +20,10 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
-const FeeCollectionMain = lazy(() => import( './pages/fee_collection_pages/FeeCollectionMain'));
-const FeeCollectionSingle = lazy(() => import( './pages/fee_collection_pages/FeeCollectionSingle'));
+const AdmissionFormMain = lazy(() => import('./pages/school/Admission_Pages/AdmissionFormMain'));
+const AdmissionFormSingle = lazy(() => import('./pages/school/Admission_Pages/AdmissionSingle'));
+const FeeCollectionMain = lazy(() => import('./pages/fee_collection_pages/FeeCollectionMain'));
+const FeeCollectionSingle = lazy(() => import('./pages/fee_collection_pages/FeeCollectionSingle'));
 const FeeStructureConfig = lazy(() => import('./pages/feeStructure_config/FeeStructureConfig'));
 const AttendanceAnalyticsDashboard = lazy(() => import('./pages/attendance/AttendanceAnalyticsDashboard'));
 const AttendanceSchoolWideYearlyAnalytics = lazy(() => import('./pages/attendance/components/AttendaceSchoolWideYearlyAnalytics'));
@@ -311,6 +313,12 @@ function App() {
                 {/* ========================================== */}
                 <Route element={<ProtectedRoute allowedRoles={MANAGEMENT_ONLY} />}>
                   <Route path="school" element={<SchoolConfiguration />} /> {/* Current school settings */}
+                  <Route path="admission-form" element={<AdmissionFormMain />} >
+                    <Route path="single/:id" element={<AdmissionFormSingle isAdmin={true} />} />
+
+
+                  </Route> {/* Current school settings */}
+
                   <Route path="timetable" element={<TimeTableMain />} />
                   <Route path="audit" element={<AuditMain />} />
                   <Route path="delete-archive" element={<DeleteArchiveMain />} />
@@ -403,6 +411,7 @@ function App() {
 
               <Route path='/privacy-policy' element={<PrivacyPolicy />} />
               <Route path='/account-deletion' element={<AccountDeletion />} />
+              <Route path='/public/apply/admission-form/single/:id' element={<AdmissionFormSingle isAdmin={false} />} />
               <Route path='*' element={<NotFound />} />
 
             </Routes>

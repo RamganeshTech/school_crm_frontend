@@ -17,10 +17,11 @@ import { SearchSelect } from '../../shared/ui/SearchSelect';
 import { getAcademicYears } from '../../utils/utils';
 import { useRoleCheck } from '../../hooks/useRoleCheck';
 import BillBookConfig from './BillBookConfig';
+import AdmissionBookConfig from './AdmissionBookConfig';
 
 // type TabOptions = 'details' | 'socials';
 
-type TabOptions = 'details' | 'socials' | 'billbook';
+type TabOptions = 'details' | 'socials' | 'billbook' | 'admissionbook';
 
 export default function SchoolConfiguration() {
     // --- Global State ---
@@ -160,7 +161,7 @@ export default function SchoolConfiguration() {
     }
 
     return (
-        <div className="w-full max-w-full mx-auto p-4 md:p-6 space-y-6">
+        <div className="w-full h-full max-w-full mx-auto p-4 md:p-6 space-y-6">
 
             {/* Header */}
             <div>
@@ -193,6 +194,15 @@ export default function SchoolConfiguration() {
                         className={`pb-3 cursor-pointer text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === 'billbook' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
                     >
                         <i className="fas fa-file-invoice-dollar mr-2"></i> Bill Book
+                    </button>
+                )}
+
+                {canManageBillBook && (
+                    <button
+                        onClick={() => setActiveTab('admissionbook')}
+                        className={`pb-3 cursor-pointer text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === 'admissionbook' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
+                    >
+                        <i className="fas fa-address-book mr-2"></i> Admission Book
                     </button>
                 )}
             </div>
@@ -317,8 +327,14 @@ export default function SchoolConfiguration() {
 
             {/* --- 🌟 TAB CONTENT: BILL BOOK --- */}
             {activeTab === 'billbook' && canManageBillBook && (
-                <div className="animate-in fade-in duration-300">
+                <div className="animate-in fade-in duration-300 h-full">
                     <BillBookConfig />
+                </div>
+            )}
+
+            {activeTab === 'admissionbook' && canManageBillBook && (
+                <div className="animate-in fade-in duration-300 h-full">
+                    <AdmissionBookConfig />
                 </div>
             )}
 

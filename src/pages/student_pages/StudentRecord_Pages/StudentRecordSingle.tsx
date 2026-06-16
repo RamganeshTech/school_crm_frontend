@@ -639,7 +639,8 @@ export default function StudentRecordSingle() {
                         <table className="w-full text-left text-sm whitespace-nowrap">
                             <thead className="bg-background text-muted uppercase text-xs tracking-wider border-y border-border">
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">Receipt Info</th>
+                                    <th className="px-4 py-3 font-medium">Receipt No</th>
+                                    <th className="px-4 py-3 font-medium">Bill No</th>
                                     <th className="px-4 py-3 font-medium">Payment Mode</th>
                                     <th className="px-4 py-3 font-medium">Collected By</th>
                                     <th className="px-4 py-3 font-medium text-right">Amount</th>
@@ -653,6 +654,9 @@ export default function StudentRecordSingle() {
                                         <td className="px-4 py-3">
                                             <p className="font-semibold text-foreground">{tx.receiptNo || 'N/A'}</p>
                                             <p className="text-xs text-muted">{new Date(tx.paymentDate).toLocaleString()}</p>
+                                        </td>
+                                          <td className="px-4 py-3">
+                                            <p className="font-semibold text-foreground">{tx?.billNo || 'N/A'}</p>
                                         </td>
                                         <td className="px-4 py-3">
                                             <p className="text-sm font-medium text-foreground capitalize">{tx.paymentMode.replace('_', ' ')}</p>

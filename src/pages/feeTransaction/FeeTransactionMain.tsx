@@ -246,6 +246,7 @@ export default function FeeTransactionMain() {
                             <tr>
                                 <Th>Date</Th>
                                 <Th>Receipt No.</Th>
+                                <Th>Bill No</Th>
                                 <Th>Amount</Th>
                                 <Th>Mode</Th>
                                 <Th>Status</Th>
@@ -297,6 +298,7 @@ export default function FeeTransactionMain() {
                                             })}
                                         </Td>
                                         <Td className="font-semibold text-primary">{txn.receiptNo}</Td>
+                                        <Td className="font-semibold text-primary">{txn?.billNo}</Td>
                                         <Td className="font-bold text-foreground">₹{txn.amountPaid?.toLocaleString()}</Td>
                                         <Td>
                                             <span className="flex items-center gap-1.5 text-xs text-muted font-medium capitalize bg-surface border border-border px-2 py-0.5 rounded shadow-sm w-fit">

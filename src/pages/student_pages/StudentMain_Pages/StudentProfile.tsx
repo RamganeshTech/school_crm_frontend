@@ -10,6 +10,7 @@ import { NO_IMAGE } from '../../../constants/constants';
 import { useSubmitProfileUpdateRequest } from '../../../api_services/student_api/studentProfileUpdateApi';
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
 import { ImageGallery } from '../../../shared/components/ImageGallery';
+import StudentFeeInfo from './StudentFeeInfo';
 
 // ==========================================
 // 1. EXACT TYPES (Mapped from Backend Schema)
@@ -205,6 +206,7 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
 
     const { schoolId } = useAuthData()
 
+
     const { isParent, isAdmin, isCorrespondent, isPrincipal, isAccountant } = useRoleCheck()
     const canEdit = isAdmin || isCorrespondent || isParent || isAccountant
     const canDeleteDocument = isAdmin || isCorrespondent || isAccountant
@@ -217,10 +219,12 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
     const student = rawData as StudentData | undefined;
 
     // --- State ---
-    const [activeTab, setActiveTab] = useState<'mandatory' | 'nonMandatory' | "documents">('mandatory');
+    const [activeTab, setActiveTab] = useState<'mandatory' | 'nonMandatory' | "documents" | "feeInfo">('mandatory');
     const [isEditing, setIsEditing] = useState<boolean>(false);
 
     const canEditPendingRequest = isParent || isAdmin || isCorrespondent || isPrincipal
+
+    const canShowOtherDetails = isParent
 
     // Form State
     const [editForm, setEditForm] = useState<any>({});
@@ -650,6 +654,15 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
                 >
                     <i className="fas fa-folder-open mr-2"></i> Documents
                 </button>
+
+              {canShowOtherDetails &&  <button
+                    onClick={() => setActiveTab('feeInfo')}
+                    className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'feeInfo' ? 'text-primary border-primary' : 'text-muted border-transparent hover:text-foreground'
+                        }`}
+                >
+                    <i className="fas fa-wallet mr-2"></i> Fee Info
+                </button>}
+
             </div>
 
             {/* --- 3. FLAT, SCROLLABLE CONTENT AREA --- */}
@@ -962,6 +975,15 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
                         </section>
 
                     </div>
+                )}
+
+                {activeTab === 'feeInfo' && (
+                    <StudentFeeInfo
+                    studentId={studentId!}
+                        // canRevertFee={canRevertFee}
+                        // revertFeeMutation={revertFeeMutation}
+                        // onRevertFee={handleRevertFee}
+                    />
                 )}
             </div>
         </div>

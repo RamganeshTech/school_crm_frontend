@@ -91,6 +91,7 @@ const baseManagementMenu: MenuItem[] = [
     { name: 'Class', path: "/dashboard/class", icon: 'fas fa-chalkboard' },
     { name: 'Section', path: "/dashboard/section", icon: 'fas fa-box' },
     { name: 'School', path: "/dashboard/school", icon: 'fas fa-building' },
+    { name: 'Admission', path: "/dashboard/admission-form", icon: 'fas fa-user-graduate' },
     { name: 'School List', path: "/dashboard/school-list", icon: 'fas fa-layer-group' },
     { name: 'Students', path: "/dashboard/student", icon: 'fas fa-user-group' },
     { name: 'Records', path: "/dashboard/student-record", icon: 'fas fa-user-group' },

@@ -10,7 +10,8 @@ import {
     useGetAllBillBooks,
     useCreateBillBook,
     useUpdateBillBook,
-    useEditBillSequence
+    useEditBillSequence,
+    useDeleteBillBook
 } from '../../api_services/schoolConfig_api/billBookApi';
 import { Toggle } from '../../shared/ui/Toggle';
 import { SideModal } from '../../shared/ui/SideModal';
@@ -23,6 +24,7 @@ export default function BillBookConfig() {
     const createBillBookMutation = useCreateBillBook();
     const updateBillBookMutation = useUpdateBillBook();
     const editSequenceMutation = useEditBillSequence();
+    const deleteBillBookMutation = useDeleteBillBook();
 
     // --- Local State ---
     const [formData, setFormData] = useState({
@@ -55,6 +57,19 @@ export default function BillBookConfig() {
             setFormData({ bookName: '', startingBillNumber: '' });
         } catch (error: any) {
             toast.error(error.message || "Failed to create Bill Book");
+        }
+    };
+
+
+    // 🌟 DELETE HANDLER
+    const handleDelete = async (id: string) => {
+        if (!window.confirm("Are you sure you want to delete this bill book? This cannot be undone.")) return;
+
+        try {
+            await deleteBillBookMutation.mutateAsync({ id, schoolId: schoolId! });
+            toast.success("Bill book deleted successfully!");
+        } catch (error: any) {
+            toast.error(error.message || "Failed to delete bill book");
         }
     };
 
@@ -111,33 +126,33 @@ export default function BillBookConfig() {
 
 
     return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
             {/* Left Col: Create New Book */}
             <Card className="md:col-span-1 h-fit">
                 <CardHeader title="New Bill Book" subtitle="Create a new active sequence." />
                 <CardContent>
                     <form onSubmit={handleCreate} className="space-y-4">
-                        <Input 
-                            id="bookName" 
-                            label="Bill Book Name" 
+                        <Input
+                            id="bookName"
+                            label="Bill Book Name"
                             placeholder="e.g., Main Book 1"
-                            value={formData.bookName} 
-                            onChange={(e) => setFormData({ ...formData, bookName: e.target.value })} 
-                            required 
+                            value={formData.bookName}
+                            onChange={(e) => setFormData({ ...formData, bookName: e.target.value })}
+                            required
                         />
-                        <Input 
-                            id="startingBillNumber" 
-                            type="text" 
-                            label="Starting Receipt Number" 
+                        <Input
+                            id="startingBillNumber"
+                            type="text"
+                            label="Starting Receipt Number"
                             placeholder="e.g., REC-001 or 1001"
-                            value={formData.startingBillNumber} 
-                            onChange={(e) => setFormData({ ...formData, startingBillNumber: e.target.value })} 
-                            required 
+                            value={formData.startingBillNumber}
+                            onChange={(e) => setFormData({ ...formData, startingBillNumber: e.target.value })}
+                            required
                         />
-                        <Button 
-                            type="submit" 
-                            variant="primary" 
-                            fullWidth 
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            fullWidth
                             isLoading={createBillBookMutation.isPending}
                         >
                             Create & Activate
@@ -149,13 +164,14 @@ export default function BillBookConfig() {
             {/* Right Col: List of Books */}
             <Card className="md:col-span-2">
                 <CardHeader title="Bill Book History" subtitle="Manage previously created receipt sequences." />
-                <CardContent>
+                <CardContent className='h-full'>
                     {isLoading ? (
                         <p className="text-sm text-muted">Loading bill books...</p>
                     ) : billBooks?.length === 0 ? (
                         <p className="text-sm text-muted">No bill books found for this academic year.</p>
                     ) : (
-                        <div className="space-y-3">
+                        // <div className="space-y-3 max-h-full overflow-y-auto">
+                        <div className="space-y-3 overflow-y-auto max-h-[350px] md:max-h-[500px] pr-2 custom-scrollbar">
                             {billBooks?.map((book: any) => (
                                 <div key={book._id} className="flex items-center justify-between p-3 border border-border rounded-lg bg-surface transition-colors hover:border-primary/30">
                                     <div>
@@ -167,14 +183,30 @@ export default function BillBookConfig() {
                                             Next Sequence: <span className="font-bold text-foreground bg-background px-1.5 py-0.5 rounded border border-border">#{book?.billNumber || "N/A"}</span>
                                         </p>
                                     </div>
-                                    <Button 
-                                        variant="outline" 
-                                        size="sm"
-                                        leftIcon="fas fa-edit"
-                                        onClick={() => handleOpenEdit(book)}
-                                    >
-                                        Edit
-                                    </Button>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            leftIcon="fas fa-edit"
+                                            onClick={() => handleOpenEdit(book)}
+                                        >
+                                            Edit
+                                        </Button>
+
+                                        {/* 🌟 DELETE BUTTON (Hidden if active) */}
+                                        {!book.isActive && (
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
+                                                onClick={() => handleDelete(book._id)}
+                                                isLoading={deleteBillBookMutation.isPending}
+                                                className="px-2"
+                                                title="Delete Bill Book"
+                                            >
+                                                <i className="fas fa-trash-alt"></i>
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -186,7 +218,7 @@ export default function BillBookConfig() {
             <SideModal isOpen={isEditModalOpen} onClose={handleCloseEdit} title="Edit Bill Book">
                 <form onSubmit={handleEditSubmit} className="flex flex-col h-full space-y-6">
                     <div className="space-y-5 overflow-y-auto custom-scrollbar pr-2 pb-4">
-                        
+
                         <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-2 flex items-start gap-3">
                             <i className="fas fa-info-circle text-primary mt-0.5"></i>
                             <p className="text-xs text-muted leading-relaxed">
@@ -194,30 +226,30 @@ export default function BillBookConfig() {
                             </p>
                         </div>
 
-                        <Input 
-                            id="editBookName" 
-                            label="Bill Book Name" 
-                            value={editForm.bookName} 
-                            onChange={(e) => setEditForm({ ...editForm, bookName: e.target.value })} 
-                            required 
+                        <Input
+                            id="editBookName"
+                            label="Bill Book Name"
+                            value={editForm.bookName}
+                            onChange={(e) => setEditForm({ ...editForm, bookName: e.target.value })}
+                            required
                         />
-                        
-                        <Input 
-                            id="editBillNumber" 
-                            type="text" 
-                            label="Next Receipt Number" 
-                            value={editForm.billNumber} 
-                            onChange={(e) => setEditForm({ ...editForm, billNumber: e.target.value })} 
-                            required 
+
+                        <Input
+                            id="editBillNumber"
+                            type="text"
+                            label="Next Receipt Number"
+                            value={editForm.billNumber}
+                            onChange={(e) => setEditForm({ ...editForm, billNumber: e.target.value })}
+                            required
                         />
 
                         <div className="bg-background border border-border rounded-xl p-4">
                             <Toggle
-                                checked={editForm.isActive} 
+                                checked={editForm.isActive}
                                 onChange={(checked) => setEditForm({ ...editForm, isActive: checked })}
-                                label="Active Status" 
-                                description={editForm.isActive 
-                                    ? "This is the current active book." 
+                                label="Active Status"
+                                description={editForm.isActive
+                                    ? "This is the current active book."
                                     : "Activating this will deactivate the current active book."}
                             />
                         </div>
@@ -225,9 +257,9 @@ export default function BillBookConfig() {
 
                     <div className="mt-auto pt-6 flex justify-end gap-3 border-t border-border">
                         <Button type="button" variant="outline" onClick={handleCloseEdit}>Cancel</Button>
-                        <Button 
-                            type="submit" 
-                            variant="primary" 
+                        <Button
+                            type="submit"
+                            variant="primary"
                             isLoading={updateBillBookMutation.isPending || editSequenceMutation.isPending}
                         >
                             Save Changes
