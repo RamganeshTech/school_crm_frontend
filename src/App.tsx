@@ -191,10 +191,10 @@ function App() {
                   <Route path="profile-selection" element={<ParentProfileSelection />} />
 
                   <Route path="parent/profile" element={<UserProfile />} />
-                  <Route path="student/main-profile/:id" element={<StudentSingle />} />
-                  <Route path="student/record-profile/:studentId" element={<StudentRecordSingle />} >
+                  <Route path="student/main-profile/:id" element={<StudentSingle />} >
                     <Route path="fee-transaction" element={<FeeTransactionMain />} />
                   </Route>
+                  <Route path="student/record-profile/:studentId" element={<StudentRecordSingle />} />
                   <Route path="student/attendace/:studentId" element={<AttendanceSingleStudent />} />
 
                   <Route path="student/homework-submission" element={<HomeworkSubmissionMain />} />

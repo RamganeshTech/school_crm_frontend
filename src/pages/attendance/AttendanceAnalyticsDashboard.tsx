@@ -208,9 +208,7 @@ export default function AttendanceAnalyticsDashboard() {
 
                         {/* 2. CHARTS GRID */}
                         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                            {/* <div className="xl:col-span-2">
-                                <AttendanceTrendBarChart chartData={report.chartData} />
-                            </div> */}
+                          
 
                             <div className="xl:col-span-2">
                                 <AttendanceTrendBarChart

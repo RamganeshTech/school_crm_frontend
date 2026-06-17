@@ -39,7 +39,7 @@ export const useGetFeeConfig = (schoolId: string | undefined) => {
             // Frontend route guard based on your backend allowed roles
             checkPermission(currentRole, [
                 "correspondent", "administrator", "principal", 
-                "viceprincipal", "accountant", "teacher",
+                "viceprincipal", "accountant", "teacher", "parent"
             ]);
 
             const { data } = await Api.get<FeeConfigResponse>(`/api/fee-config/get/${schoolId}`);

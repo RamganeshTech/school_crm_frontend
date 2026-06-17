@@ -11,6 +11,9 @@ import { useSubmitProfileUpdateRequest } from '../../../api_services/student_api
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
 import { ImageGallery } from '../../../shared/components/ImageGallery';
 import StudentFeeInfo from './StudentFeeInfo';
+import AdmissionFormCompo, { type AdmissionFormData } from '../../school/Admission_Pages/AdmissionFormCompo';
+import { useUpdateAdmissionFormDetails } from '../../../api_services/schoolConfig_api/admissionFormApi';
+import AttendanceAnalyticsCompo from '../../attendance/components/singlePerson_analytics/AttendanceAnalyticsCompo';
 
 // ==========================================
 // 1. EXACT TYPES (Mapped from Backend Schema)
@@ -161,11 +164,30 @@ const EditableField: React.FC<EditableFieldProps> = ({
     const editValue = category === 'basic' ? editFormData[field] : editFormData[category]?.[field];
 
     if (!isEditing) {
+
+        let displayValue = value;
+
+
+        if (value && value !== 'null') {
+            if (type === 'date') {
+                // Safely convert yyyy-mm-dd (or ISO string) to dd-mm-yyyy
+                const d = new Date(value);
+                if (!isNaN(d.getTime())) {
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const year = d.getFullYear();
+                    displayValue = `${day}-${month}-${year}`; // Formatted output!
+                }
+            } else if (isSensitive) {
+                displayValue = maskSensitiveID(value);
+            }
+        }
+
         return (
             <div className="flex flex-col">
                 <span className="text-[10px] text-muted font-bold uppercase tracking-wider mb-0.5">{label}</span>
-                <span className="text-sm font-semibold text-foreground truncate" title={value}>
-                    {value && value !== 'null' ? (isSensitive ? maskSensitiveID(value) : value) : <span className="text-muted/40 font-normal italic">N/A</span>}
+                <span className="text-sm font-semibold text-foreground truncate" title={displayValue}>
+                    {value && value !== 'null' ? displayValue : <span className="text-muted/40 font-normal italic">N/A</span>}
                 </span>
             </div>
         );
@@ -219,7 +241,7 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
     const student = rawData as StudentData | undefined;
 
     // --- State ---
-    const [activeTab, setActiveTab] = useState<'mandatory' | 'nonMandatory' | "documents" | "feeInfo">('mandatory');
+    const [activeTab, setActiveTab] = useState<'mandatory' | 'nonMandatory' | "documents" | "feeInfo" | "admissionForm" | "attendance">('mandatory');
     const [isEditing, setIsEditing] = useState<boolean>(false);
 
     const canEditPendingRequest = isParent || isAdmin || isCorrespondent || isPrincipal
@@ -231,6 +253,12 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+
+
+
+    // const updateStatusMutation = useUpdateAdmissionFormStatus();
+    const updateDetailsMutation = useUpdateAdmissionFormDetails();
 
     // Initialize form when entering edit mode
     useEffect(() => {
@@ -246,10 +274,7 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
         }
     }, [student, isEditing]);
 
-    const isChild = location.pathname.includes("pending-update")
-    if (isChild) {
-        return <Outlet />
-    }
+
 
 
     // --- Handlers ---
@@ -497,10 +522,43 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
         }
     };
 
+
+
+    // 2. Create the submit handler
+    const handleUpdateAdmissionForm = async (data: AdmissionFormData) => {
+        if (!studentId || !schoolId) return;
+
+        try {
+            // Notice we are passing `studentId` here instead of `id`!
+            await updateDetailsMutation.mutateAsync({
+                studentId: studentId,
+                schoolId: schoolId,
+                formData: data
+            });
+
+            toast.success("Admission details updated successfully!");
+
+            // Refresh the student profile to instantly show the saved data
+            // if (refetchStudentProfile) {
+            //     refetchStudentProfile(); 
+            // }
+        } catch (error: any) {
+            toast.error(error.message || "Failed to update admission details");
+            throw error; // Crucial: Throwing tells AdmissionFormCompo NOT to switch to 'view' mode if it fails
+        }
+    };
+
+
+
+
+    const isChild = location.pathname.includes("pending-update") || location.pathname.includes("fee-transaction")
+    if (isChild) {
+        return <Outlet />
+    }
+
     // --- Loading / Error States ---
     if (isLoading) return <div className="flex-1 flex items-center justify-center"><i className="fas fa-spinner fa-spin text-3xl text-primary"></i></div>;
     if (isError || !student) return <div className="flex-1 flex items-center justify-center text-danger">Failed to load student.</div>;
-
 
 
 
@@ -655,7 +713,7 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
                     <i className="fas fa-folder-open mr-2"></i> Documents
                 </button>
 
-              {canShowOtherDetails &&  <button
+                {canShowOtherDetails && <button
                     onClick={() => setActiveTab('feeInfo')}
                     className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'feeInfo' ? 'text-primary border-primary' : 'text-muted border-transparent hover:text-foreground'
                         }`}
@@ -663,6 +721,21 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
                     <i className="fas fa-wallet mr-2"></i> Fee Info
                 </button>}
 
+                <button
+                    onClick={() => setActiveTab('admissionForm')}
+                    className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'admissionForm' ? 'text-primary border-primary' : 'text-muted border-transparent hover:text-foreground'
+                        }`}
+                >
+                    <i className="fas fa-user-graduate mr-2"></i> Admission Form
+                </button>
+
+                <button
+                    onClick={() => setActiveTab('attendance')}
+                    className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'attendance' ? 'text-primary border-primary' : 'text-muted border-transparent hover:text-foreground'
+                        }`}
+                >
+                    <i className="fas fa-book-open mr-2"></i> Attendance
+                </button>
             </div>
 
             {/* --- 3. FLAT, SCROLLABLE CONTENT AREA --- */}
@@ -979,12 +1052,40 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
 
                 {activeTab === 'feeInfo' && (
                     <StudentFeeInfo
-                    studentId={studentId!}
-                        // canRevertFee={canRevertFee}
-                        // revertFeeMutation={revertFeeMutation}
-                        // onRevertFee={handleRevertFee}
+                        studentId={studentId!}
                     />
                 )}
+
+
+                {activeTab === 'admissionForm' && (
+                    <AdmissionFormCompo
+                        // ── 1. Display Mode & Context ──
+                        mode="view"
+                        studentId={studentId}
+
+                        // ── 2. Linking Logic ──
+                        // Only enable linking if the backend confirms this student has NO form attached yet
+                        enableLinking={true}
+                        // onLinkSuccess={() => refetchStudentProfile()}
+
+                        // ── 3. Role-Based Editing ──
+                        canEdit={isAdmin || isCorrespondent}
+
+                        // ── 4. Form Actions ──
+                        onSubmit={handleUpdateAdmissionForm}
+                        isSubmitting={updateDetailsMutation.isPending} // 🌟 Now connected to your update mutation
+
+
+                    // 🌟 Deliberately NOT passing onUpdateStatus here to hide the Approve/Reject buttons
+                    />
+                )}
+
+                {/* 🌟 YOUR NEW TAB INJECTION */}
+                {activeTab === 'attendance' && (
+                    <AttendanceAnalyticsCompo studentId={studentId!} />
+                )}
+
+
             </div>
         </div>
     );

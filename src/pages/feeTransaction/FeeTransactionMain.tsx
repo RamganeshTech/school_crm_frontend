@@ -14,15 +14,17 @@ import { toast } from '../../shared/ui/ToastContext';
 import { useAuthData } from '../../hooks/useAuthData';
 
 export default function FeeTransactionMain() {
-    const { studentId } = useParams<{ studentrecordId: string; studentId: string }>();
+    const { studentId , id} = useParams<{ studentrecordId: string; studentId: string; id:string }>();
 
     const {schoolId} = useAuthData()
+
+    // console.log("studentId", studentId)
     // 1. Table State (Backend Data)
     const {
         data: transactions,
         isLoading,
         isError
-    } = useGetAllFeeTransactions({studentId, schoolId:schoolId!});
+    } = useGetAllFeeTransactions({studentId: studentId || id, schoolId:schoolId!});
 
     const updateStatusMutation = useUpdateFeeReceiptStatus();
    const [statusUpdateMode, setStatusUpdateMode] = useState<boolean>(false);

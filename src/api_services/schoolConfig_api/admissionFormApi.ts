@@ -14,7 +14,7 @@ export interface SubmitPublicAdmissionParams {
 
     // Student Details
     studentName: string;
-    phone: string;
+    mobileNumber: string;
     dob: string | Date;
     age: number | string; // 🌟 Changed to allow string since the input field sends a string
     gender: string;
@@ -92,16 +92,31 @@ export const useGetInfiniteAdmissionForms = (filters: AdmissionFilterParams) => 
 };
 
 // --- Hook 2: Get Single Admission Form Details ---
-export const useGetSingleAdmissionForm = (formId: string | undefined) => {
+export const useGetSingleAdmissionForm = ({ formId, studentId = undefined }: { formId: string | undefined, studentId?: string | undefined }) => {
     const { currentRole } = useAuthData();
 
     return useQuery({
-        queryKey: ['singleAdmissionForm', formId],
+        queryKey: ['singleAdmissionForm', formId, studentId],
         queryFn: async () => {
             try {
                 checkPermission(currentRole, ["correspondent", "administrator"]);
 
-                const { data } = await Api.get(`/api/school/admission-form/form/${formId}`);
+
+                // const params = new URLSearchParams({
+                //     formId: formId,
+                //     studentId: studentId
+                // });
+
+                // 🌟 FIX 1: Safely append query strings only if they exist to avoid sending "undefined" as a string
+                const params = new URLSearchParams();
+
+                // 🌟 FIX 2: Use 'id' instead of 'formId' to match your backend destructuring -> const { id, studentId } = req.query;
+                if (formId) params.append('id', formId);
+                if (studentId) params.append('studentId', studentId);
+
+
+
+                const { data } = await Api.get(`/api/school/admission-form/form?${params.toString()}`);
 
                 if (data.ok) {
                     return data.data;
@@ -113,11 +128,44 @@ export const useGetSingleAdmissionForm = (formId: string | undefined) => {
                 throw new Error(errorMessage);
             }
         },
-        enabled: !!formId,
+        enabled: !!formId || !!studentId,
+        retry: false
     });
 };
 
+interface DropdownParams {
+    schoolId: string;
+    academicYear?: string;
+    search?: string;
+}
 
+// --- Hook: Get Lightweight Dropdown Data ---
+export const useGetAdmissionFormsDropdown = (params: DropdownParams) => {
+    const { currentRole } = useAuthData();
+
+    return useQuery({
+        queryKey: ['admissionFormsDropdown', params.schoolId, params.academicYear, params.search],
+        queryFn: async () => {
+            try {
+                checkPermission(currentRole, ["correspondent", "administrator"]);
+
+                const queryParams = new URLSearchParams({
+                    schoolId: params.schoolId,
+                    // academicYear: params.academicYear,
+                });
+                if (params.search) queryParams.append('search', params.search);
+
+                const { data } = await Api.get(`/api/school/admission-form/dropdown?${queryParams.toString()}`);
+
+                if (data.ok) return data.data;
+                throw new Error(data.message);
+            } catch (error: any) {
+                throw new Error(error.response?.data?.message || error.message);
+            }
+        },
+        enabled: !!params.schoolId && !!params.academicYear,
+    });
+};
 
 // --- Hook: Submit Public Admission Form ---
 export const useSubmitPublicAdmissionForm = () => {
@@ -207,28 +255,101 @@ export const useDeleteAdmissionForm = () => {
 
 
 // --- Interfaces ---
-export interface UpdateFormStatusParams {
-    id: string;
-    schoolId: string; // Needed to invalidate the correct cache
+export interface UpdateStatusParams {
+    id?: string;
+    studentId?: string;
+    schoolId: string;
     status: 'Pending' | 'Approved' | 'Rejected';
 }
 
-// --- Hook 4: Update Admission Form Status ---
 export const useUpdateAdmissionFormStatus = () => {
     const { currentRole } = useAuthData();
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ id, status }: UpdateFormStatusParams) => {
+        mutationFn: async ({ id, studentId, status }: UpdateStatusParams) => {
             try {
                 checkPermission(currentRole, ["correspondent", "administrator"]);
 
-                const { data } = await Api.patch(`/api/school/admission-form/${id}/status`, { status });
+                const params = new URLSearchParams();
+                if (id) params.append('id', id);
+                if (studentId) params.append('studentId', studentId);
+
+                const { data } = await Api.patch(`/api/school/admission-form/status?${params.toString()}`, { status });
+
+                if (!data.ok) throw new Error(data.message);
+                return data;
+            } catch (error: any) {
+                throw new Error(error.response?.data?.message || error.message);
+            }
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['admissionForms'] });
+            queryClient.invalidateQueries({ queryKey: ['singleAdmissionForm', variables.id, variables.studentId] });
+        },
+    });
+};
+
+export interface UpdateDetailsParams {
+    id?: string;
+    studentId?: string;
+    schoolId: string;
+    formData: any; // Or use your AdmissionFormData interface
+}
+
+// --- Hook: Update Form Details (Admin Edit) ---
+export const useUpdateAdmissionFormDetails = () => {
+    const { currentRole } = useAuthData();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, studentId, formData }: UpdateDetailsParams) => {
+            try {
+                checkPermission(currentRole, ["correspondent", "administrator"]);
+
+                const params = new URLSearchParams();
+                if (id) params.append('id', id);
+                if (studentId) params.append('studentId', studentId);
+
+                const { data } = await Api.put(`/api/school/admission-form/details?${params.toString()}`, formData);
+
+                if (!data.ok) throw new Error(data.message);
+                return data;
+            } catch (error: any) {
+                throw new Error(error.response?.data?.message || error.message);
+            }
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['admissionForms', variables.schoolId] });
+            queryClient.invalidateQueries({ queryKey: ['singleAdmissionForm', variables.id, variables.studentId] });
+        },
+    });
+};
+
+
+// --- Interfaces ---
+export interface LinkStudentParams {
+    id: string; // The form ID
+    schoolId: string; // Needed to refresh the correct cache
+    studentId: string; // The ID of the student being linked
+}
+
+// --- Hook 5: Link Student to Admission Form ---
+export const useLinkStudentToForm = () => {
+    const { currentRole } = useAuthData();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, studentId }: LinkStudentParams) => {
+            try {
+                checkPermission(currentRole, ["correspondent", "administrator"]);
+
+                const { data } = await Api.patch(`/api/school/admission-form/${id}/link-student`, { studentId });
 
                 if (data.ok) {
                     return data;
                 } else {
-                    throw new Error(data.message || 'Failed to update status');
+                    throw new Error(data.message || 'Failed to link student');
                 }
             } catch (error: any) {
                 const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
@@ -238,9 +359,10 @@ export const useUpdateAdmissionFormStatus = () => {
         onSuccess: (_, variables) => {
             // Instantly refresh the main list AND the single form view so the UI stays in sync
             queryClient.invalidateQueries({ queryKey: ['admissionForms', variables.schoolId] });
-            queryClient.invalidateQueries({ queryKey: ['singleAdmissionForm', variables.id] });
+            queryClient.invalidateQueries({ queryKey: ['singleAdmissionForm', variables.studentId, ] });
         },
     });
 };
+
 
 

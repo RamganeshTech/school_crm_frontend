@@ -415,7 +415,7 @@ const Home = () => {
               <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Legal</h4>
               <div className="flex flex-col gap-3 text-sm font-medium text-slate-500">
                 <Link to="/privacy-policy" className="hover:text-blue-600 transition-colors duration-200 w-fit">Privacy Policy</Link>
-                <Link to="/terms-and-conditions" className="hover:text-blue-600 transition-colors duration-200 w-fit">Terms & Conditions</Link>
+                {/* <Link to="/terms-and-conditions" className="hover:text-blue-600 transition-colors duration-200 w-fit">Terms & Conditions</Link> */}
                 <Link to="/account-deletion" className="hover:text-blue-600 transition-colors duration-200 w-fit">Account Deletion</Link>
               </div>
             </div>

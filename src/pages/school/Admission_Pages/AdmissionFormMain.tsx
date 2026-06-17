@@ -195,7 +195,7 @@ export default function AdmissionFormMain() {
                         <Input
                             id="search"
                             type="text"
-                            label="Search by Name/Phone"
+                            label="Search by Name/ mobile number"
                             placeholder="e.g. John Doe, 9876543210"
                             leftIcon="fas fa-search"
                             value={filters.search}
@@ -298,7 +298,7 @@ export default function AdmissionFormMain() {
                                                         {form.isSubmitted ? form.fatherName : "-"}
                                                     </span>
                                                     <span className="text-[10px] text-muted">
-                                                        {form.isSubmitted ? form.phone : ""}
+                                                        {form.isSubmitted ? form.mobileNumber : ""}
                                                     </span>
                                                 </div>
                                             </Td>

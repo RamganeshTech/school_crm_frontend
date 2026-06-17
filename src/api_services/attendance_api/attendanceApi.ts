@@ -42,12 +42,6 @@ export interface GetClassHistoryParams {
   endDate?: string;
 }
 
-export interface GetStudentHistoryParams {
-  studentId?: string;
-  academicYear?: string;
-  month?: number | string;
-  year?: number | string;
-}
 
 // Note: Replace `any` with your actual exact response interfaces
 type ApiResponse<T = any> = {
@@ -150,39 +144,65 @@ export const useGetClassAttendanceHistory = (params: GetClassHistoryParams) => {
   });
 };
 
-// ==========================================
-// 4. GET STUDENT ATTENDANCE HISTORY
-// ==========================================
+export interface GetStudentHistoryParams {
+    studentId: string;
+    academicYear?: string;
+    month?: string | number;
+    year?: string | number;
+    startDate?: string;
+    endDate?: string;
+}
+
+// 1. History & Overview Hook
 export const useGetStudentAttendanceHistory = (params: GetStudentHistoryParams) => {
-  const { currentRole } = useAuthData();
+    const { currentRole } = useAuthData();
 
-  return useQuery({
-    queryKey: ['attendance', 'studentHistory', params.studentId, params.month, params.year, params.academicYear],
-    queryFn: async () => {
-      try {
-        checkPermission(currentRole, [
-          "administrator", "accountant", "correspondent", "principal", "viceprincipal", "teacher", "parent"
-        ]);
+    return useQuery({
+        queryKey: ['attendance', 'studentHistory', params],
+        queryFn: async () => {
+            checkPermission(currentRole, ["administrator", "correspondent", "teacher", "parent"]);
+            const { studentId, ...queryParams } = params;
+            
+            const { data } = await Api.get(`/api/attendance/student/${studentId}`, { params: queryParams });
+            if (data.ok) return data;
+            throw new Error(data.message);
+        },
+        enabled: !!params.studentId,
+    });
+};
 
-        // Destructure to separate params for URL and query string
-        const { studentId, ...queryParams } = params;
+// 2. Trends (Line Chart) Hook
+export const useGetStudentAttendanceTrends = (studentId: string | undefined, academicYear: string | undefined) => {
+    const { currentRole } = useAuthData();
 
-        const { data } = await Api.get<ApiResponse>(`/api/attendance/student/${studentId}`, { 
-          params: queryParams 
-        });
+    return useQuery({
+        queryKey: ['attendance', 'studentTrends', studentId, academicYear],
+        queryFn: async () => {
+            checkPermission(currentRole, ["administrator", "correspondent", "teacher", "parent"]);
+            
+            const { data } = await Api.get(`/api/attendance/student/${studentId}/trends`, { params: { academicYear } });
+            if (data.ok) return data.data;
+            throw new Error(data.message);
+        },
+        enabled: !!studentId && !!academicYear,
+    });
+};
 
-        if (data.ok) {
-          return data; 
-        } else {
-          throw new Error(data.message || 'Failed to fetch student attendance history');
-        }
-      } catch (error: any) {
-        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
-        throw new Error(errorMessage);
-      }
-    },
-    enabled: !!params.studentId,
-  });
+// 3. Patterns (Heatmap/Bars) Hook
+export const useGetStudentAttendancePatterns = (studentId: string | undefined, academicYear: string | undefined) => {
+    const { currentRole } = useAuthData();
+
+    return useQuery({
+        queryKey: ['attendance', 'studentPatterns', studentId, academicYear],
+        queryFn: async () => {
+            checkPermission(currentRole, ["administrator", "correspondent", "teacher", "parent"]);
+            
+            const { data } = await Api.get(`/api/attendance/student/${studentId}/patterns`, { params: { academicYear } });
+            if (data.ok) return data.data;
+            throw new Error(data.message);
+        },
+        enabled: !!studentId && !!academicYear,
+    });
 };
 
 
