@@ -108,7 +108,8 @@ export const useAuthorizedMenu = () => {
             menu = menu.filter(item => item.name !== 'School List');
         }
 
-        return menu;
+        // return menu;
+        return menu.sort((a, b) => a.name.localeCompare(b.name));
     }, [currentRole, schoolId, activeStudentId]); // Recalculates if any of these 3 change
 
     return authorizedMenu;

@@ -18,7 +18,7 @@ import { useRoleCheck } from '../../../hooks/useRoleCheck';
 
 // --- Interfaces ---
 export interface AdmissionFormData {
-    studentName: string; studentId:string; dob: string; age: string | number; gender: string;
+    studentName: string; studentId: string; dob: string; age: string | number; gender: string;
     motherTongue: string; religion: string; community: string; emisNumber: string;
     admissionSoughtFor: string; examinationPassed: string;
     mobileNumber: string; currentAddress: string; permanentAddress: string;
@@ -62,7 +62,7 @@ export default function AdmissionFormCompo({
 
     const { data: schoolData } = useGetSchoolById(schoolId!);
 
-    const {isParent} = useRoleCheck()
+    const { isParent } = useRoleCheck()
 
 
     const currentAcademicYear = schoolData?.currentAcademicYear || "";
@@ -71,7 +71,7 @@ export default function AdmissionFormCompo({
     // --- State Management ---
     const [currentMode, setCurrentMode] = useState<'create' | 'view' | 'edit'>(initialMode);
     const [formData, setFormData] = useState<AdmissionFormData>({
-        studentName: '', studentId : "", dob: '', age: '', gender: '', motherTongue: '', religion: '', community: '', emisNumber: '',
+        studentName: '', studentId: "", dob: '', age: '', gender: '', motherTongue: '', religion: '', community: '', emisNumber: '',
         admissionSoughtFor: '', examinationPassed: '', mobileNumber: '', currentAddress: '', permanentAddress: '',
         fatherName: '', fatherEducation: '', fatherOccupation: '', motherName: '', motherEducation: '', motherOccupation: ''
     });
@@ -80,7 +80,7 @@ export default function AdmissionFormCompo({
     const [selectedFormToLink, setSelectedFormToLink] = useState<string>("");
 
     // --- Internal Data Fetching ---
-    const { data: fetchedForm, isLoading: isFetchingForm } = useGetSingleAdmissionForm({ formId: formId || undefined, studentId: studentId || undefined });
+    const { data: fetchedForm, isLoading: isFetchingForm, refetch } = useGetSingleAdmissionForm({ formId: formId || undefined, studentId: studentId || undefined });
 
     // --- Internal API Hooks for Linking ---
     const linkMutation = useLinkStudentToForm();
@@ -136,6 +136,7 @@ export default function AdmissionFormCompo({
             await linkMutation.mutateAsync({ id: selectedFormToLink, schoolId: schoolId!, studentId });
             toast.success("Admission Form linked successfully!");
             if (onLinkSuccess) onLinkSuccess(selectedFormToLink);
+            refetch()
         } catch (error: any) {
             toast.error(error.message || "Failed to link form.");
         }
@@ -186,7 +187,7 @@ export default function AdmissionFormCompo({
     if (currentMode === 'view') {
         return (
             <div className="space-y-4 animate-in fade-in duration-300">
-                {(!isParent && !formData?.studentId)  && renderLinkingSection()}
+                {(!isParent && !formData?.studentId) && renderLinkingSection()}
 
                 {/* Header & Status Actions */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-surface p-3.5 rounded-xl border border-border shadow-sm gap-3">

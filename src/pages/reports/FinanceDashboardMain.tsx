@@ -17,6 +17,7 @@ import OutstandingLiabilityWidget from './OutstandingFeeDonut';
 import ExpenseReportWidget from './dashboards/ExpenseDashboard';
 import CollectedFeesWidget from './CollectedFeesWidget';
 import RecentFeeActivityWidget from './RecentFeeActivityWidget';
+import ClassFeeDuesAnalytics from './ClassFeeDuesAnalytics';
 
 type RangeValue = FinanceStatsParams["range"]
 
@@ -129,6 +130,10 @@ export default function FinanceDashboardMain() {
 
                  <div className="lg:col-span-1">
                     <RecentFeeActivityWidget />
+                </div>
+
+                <div className="lg:col-span-3">
+                    <ClassFeeDuesAnalytics schoolId={schoolId!} academicYear={academicYear!} />
                 </div>
 
                 <div className="lg:col-span-3">

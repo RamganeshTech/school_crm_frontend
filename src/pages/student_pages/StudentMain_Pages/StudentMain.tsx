@@ -572,9 +572,9 @@ export default function StudentMain() {
                         <THead className="sticky top-0 z-10 bg-background after:absolute after:bottom-0 after:left-0 after:right-0">
                             <tr>
                                 <Th className="w-16 text-center">S.No</Th>
-                                <Th>Student Profile</Th>
-                                <Th>Father's Name</Th>
-                                <Th>DOB</Th>
+                                <Th>Name of the Student</Th>
+                                <Th>Name of Parents</Th>
+                                <Th>Mobile Number</Th>
                                 <Th>Class/Section</Th>
                                 <Th>Status</Th>
                                 <Th className="text-center">Actions</Th>
@@ -637,16 +637,24 @@ export default function StudentMain() {
                                                 {/* 2. Father's Name */}
                                                 <Td>
                                                     <p className="text-sm text-foreground">
-                                                        {student.mandatory?.fatherName || 'N/A'}
+                                                        {student?.mandatory?.fatherName || 'N/A'} <br />
+                                                        {student?.mandatory?.motherName || 'N/A'} 
                                                     </p>
                                                 </Td>
 
                                                 {/* 3. DOB */}
-                                                <Td>
+                                                {/* <Td>
                                                     <p className="text-sm text-foreground">
                                                         {student.mandatory?.dob ? new Date(student.mandatory.dob).toLocaleDateString() : 'N/A'}
                                                     </p>
+                                                </Td> */}
+
+                                                <Td>
+                                                    <p className="text-sm text-foreground">
+                                                        {student?.mandatory?.mobileNumber ? student?.mandatory?.mobileNumber : 'N/A'}
+                                                    </p>
                                                 </Td>
+
 
                                                 {/* 4. Current Section */}
                                                 <Td>

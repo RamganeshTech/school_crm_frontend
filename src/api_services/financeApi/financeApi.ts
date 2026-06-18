@@ -305,3 +305,37 @@ export const useGetRecentFeeActivity = (schoolId: string | undefined) => {
         enabled: !!schoolId,
     });
 };
+
+
+
+// Import your Api instance, useAuthData, and checkPermission functions here
+
+export type GetFeeDuesParams = {
+    schoolId: string;
+    academicYear: string;
+    classId?: string;
+    sectionId?: string;
+};
+
+export const useGetClassFeeDues = (params: GetFeeDuesParams) => {
+    const { currentRole } = useAuthData();
+
+    return useQuery({
+        queryKey: ['finance', 'classFeeDues', params],
+        queryFn: async () => {
+            // Strict role guard based on your route
+            checkPermission(currentRole, ["correspondent", "administrator", "accountant", "principal", "viceprincipal"]);
+            
+            const { schoolId, ...queryParams } = params;
+            
+            const { data } = await Api.get(`/api/financeledger/v1/class/fee-dues`, { 
+                params: { schoolId, ...queryParams } 
+            });
+            
+            if (data.ok) return data.data;
+            throw new Error(data.message || "Failed to fetch fee dues");
+        },
+        // Only run the query if we have the minimum required context
+        enabled: !!params.schoolId && !!params.academicYear, 
+    });
+};

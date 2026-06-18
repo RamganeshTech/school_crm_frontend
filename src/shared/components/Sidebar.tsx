@@ -52,12 +52,23 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
         }
     }, [isExpanded]);
 
+    useEffect(() => {
+        const activeSubMenus: Record<string, boolean> = {};
 
-    // useEffect(() => {
-    //     if (!isExpanded) {
-    //         setOpenSubMenus({});
-    //     }
-    // }, [isExpanded]);
+        menuItems.forEach((item) => {
+            if (item.subMenu?.some(
+                (sub) => location.pathname === sub.path || location.pathname.startsWith(`${sub.path}/`)
+            )) {
+                activeSubMenus[item.name] = true;
+            }
+        });
+
+        setOpenSubMenus(prev => ({
+            ...prev,
+            ...activeSubMenus
+        }));
+
+    }, [location.pathname, menuItems]);
 
 
     // 🌟 2. Handle the school selection
@@ -77,7 +88,7 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
     const handleMouseLeave = () => {
         // ✅ Batching: Both states update at once, triggering only ONE render.
         setIsHovered(false);
-        setOpenSubMenus({});
+        // setOpenSubMenus({});
     };
 
 
@@ -224,8 +235,8 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
 
                                     <span className={`font-medium whitespace-nowrap overflow-hidden text-[13px] md:text-[16px] transition-all duration-300
                     ${isExpanded ? 'opacity-100 ' : 'opacity-0 max-w-0'}`}>
-                                        {item.name}
-                                        {/* {item.name.length > 12 ? `${item.name.slice(0, 12)}...` : item.name} */}
+                                        {/* {item.name} */}
+                                        {item.name.length > 15 ? `${item.name.slice(0, 15)}...` : item.name}
                                     </span>
                                 </div>
 
@@ -257,12 +268,12 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
 
                                                         {/* <Link */}
 
-                                                        {isChildActive ? (
+                                                        {/* {isChildActive ? (
                                                             <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                                                         ) : (
                                                             // <div className="w-1.5 h-1.5 shrink-0" />
                                                             <></>
-                                                        )}
+                                                        )} */}
                                                         <span className="truncate">{sub.name}</span>
                                                         {/* </Link> */}
                                                     </button>
