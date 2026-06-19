@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Doughnut, Line } from 'react-chartjs-2';
 import { useAuthData } from '../../../hooks/useAuthData';
 import { useGetExpenseReport } from '../../../api_services/expense_api/expenseApi';
