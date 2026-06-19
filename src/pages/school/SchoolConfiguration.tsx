@@ -18,6 +18,7 @@ import { getAcademicYears } from '../../utils/utils';
 import { useRoleCheck } from '../../hooks/useRoleCheck';
 import BillBookConfig from './BillBookConfig';
 import AdmissionBookConfig from './AdmissionBookConfig';
+import SystemReadinessCard from './SystemReadinessCard';
 
 // type TabOptions = 'details' | 'socials';
 
@@ -208,10 +209,9 @@ export default function SchoolConfiguration() {
             </div>
 
             {/* --- TAB CONTENT: DETAILS --- */}
-            {activeTab === 'details' && (
+            {/* {activeTab === 'details' && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in duration-300">
 
-                    {/* Logo Management (Left Column) */}
                     <Card className="md:col-span-1 h-fit">
                         <CardHeader title="Institution Logo" />
                         <CardContent className="flex flex-col items-center text-center space-y-4">
@@ -246,7 +246,6 @@ export default function SchoolConfiguration() {
                         </CardContent>
                     </Card>
 
-                    {/* Details Form (Right Column) */}
                     <Card className="md:col-span-2">
                         <CardHeader title="General Information" subtitle="Update the official contact and address details." />
                         <CardContent>
@@ -256,7 +255,7 @@ export default function SchoolConfiguration() {
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                     <Input id="email" type="email" label="Official Email" leftIcon="fas fa-envelope" value={detailsForm.email} onChange={handleDetailsChange} disabled={updateSchoolMutation.isPending} />
                                     <Input id="phoneNo" type="tel" label="Contact Number" leftIcon="fas fa-phone" value={detailsForm.phoneNo} onChange={handleDetailsChange} disabled={updateSchoolMutation.isPending} />
-                                    {/* <Input id="currentAcademicYear" label="Current Academic Year" value={detailsForm.currentAcademicYear} onChange={handleDetailsChange} disabled={updateSchoolMutation.isPending} /> */}
+
                                     <SearchSelect
                                         // id="currentAcademicYear"
                                         label="Academic Year"
@@ -278,6 +277,103 @@ export default function SchoolConfiguration() {
                             </form>
                         </CardContent>
                     </Card>
+                </div>
+            )} */}
+{/* --- TAB CONTENT: DETAILS --- */}
+            {activeTab === 'details' && (
+                <div className="flex flex-col gap-6 animate-in fade-in duration-300">
+
+                    {/* --- TOP ROW: Identity & Details --- */}
+                    <div className="flex flex-col lg:flex-row gap-6 items-stretch">
+                        
+                        {/* LEFT: Logo Management (Approx 35% Width) */}
+                        <div className="w-full lg:w-[35%]">
+                            <Card className="h-full shadow-sm border-border/60">
+                                <CardHeader title="Institution Logo" />
+                                <CardContent className="flex flex-col items-center text-center space-y-5">
+                                    <div className="p-2 bg-surface border border-border rounded-2xl shadow-sm">
+                                        {schoolData?.logo ? (
+                                            <img src={(schoolData.logo as any).url || schoolData.logo} alt="Logo" className="w-32 h-32 rounded-xl object-contain bg-white" />
+                                        ) : (
+                                            <div className="w-32 h-32 rounded-xl bg-background flex flex-col items-center justify-center text-muted gap-2">
+                                                <i className="fas fa-image text-2xl opacity-50"></i>
+                                                <span className="text-xs font-medium">No Logo</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="w-full">
+                                        <Label htmlFor="logoUpload" className="sr-only">Upload Logo</Label>
+                                        <input
+                                            type="file"
+                                            id="logoUpload"
+                                            accept="image/*"
+                                            ref={fileInputRef}
+                                            onChange={handleLogoUpload}
+                                            className="hidden"
+                                        />
+                                        <Button
+                                            variant="outline"
+                                            fullWidth
+                                            leftIcon="fas fa-cloud-upload-alt"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            isLoading={updateLogoMutation.isPending}
+                                            disabled={!canModify}
+                                            className="font-semibold"
+                                        >
+                                            Upload New Logo
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* RIGHT: General Information (Approx 65% Width) */}
+                        <div className="w-full lg:w-[65%] flex flex-col">
+                            <Card className="h-full shadow-sm border-border/60 flex flex-col">
+                                <CardHeader 
+                                    title="General Information" 
+                                    subtitle="Update the official contact and address details for your institution." 
+                                />
+                                <CardContent className="flex-1 flex flex-col">
+                                    <form onSubmit={submitDetails} className="flex flex-col h-full space-y-6">
+                                        <div className="space-y-6 flex-1">
+                                            <Input id="name" label="Institution Name" value={detailsForm.name} onChange={handleDetailsChange} disabled={updateSchoolMutation.isPending || !canModify} />
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <Input id="email" type="email" label="Official Email" leftIcon="fas fa-envelope" value={detailsForm.email} onChange={handleDetailsChange} disabled={updateSchoolMutation.isPending || !canModify} />
+                                                <Input id="phoneNo" type="tel" label="Contact Number" leftIcon="fas fa-phone" value={detailsForm.phoneNo} onChange={handleDetailsChange} disabled={updateSchoolMutation.isPending || !canModify} />
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <SearchSelect
+                                                    label="Academic Year"
+                                                    options={academicYearOptions}
+                                                    value={detailsForm.currentAcademicYear}
+                                                    onChange={(opt: any) => setDetailsForm(prev => ({ ...prev, currentAcademicYear: String(opt.value) }))}
+                                                    placeholder="Select Year..."
+                                                />
+                                                <Input id="address" label="Full Address" leftIcon="fas fa-map-marker-alt" value={detailsForm.address} onChange={handleDetailsChange} disabled={updateSchoolMutation.isPending || !canModify} />
+                                            </div>
+                                        </div>
+
+                                        {canModify && (
+                                            <div className="pt-6 border-t border-border/50 flex justify-end mt-auto">
+                                                <Button type="submit" variant="primary" isLoading={updateSchoolMutation.isPending} leftIcon="fas fa-check">
+                                                    Save Changes
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </form>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+
+                    {/* --- BOTTOM ROW: Full Width Setup Progress --- */}
+                    <div className="w-full">
+                        <SystemReadinessCard schoolId={schoolId!} />
+                    </div>
+
                 </div>
             )}
 

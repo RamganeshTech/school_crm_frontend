@@ -485,7 +485,7 @@ export default function StudentMain() {
 
 
                 <div className={`
-    fixed inset-y-0 left-0 z-50 w-[280px] bg-surface border border-border rounded-xl p-5 flex flex-col gap-5 shadow-2xl transition-transform duration-300 ease-in-out
+    fixed inset-y-0 left-0 z-30 w-[280px] bg-surface border border-border rounded-xl p-5 flex flex-col gap-5 shadow-2xl transition-transform duration-300 ease-in-out
     lg:static lg:w-[25%] lg:min-w-[250px] lg:shrink-0 lg:rounded-xl lg:shadow-sm lg:translate-x-0 lg:border
     ${isMobileFilterOpen ? 'translate-x-0' : '-translate-x-full'}
     overflow-y-auto custom-scrollbar

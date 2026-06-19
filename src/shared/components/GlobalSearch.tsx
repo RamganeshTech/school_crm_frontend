@@ -37,14 +37,40 @@ export const GlobalSearch = () => {
     // 1. Get the authoritative menu list for this specific user
     const availableModules = useAuthorizedMenu();
 
-    // 2. Filter modules based on search query
+    // 🌟 NEW: Flatten the menu so parent items with submenus are hidden, and only their sub-items (or standalone items) are searchable
+    const searchableModules = useMemo(() => {
+        const flattened: any[] = [];
+
+        availableModules.forEach((module: any) => {
+            if (module.subMenu && module.subMenu.length > 0) {
+                // If it has a submenu, add all the sub-items but completely ignore the parent
+                flattened.push(...module.subMenu);
+            } else {
+                // If it's a standalone menu, add it directly
+                flattened.push(module);
+            }
+        });
+
+        return flattened;
+    }, [availableModules]);
+
+    // // 2. Filter modules based on search query
+    // const filteredModules = useMemo(() => {
+    //     if (!query.trim()) return availableModules;
+
+    //     return availableModules.filter((module) =>
+    //         module.name.toLowerCase().includes(query.toLowerCase())
+    //     );
+    // }, [query, availableModules]);
+
+    // 2. Filter modules based on search query (Now using the 'searchableModules' list!)
     const filteredModules = useMemo(() => {
-        if (!query.trim()) return availableModules;
-        
-        return availableModules.filter((module) =>
+        if (!query.trim()) return searchableModules;
+
+        return searchableModules.filter((module: any) =>
             module.name.toLowerCase().includes(query.toLowerCase())
         );
-    }, [query, availableModules]);
+    }, [query, searchableModules]);
 
 
     // 3. Handle Keyboard Navigation (Up, Down, Enter, Escape)

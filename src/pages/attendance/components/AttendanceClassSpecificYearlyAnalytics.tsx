@@ -13,11 +13,11 @@ import { useGetSections } from '../../../api_services/schoolConfig_api/sectionAp
 import { SearchSelect } from '../../../shared/ui/SearchSelect';
 import { AttendanceYearlyLeaderboards } from './AttendanceYearlyLeaderboards';
 
-export default function AttendanceClassSpecificYearlyAnalytics() {
+export default function AttendanceClassSpecificYearlyAnalytics({defaultYear}:{defaultYear:string}) {
     const { schoolId } = useAuthData();
     const academicYearOptions = useMemo(() => getAcademicYears(), []);
 
-    const [selectedYear, setSelectedYear] = useState<string>(academicYearOptions[0]?.value || "");
+    const [selectedYear, setSelectedYear] = useState<string>(defaultYear || academicYearOptions[0]?.value || "");
     const [selectedClassId, setSelectedClassId] = useState<string>('');
     const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 

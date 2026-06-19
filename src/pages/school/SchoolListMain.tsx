@@ -52,7 +52,7 @@ export default function SchoolListMain() {
         email: '',
         phoneNo: '',
         address: '',
-        currentAcademicYear: '2024-2025',
+        currentAcademicYear: '2026-2027',
     });
     const [logoFile, setLogoFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,6 +78,19 @@ export default function SchoolListMain() {
     // --- Handlers ---
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
+
+        // 🌟 Specific validation for phone number
+        if (id === 'phoneNo') {
+            // Strip out all non-numeric characters (prevents letters/symbols)
+            const numericValue = value.replace(/\D/g, '');
+
+            // Prevent typing more than 11 digits
+            if (numericValue.length > 11) return;
+
+            setFormData(prev => ({ ...prev, [id]: numericValue }));
+            return; // Exit early so we don't hit the generic setter below
+        }
+
         setFormData(prev => ({ ...prev, [id]: value }));
     };
 
@@ -201,13 +214,19 @@ export default function SchoolListMain() {
 
     const closeForm = () => {
         setIsFormOpen(false);
-        setFormData({ name: '', email: '', phoneNo: '', address: '', currentAcademicYear: '2024-2025' });
+        setFormData({ name: '', email: '', phoneNo: '', address: '', currentAcademicYear: '2026-2027' });
         setLogoFile(null);
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        const phoneLength = formData.phoneNo.length;
+        if (phoneLength !== 10 && phoneLength !== 11) {
+            toast.error("Contact Number must be exactly 10 digits (mobile number) or 11 digits (landline)");
+            return; // Stop the submission process right here
+        }
 
         try {
             const submitData = new FormData();
@@ -463,7 +482,7 @@ export default function SchoolListMain() {
                             label="Academic Year"
                             options={academicYearOptions}
                             value={formData.currentAcademicYear}
-                            onChange={(opt) => setFormData(p=> ({...p, currentAcademicYear:String(opt.value)}))}
+                            onChange={(opt) => setFormData(p => ({ ...p, currentAcademicYear: String(opt.value) }))}
                             placeholder="Select Year..."
                         />
 

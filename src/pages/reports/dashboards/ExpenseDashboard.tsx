@@ -55,7 +55,7 @@ const PAYMENT_MODE_OPTIONS = [
 ];
 
 
-export default function ExpenseReportWidget() {
+export default function ExpenseReportWidget({ defaultYear }: { defaultYear: string }) {
     const { schoolId } = useAuthData();
 
 
@@ -67,18 +67,18 @@ export default function ExpenseReportWidget() {
 
     // --- 1. Small Filter States ---
     const [range, setRange] = useState<'week' | 'month' | 'year'>('month');
-    const [academicYear, setAcademicYear] = useState(currentYear); // Replace with your global default
+    const [academicYear, setAcademicYear] = useState(defaultYear || currentYear); // Replace with your global default
     const [verificationStatus, setVerificationStatus] = useState('');
     // const [category, setCategory] = useState(''); // NEW state
     const [paymentMode, setPaymentMode] = useState('');
 
 
     // 2. 🌟 THE BRIDGE: Force the local state to stay updated when the parent changes
-    useEffect(() => {
-        if (currentYear) {
-            setAcademicYear(currentYear);
-        }
-    }, [currentYear]); // This runs every time defaultYear changes from the parent
+    // useEffect(() => {
+    //     if (currentYear) {
+    //         setAcademicYear(currentYear);
+    //     }
+    // }, [currentYear]); // This runs every time defaultYear changes from the parent
 
 
     // --- 2. Fetch Data ---
@@ -156,8 +156,8 @@ export default function ExpenseReportWidget() {
                                 key={r}
                                 onClick={() => setRange(r as any)}
                                 className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-colors ${range === r
-                                        ? 'bg-primary text-inverse shadow-sm'
-                                        : 'text-muted hover:text-foreground'
+                                    ? 'bg-primary text-inverse shadow-sm'
+                                    : 'text-muted hover:text-foreground'
                                     }`}
                             >
                                 {r}

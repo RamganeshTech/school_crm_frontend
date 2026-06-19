@@ -18,6 +18,8 @@ import ExpenseReportWidget from './dashboards/ExpenseDashboard';
 import CollectedFeesWidget from './CollectedFeesWidget';
 import RecentFeeActivityWidget from './RecentFeeActivityWidget';
 import ClassFeeDuesAnalytics from './ClassFeeDuesAnalytics';
+import AttendanceSchoolWideYearlyAnalytics from '../attendance/components/AttendaceSchoolWideYearlyAnalytics';
+import AttendanceClassSpecificYearlyAnalytics from '../attendance/components/AttendanceClassSpecificYearlyAnalytics';
 
 type RangeValue = FinanceStatsParams["range"]
 
@@ -31,6 +33,7 @@ export default function FinanceDashboardMain() {
     // --- State Management ---
     const [range, setRange] = useState<RangeValue>('month');
     const [academicYear, setAcademicYear] = useState<string>(currentAcademicYear!);
+    const [activeTab, setActiveTab] = useState<'finance' | 'attendance'>('finance'); // 🌟 NEW CHIP STATE
 
     // 🌟 THE STATE HYDRATION ENGINE
     // If the API call succeeds, has data, and your state is still empty, populate it instantly!
@@ -66,7 +69,7 @@ export default function FinanceDashboardMain() {
         <div className="w-full h-full flex flex-col space-y-6 overflow-y-auto custom-scrollbar p-2 bg-mainBg animate-in fade-in duration-300">
 
             {/* Master Header Board */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5 shrink-0">
+            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5 shrink-0">
                 <div>
                     <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
                         <i className="fas fa-chart-pie text-primary"></i>
@@ -77,7 +80,7 @@ export default function FinanceDashboardMain() {
 
                 {/* Dashboard Global Configuration Selectors */}
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="w-44">
+                   {activeTab === "finance" && <div className="w-44">
                         <SearchSelect
                             label=""
                             options={RANGE_OPTIONS}
@@ -85,7 +88,7 @@ export default function FinanceDashboardMain() {
                             onChange={(opt) => setRange((opt.value as RangeValue))}
                             placeholder="Data Scope Timeline"
                         />
-                    </div>
+                    </div>}
                     <div className="w-48">
                         <SearchSelect
                             label=""
@@ -96,13 +99,41 @@ export default function FinanceDashboardMain() {
                         />
                     </div>
                 </div>
+            </header>
+
+
+            {/* 🌟 PROFESSIONAL CHIP NAVIGATION */}
+          {/* 🌟 PROFESSIONAL CHIP NAVIGATION */}
+            <div className="flex items-center gap-3 border-b border-border/50 pb-4 shrink-0">
+                <button
+                    onClick={() => setActiveTab('finance')}
+                    className={`cursor-pointer flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-200 ${
+                        activeTab === 'finance'
+                            ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
+                            : 'bg-surface text-muted hover:bg-muted/10 hover:text-foreground border border-border/60'
+                    }`}
+                >
+                    <i className="fas fa-wallet text-xs"></i> Finance Ledger
+                </button>
+                <button
+                    onClick={() => setActiveTab('attendance')}
+                    className={`cursor-pointer flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-200 ${
+                        activeTab === 'attendance'
+                            ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
+                            : 'bg-surface text-muted hover:bg-muted/10 hover:text-foreground border border-border/60'
+                    }`}
+                >
+                    <i className="fas fa-user-check text-xs"></i> Attendance Reports
+                </button>
             </div>
 
-            {/* Matrix Segment 1: KPI Statistics Panels */}
-            <FinanceKPICards data={stats} isLoading={isStatsLoading} />
+            {activeTab === 'finance' && (
+                <section className="w-full h-full flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-300">
+                    {/* Matrix Segment 1: KPI Statistics Panels */}
+                    < FinanceKPICards data={stats} isLoading={isStatsLoading} />
 
-            {/* Matrix Segment 2: Advanced Data Graphs Grid */}
-            {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Matrix Segment 2: Advanced Data Graphs Grid */}
+                    {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                     <FinanceTrendsChart timelineData={timeline} isLoading={isTimelineLoading} />
                 </div>
@@ -112,35 +143,55 @@ export default function FinanceDashboardMain() {
             </div> */}
 
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                <div className="lg:col-span-3">
-                    <CashFlowTimelineWidget />
-                </div>
+                        <div className="lg:col-span-3">
+                            <CashFlowTimelineWidget />
+                        </div>
 
 
 
-                <div className="lg:col-span-1">
-                    <CollectedFeesWidget defaultYear={academicYear!} />
-                </div>
+                        <div className="lg:col-span-1">
+                            <CollectedFeesWidget defaultYear={academicYear!} />
+                        </div>
 
-                <div className="lg:col-span-1">
-                    <OutstandingLiabilityWidget defaultYear={academicYear!} />
-                </div>
+                        <div className="lg:col-span-1">
+                            <OutstandingLiabilityWidget defaultYear={academicYear!} />
+                        </div>
 
-                 <div className="lg:col-span-1">
-                    <RecentFeeActivityWidget />
-                </div>
+                        <div className="lg:col-span-1">
+                            <RecentFeeActivityWidget />
+                        </div>
 
-                <div className="lg:col-span-3">
-                    <ClassFeeDuesAnalytics schoolId={schoolId!} academicYear={academicYear!} />
-                </div>
+                        <div className="lg:col-span-3">
+                            <ClassFeeDuesAnalytics schoolId={schoolId!} academicYear={academicYear!} />
+                        </div>
 
-                <div className="lg:col-span-3">
-                    <ExpenseReportWidget />
-                </div>
+                        <div className="lg:col-span-3">
+                            <ExpenseReportWidget key={academicYear} defaultYear={academicYear!} />
+                        </div>
 
-            </div>
+                    </div>
+                </section>
+            )}
+
+
+            {/* 🌟 CONDITIONAL RENDERING: ATTENDANCE */}
+            {activeTab === 'attendance' && (
+                <section className="flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-300">
+                    <div className="grid grid-cols-1 gap-6">
+                        {/* School-Wide Attendance Container */}
+                        <div className="h-[600px] border border-border rounded-xl overflow-hidden shadow-sm">
+                            <AttendanceSchoolWideYearlyAnalytics  key={academicYear} defaultYear={academicYear} />
+                        </div>
+                        
+                        {/* Class-Specific Attendance Container */}
+                        <div className="h-[700px] border border-border rounded-xl overflow-hidden shadow-sm">
+                            <AttendanceClassSpecificYearlyAnalytics  key={academicYear} defaultYear={academicYear} />
+                        </div>
+                    </div>
+                </section>
+            )}
         </div>
     );
 }

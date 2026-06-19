@@ -230,7 +230,7 @@ export default function AttendanceAnalyticsDashboard() {
                                         <i className="fas fa-exclamation-triangle"></i>
                                     </div>
                                     <div>
-                                        <h3 className="text-sm font-bold text-danger leading-none">Action Required: Chronic Absentees</h3>
+                                        <h3 className="text-sm font-bold text-danger leading-none">Students with High Rate of absentees</h3>
                                         <p className="text-[10px] text-danger/80 font-medium mt-0.5">Highest absentee rate in this {report.overview.totalWorkingDays}-day period.</p>
                                     </div>
                                 </div>

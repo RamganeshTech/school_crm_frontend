@@ -6,12 +6,15 @@ import { useGetAcademicYearLeaderboards } from '../../../api_services/attendance
 import { SearchSelect } from '../../../shared/ui/SearchSelect';
 import { AttendanceYearlyLeaderboards } from './AttendanceYearlyLeaderboards';
 
-export default function AttendanceSchoolWideYearlyAnalytics() {
+export default function AttendanceSchoolWideYearlyAnalytics({defaultYear}:{defaultYear:string}) {
     const { schoolId } = useAuthData();
     const academicYearOptions = useMemo(() => getAcademicYears(), []);
     
     // Default to the first available year
-    const [selectedYear, setSelectedYear] = useState<string>(academicYearOptions[0]?.value || "");
+    // const [selectedYear, setSelectedYear] = useState<string>(academicYearOptions[0]?.value || "");
+    const [selectedYear, setSelectedYear] = useState<string>(defaultYear || academicYearOptions[0]?.value || "");
+
+
 
     // Fetch Analytics Data (Notice classId and sectionId are omitted so the backend scans the whole school)
     const { data: report, isLoading, error } = useGetAcademicYearLeaderboards({

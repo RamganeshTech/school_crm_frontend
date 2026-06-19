@@ -52,7 +52,7 @@ export default function StudentRecordMain() {
         sectionId: '',
         newOld: '',
         isActive: '',
-        isBusApplicable: '',
+        // isBusApplicable: '',
         isFullyPaid: '',
         hasConcession: '',
         limit: 15, // Number of items per scroll fetch
@@ -153,7 +153,8 @@ export default function StudentRecordMain() {
         setFilters({
             academicYear: '2026-2027',
             classId: '', sectionId: '', newOld: '', isActive: '',
-            isBusApplicable: '', isFullyPaid: '', hasConcession: '', limit: 15
+            // isBusApplicable: '',
+             isFullyPaid: '', hasConcession: '', limit: 40
         });
     };
 
@@ -233,103 +234,7 @@ export default function StudentRecordMain() {
                 </div>
             </div>
 
-            {/* --- Main Layout --- */}
-            {/* <div className="flex flex-col lg:flex-row gap-2 h-[calc(100%-80px)]"> */}
-
-            {/* LEFT PANEL: Filters */}
-            {/* <div className="w-full lg:w-[25%] bg-surface border border-border rounded-xl p-5 flex flex-col gap-5 overflow-y-auto shrink-0 shadow-sm custom-scrollbar">
-                    <h3 className="font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
-                        <i className="fas fa-filter text-muted"></i> Advanced Filters
-                    </h3>
-
-                    <div className="space-y-3">
-
-                        <SearchSelect
-                            label="Academic Year"
-                            options={academicYearOptions}
-                            value={filters.academicYear}
-                            onChange={(opt) => handleFilterChange('academicYear', String(opt.value))}
-                            placeholder="Select Year..."
-                        />
-
-
-                        <Input
-                            id="search"
-                            label="Search Records"
-                            placeholder="Name or Roll No..."
-                            leftIcon="fas fa-search"
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                        />
-
-                        
-                        <div className="grid grid-cols-2 gap-3">
-                            <SearchSelect
-                                label="Class" options={classOptions} value={filters.classId}
-                                onChange={(opt) => { handleFilterChange('classId', String(opt.value)); handleFilterChange('sectionId', ''); }}
-                                placeholder="Class..."
-                            />
-                            <div className="relative">
-                                <SearchSelect
-                                    label="Section" options={sectionOptions} value={filters.sectionId}
-                                    onChange={(opt) => handleFilterChange('sectionId', String(opt.value))}
-                                    placeholder="Section..."
-                                />
-                                {isSectionsLoading && <i className="fas fa-spinner fa-spin absolute right-3 top-[38px] text-muted text-xs"></i>}
-                            </div>
-                        </div>
-
-                        
-                        <div className="flex flex-col gap-1.5">
-
-                            <SearchSelect
-                                label="Record Status"
-                                options={statusOptions}
-                                value={filters.isActive}
-                                onChange={(opt) => handleFilterChange('isActive', String(opt.value))}
-                                placeholder="Select Status..."
-                            />
-                        </div>
-
-                        
-                        <div className="flex flex-col gap-1.5">
-                            <Label>Financial Features</Label>
-                            <div className="grid grid-cols-2 gap-3">
-                                
-                                <button
-                                    type="button"
-                                    onClick={() => handleFilterChange('isBusApplicable', filters.isBusApplicable === 'true' ? '' : 'true')}
-                                    className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium border transition-all ${filters.isBusApplicable === 'true'
-                                        ? 'bg-primary-soft text-primary border-primary/30 shadow-sm'
-                                        : 'bg-surface text-muted border-border hover:bg-background'
-                                        }`}
-                                >
-                                    <i className={`fas fa-bus text-xs ${filters.isBusApplicable === 'true' ? 'text-primary' : 'text-muted/70'}`}></i>
-                                    Bus User
-                                </button>
-
-                                
-                                <button
-                                    type="button"
-                                    onClick={() => handleFilterChange('hasConcession', filters.hasConcession === 'true' ? '' : 'true')}
-                                    className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium border transition-all ${filters.hasConcession === 'true'
-                                        ? 'bg-primary-soft text-primary border-primary/30 shadow-sm'
-                                        : 'bg-surface text-muted border-border hover:bg-background'
-                                        }`}
-                                >
-                                    <i className={`fas fa-tags text-xs ${filters.hasConcession === 'true' ? 'text-primary' : 'text-muted/70'}`}></i>
-                                    Concession
-                                </button>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div className="mt-auto pt-4 border-t border-border">
-                        <Button variant="outline" className="w-full" onClick={clearFilters}>Clear Filters</Button>
-                    </div>
-                </div> */}
-
+            
 
             {/* --- Main Layout --- */}
             <div className="flex flex-col lg:flex-row gap-2 h-[calc(100%-80px)] relative">
@@ -380,9 +285,9 @@ export default function StudentRecordMain() {
                         <div className="flex flex-col gap-1.5">
                             <Label>Financial Features</Label>
                             <div className="grid grid-cols-2 gap-3">
-                                <button type="button" onClick={() => handleFilterChange('isBusApplicable', filters.isBusApplicable === 'true' ? '' : 'true')} className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-medium border transition-all ${filters.isBusApplicable === 'true' ? 'bg-primary-soft text-primary border-primary/30 shadow-sm' : 'bg-surface text-muted border-border hover:bg-background'}`}>
+                                {/* <button type="button" onClick={() => handleFilterChange('isBusApplicable', filters.isBusApplicable === 'true' ? '' : 'true')} className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-medium border transition-all ${filters.isBusApplicable === 'true' ? 'bg-primary-soft text-primary border-primary/30 shadow-sm' : 'bg-surface text-muted border-border hover:bg-background'}`}>
                                     <i className="fas fa-bus text-xs"></i> Bus
-                                </button>
+                                </button> */}
                                 <button type="button" onClick={() => handleFilterChange('hasConcession', filters.hasConcession === 'true' ? '' : 'true')} className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-medium border transition-all ${filters.hasConcession === 'true' ? 'bg-primary-soft text-primary border-primary/30 shadow-sm' : 'bg-surface text-muted border-border hover:bg-background'}`}>
                                     <i className="fas fa-tags text-xs"></i> Discount
                                 </button>
@@ -453,9 +358,9 @@ export default function StudentRecordMain() {
 
                                                 <div className="flex flex-wrap gap-1.5">
                                                     {/* Check if any flag is active */}
-                                                    {record.isBusApplicable || record.hasConcession || record.isFullyPaid ? (
+                                                    {record.hasConcession || record.isFullyPaid ? (
                                                         <>
-                                                            {record.isBusApplicable && <span className="px-2 py-0.5 rounded text-[10px] bg-warning/10 text-warning border border-warning/20">Bus</span>}
+                                                            {/* {record.isBusApplicable && <span className="px-2 py-0.5 rounded text-[10px] bg-warning/10 text-warning border border-warning/20">Bus</span>} */}
                                                             {record.hasConcession && <span className="px-2 py-1 rounded text-[10px] bg-primary/10 text-primary border border-primary/20">Concession</span>}
                                                             {record.isFullyPaid && <span className="px-2 py-0.5 rounded text-[10px] bg-success/10 text-success border border-success/20">Fully Paid</span>}
                                                         </>
