@@ -40,9 +40,9 @@ export default function StudentRecordSingle() {
     const { isPrincipal, isCorrespondent, isAccountant, isVicePrincipal, isAdmin } = useRoleCheck()
 
 
-    const canCollectFee = isCorrespondent || isAccountant
-    const canAssignClass = isCorrespondent || isAccountant
-    const canRevertFee = isCorrespondent || isAccountant || isPrincipal
+    const canCollectFee = isCorrespondent || isAccountant || isAdmin
+    const canAssignClass = isCorrespondent || isAccountant || isAdmin
+    const canRevertFee = isCorrespondent || isAccountant || isPrincipal || isAdmin
     const canVerifyConcession = isCorrespondent || isAdmin || isPrincipal || isVicePrincipal
     const canConcession = isCorrespondent || isAdmin || isPrincipal || isAccountant
 
