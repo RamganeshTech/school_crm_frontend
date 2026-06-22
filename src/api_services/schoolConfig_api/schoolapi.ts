@@ -236,3 +236,77 @@ export const useGetSchoolSocialPlatforms = (schoolId: string | undefined) => {
     enabled: !!schoolId,
   });
 };
+
+
+
+//  SCHOOL ACADEMIC TERM DATE
+
+
+// --- Hook: Upsert Academic Term Dates ---
+export const useUpsertAcademicTermDates = () => {
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async ({ 
+      id, 
+      data 
+    }: { 
+      id: string; 
+      data: { 
+        academicYear: string; 
+        firstTermDate?: string | Date | null; 
+        secondTermDate?: string | Date | null; 
+        thirdTermDate?: string | Date | null; 
+      } 
+    }) => {
+      try {
+        // Adjust permissions based on your constants (e.g., CORRESPONDENT_ONLY or allow admins too)
+        checkPermission(currentRole, SOCIAL_WRITE_ROLES);
+
+        const response = await Api.put<BaseResponse>(`/api/school/update/academic-termdate/${id}`, data);
+        if (response.data.ok) return response.data;
+        throw new Error(response.data.message || 'Failed to update term dates');
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage);
+      }
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate the school query so the UI instantly refreshes the term dates array
+      queryClient.invalidateQueries({ queryKey: ['school', variables.id] });
+    },
+  });
+};
+
+// --- Hook: Delete Academic Term Date ---
+export const useDeleteAcademicTermDates = () => {
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async ({ 
+      schoolId, 
+      academicTermDateId 
+    }: { 
+      schoolId: string; 
+      academicTermDateId: string; 
+    }) => {
+      try {
+        checkPermission(currentRole, SOCIAL_WRITE_ROLES);
+
+        // Note: Make sure this URL matches your Express route exactly
+        const response = await Api.delete<BaseResponse>(
+          `/api/school/delete/academic-termdate/${schoolId}/${academicTermDateId}`
+        );
+        if (response.data.ok) return response.data;
+        throw new Error(response.data.message || 'Failed to delete term date');
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage);
+      }
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate the school query to clear the deleted item from the UI
+      queryClient.invalidateQueries({ queryKey: ['school', variables.schoolId] });
+    },
+  });
+};

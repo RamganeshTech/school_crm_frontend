@@ -330,6 +330,35 @@ export default function StudentMain() {
     }
 
 
+    // 🌟 Helper: Format and style the profile status
+    const getProfileStatusConfig = (status?: string) => {
+        if (!status) {
+            return { label: 'Unknown', bg: 'bg-surface', border: 'border-border', text: 'text-muted' };
+        }
+
+        // 1. Remove underscores and replace with space
+        const spaced = status.replace(/_/g, ' ');
+        // 2. Capitalize ONLY the first letter of the string, the rest lowercase
+        const formattedLabel = spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();
+
+        // 3. Assign color schemes based on the raw status
+        switch (status.toLowerCase()) {
+            case 'completed':
+                return { label: formattedLabel, bg: 'bg-success/10', border: 'border-success/20', text: 'text-success' };
+            case 'profile_pending':
+                return { label: formattedLabel, bg: 'bg-warning/10', border: 'border-warning/20', text: 'text-warning' };
+            case 'created':
+                return { label: formattedLabel, bg: 'bg-primary/10', border: 'border-primary/20', text: 'text-primary' };
+            case 'rejected': // Just in case you need it for the review requests!
+                return { label: formattedLabel, bg: 'bg-danger/10', border: 'border-danger/20', text: 'text-danger' };
+            default:
+                return { label: formattedLabel, bg: 'bg-surface', border: 'border-border', text: 'text-muted' };
+        }
+    };
+
+
+
+
     return (
         <div className="w-full h-full flex flex-col p-2 space-y-4 overflow-hidden">
 
@@ -576,7 +605,7 @@ export default function StudentMain() {
                                 <Th>Name of Parents</Th>
                                 <Th>Mobile Number</Th>
                                 <Th>Class/Section</Th>
-                                <Th>Status</Th>
+                                <Th>Profile Status</Th>
                                 <Th className="text-center">Actions</Th>
                             </tr>
                         </THead>
@@ -638,7 +667,7 @@ export default function StudentMain() {
                                                 <Td>
                                                     <p className="text-sm text-foreground">
                                                         {student?.mandatory?.fatherName || 'N/A'} <br />
-                                                        {student?.mandatory?.motherName || 'N/A'} 
+                                                        {student?.mandatory?.motherName || 'N/A'}
                                                     </p>
                                                 </Td>
 
@@ -675,11 +704,24 @@ export default function StudentMain() {
                                                 </Td>
 
                                                 {/* 5. Status (Active/Inactive) */}
-                                                <Td>
+                                                {/* <Td>
                                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${student.isActive ? 'bg-success/10 text-success border-success/20' : 'bg-surface text-muted border-border'}`}>
                                                         <i className={`fas fa-circle text-[8px] ${student.isActive ? 'text-success' : 'text-muted'}`}></i>
                                                         {student.isActive ? 'Active' : 'Inactive'}
                                                     </span>
+                                                </Td> */}
+
+                                                {/* 5. Profile Status */}
+                                                <Td>
+                                                    {(() => {
+                                                        const statusConfig = getProfileStatusConfig(student.profileStatus);
+                                                        return (
+                                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border shadow-sm ${statusConfig.bg} ${statusConfig.border} ${statusConfig.text}`}>
+                                                                <i className={`fas fa-circle text-[8px] ${statusConfig.text}`}></i>
+                                                                {statusConfig.label}
+                                                            </span>
+                                                        );
+                                                    })()}
                                                 </Td>
 
                                                 {/* Actions */}

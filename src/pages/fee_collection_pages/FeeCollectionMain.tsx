@@ -152,7 +152,7 @@ export default function FeeCollectionMain() {
                 `}>
                     <div className="flex items-center justify-between lg:block border-b border-border pb-2">
                         <h3 className="font-semibold text-foreground flex items-center gap-2">
-                            <i className="fas fa-search text-muted"></i> Search Student
+                            <i className="fas fa-search text-muted"></i> Filters
                         </h3>
                         <button
                             className="lg:hidden text-muted hover:text-danger p-1"

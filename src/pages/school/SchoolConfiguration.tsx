@@ -19,19 +19,21 @@ import { useRoleCheck } from '../../hooks/useRoleCheck';
 import BillBookConfig from './BillBookConfig';
 import AdmissionBookConfig from './AdmissionBookConfig';
 import SystemReadinessCard from './SystemReadinessCard';
+import AcademicTimelineConfig from './AcademicTimelineConfig';
 
 // type TabOptions = 'details' | 'socials';
 
-type TabOptions = 'details' | 'socials' | 'billbook' | 'admissionbook';
+type TabOptions = 'details' | 'socials' | 'billbook' | 'admissionbook' | "academicTermDate";
 
 export default function SchoolConfiguration() {
     // --- Global State ---
     const { schoolId } = useSelector((state: RootState) => state.auth);
 
-    const { isCorrespondent, isAdmin } = useRoleCheck()
+    const { isCorrespondent, isAdmin, isAccountant, isPrincipal, isTeacher, isVicePrincipal } = useRoleCheck()
 
     const canModify = isCorrespondent
     const canManageBillBook = isCorrespondent || isAdmin;
+    const canShowAcademicDates = isCorrespondent || isAdmin || isAccountant || isPrincipal || isTeacher || isVicePrincipal;
 
     // --- API Hooks ---
     const { data: schoolData, isLoading: isSchoolLoading } = useGetSchoolById(schoolId!);
@@ -206,6 +208,16 @@ export default function SchoolConfiguration() {
                         <i className="fas fa-address-book mr-2"></i> Admission Book
                     </button>
                 )}
+
+
+                  {canShowAcademicDates && (
+                    <button
+                        onClick={() => setActiveTab('academicTermDate')}
+                        className={`pb-3 cursor-pointer text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === 'academicTermDate' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
+                    >
+                        <i className="fas fa-calendar mr-2"></i> Academic Dates
+                    </button>
+                )}
             </div>
 
             {/* --- TAB CONTENT: DETAILS --- */}
@@ -279,13 +291,13 @@ export default function SchoolConfiguration() {
                     </Card>
                 </div>
             )} */}
-{/* --- TAB CONTENT: DETAILS --- */}
+            {/* --- TAB CONTENT: DETAILS --- */}
             {activeTab === 'details' && (
                 <div className="flex flex-col gap-6 animate-in fade-in duration-300">
 
                     {/* --- TOP ROW: Identity & Details --- */}
                     <div className="flex flex-col lg:flex-row gap-6 items-stretch">
-                        
+
                         {/* LEFT: Logo Management (Approx 35% Width) */}
                         <div className="w-full lg:w-[35%]">
                             <Card className="h-full shadow-sm border-border/60">
@@ -330,9 +342,9 @@ export default function SchoolConfiguration() {
                         {/* RIGHT: General Information (Approx 65% Width) */}
                         <div className="w-full lg:w-[65%] flex flex-col">
                             <Card className="h-full shadow-sm border-border/60 flex flex-col">
-                                <CardHeader 
-                                    title="General Information" 
-                                    subtitle="Update the official contact and address details for your institution." 
+                                <CardHeader
+                                    title="General Information"
+                                    subtitle="Update the official contact and address details for your institution."
                                 />
                                 <CardContent className="flex-1 flex flex-col">
                                     <form onSubmit={submitDetails} className="flex flex-col h-full space-y-6">
@@ -431,6 +443,12 @@ export default function SchoolConfiguration() {
             {activeTab === 'admissionbook' && canManageBillBook && (
                 <div className="animate-in fade-in duration-300 h-full">
                     <AdmissionBookConfig />
+                </div>
+            )}
+
+            {activeTab === 'academicTermDate' && canShowAcademicDates && (
+                <div className="animate-in fade-in duration-300 h-full">
+                    <AcademicTimelineConfig schoolData={schoolData} />
                 </div>
             )}
 
