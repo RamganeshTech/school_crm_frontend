@@ -5,25 +5,54 @@ import { Api } from '../../lib/api';
 
 // ==========================================
 // TYPES & INTERFACES
-// ==========================================
+// // ==========================================
+// export interface FeeConfigData {
+//     _id: string;
+//     schoolId: string;
+//     feeHeads: string[];
+//     isActive: boolean;
+//     createdAt: string;
+//     updatedAt: string;
+// }
+
+// interface FeeConfigResponse {
+//     ok: boolean;
+//     message: string;
+//     data: FeeConfigData | null;
+// }
+
+// interface UpsertFeeConfigPayload {
+//     schoolId: string;
+//     feeHeads: string[];
+//     isActive?: boolean;
+// }
+
+
+export interface FeeHeadItem {
+    feeHead: string;
+    associatedTerm: "firstTerm" | "secondTerm" | "thirdTerm" | null;
+    isTerm: boolean;
+    _id?: string
+}
+
 export interface FeeConfigData {
     _id: string;
     schoolId: string;
-    feeHeads: string[];
+    feeHeads: FeeHeadItem[]; // 🌟 Updated to sub-document array shape
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
 }
 
-interface FeeConfigResponse {
+export interface FeeConfigResponse {
     ok: boolean;
     message: string;
     data: FeeConfigData | null;
 }
 
-interface UpsertFeeConfigPayload {
+export interface UpsertFeeConfigPayload {
     schoolId: string;
-    feeHeads: string[];
+    feeHeads: FeeHeadItem[]; // 🌟 Updated payload input type
     isActive?: boolean;
 }
 
@@ -56,6 +85,9 @@ export const useGetFeeConfig = (schoolId: string | undefined) => {
     });
 };
 
+
+
+
 // ==========================================
 // 2. UPSERT (SET) FEE CONFIGURATION HOOK
 // ==========================================
@@ -74,6 +106,47 @@ export const useUpsertFeeConfig = () => {
                     {
                         feeHeads: payload.feeHeads,
                         isActive: payload.isActive
+                    }
+                );
+
+                if (data.ok) {
+                    return data;
+                } else {
+                    throw new Error(data.message || 'Failed to update fee configuration');
+                }
+            } catch (error: any) {
+                const errorMessage = 
+                    error.response?.data?.message || 
+                    error.message || 
+                    'An unexpected error occurred while saving fee configuration';
+                throw new Error(errorMessage);
+            }
+        },
+        onSuccess: (_, variables) => {
+            // Instantly update the UI by invalidating the specific school's config cache
+            queryClient.invalidateQueries({ queryKey: ['feeConfig', variables.schoolId] });
+        },
+    });
+};
+
+
+
+export const useUpsertFeeConfigV1 = () => {
+    const queryClient = useQueryClient();
+    const { currentRole } = useAuthData();
+
+    return useMutation({
+        mutationFn: async (payload: UpsertFeeConfigPayload) => {
+            try {
+                // Strict permission check for modifying financial settings
+                checkPermission(currentRole, ["correspondent", "administrator", "accountant"]);
+
+                // 🌟 Updated path adding '/v1/set/' sequentially as specified
+                const { data } = await Api.post<FeeConfigResponse>(
+                    `/api/fee-config/v1/set/${payload.schoolId}`, 
+                    {
+                        feeHeads: payload.feeHeads,
+                        isActive: payload.isActive !== undefined ? payload.isActive : true
                     }
                 );
 

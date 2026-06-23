@@ -16,7 +16,7 @@ import { toast } from '../../shared/ui/ToastContext';
 import { SearchSelect } from '../../shared/ui/SearchSelect';
 import { getAcademicYears } from '../../utils/utils';
 import { useRoleCheck } from '../../hooks/useRoleCheck';
-import BillBookConfig from './BillBookConfig';
+import BillBookConfig from './billBook_pages/BillBookConfig';
 import AdmissionBookConfig from './AdmissionBookConfig';
 import SystemReadinessCard from './SystemReadinessCard';
 import AcademicTimelineConfig from './AcademicTimelineConfig';
@@ -210,7 +210,7 @@ export default function SchoolConfiguration() {
                 )}
 
 
-                  {canShowAcademicDates && (
+                {canShowAcademicDates && (
                     <button
                         onClick={() => setActiveTab('academicTermDate')}
                         className={`pb-3 cursor-pointer text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === 'academicTermDate' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}

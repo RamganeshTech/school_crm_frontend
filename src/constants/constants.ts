@@ -209,7 +209,7 @@ const baseManagementMenu: MenuItem[] = [
 
     {
         name: "Fee Management",
-        path: "/dashboard/fee-structure",
+        path: "#",
         icon: "fas fa-coins",
         subMenu: [
             {

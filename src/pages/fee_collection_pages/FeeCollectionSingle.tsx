@@ -32,7 +32,8 @@ export default function FeeCollectionSingle() {
     const actualSectionId = typeof record?.sectionId === 'object' ? record?.sectionId?._id : record?.sectionId;
 
     const fDues = record?.duesv1;
-    const totalDues = feeConfig?.feeHeads?.reduce((sum: number, head: string) => sum + Number(fDues?.[head] ?? 0), 0) ?? 0;
+    // const totalDues = feeConfig?.feeHeads?.reduce((sum: number, head: string) => sum + Number(fDues?.[head] ?? 0), 0) ?? 0;
+    const totalDues = feeConfig?.feeHeads?.reduce((sum: number, headObj: any) => sum + Number(fDues?.[headObj?.feeHead] ?? 0), 0) ?? 0;
 
     // --- Form State ---
     const [feeData, setFeeData] = useState({
@@ -182,12 +183,14 @@ export default function FeeCollectionSingle() {
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-2.5">
-                                    {feeConfig?.feeHeads?.map((head: string) => {
-                                        const due = Number(fDues?.[head] ?? 0);
+                                    {feeConfig?.feeHeads?.map((headObj: any, index:number) => {
+
+                                        const headName = headObj?.feeHead;
+                                        const due = Number(fDues?.[headName] ?? 0);
                                         if (due <= 0) return null;
                                         return (
-                                            <div key={head} className="flex justify-between items-center bg-background border border-border px-3 py-2.5 rounded-lg shadow-sm">
-                                                <span className="text-xs text-muted font-medium truncate pr-2 capitalize">{head}</span>
+                                            <div key={`${headName}-${index}`} className="flex justify-between items-center bg-background border border-border px-3 py-2.5 rounded-lg shadow-sm">
+                                                <span className="text-xs text-muted font-medium truncate pr-2 capitalize">{headName}</span>
                                                 <span className="text-sm font-bold text-foreground">₹{due.toLocaleString()}</span>
                                             </div>
                                         );
@@ -268,25 +271,32 @@ export default function FeeCollectionSingle() {
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                             {/* 🌟 DYNAMIC MAPPING FROM FEE CONFIG */}
-                                            {feeConfig?.feeHeads?.map((head: string) => {
-                                                const due = Number(fDues?.[head] ?? 0);
+                                            {feeConfig?.feeHeads?.map((headObj: any, index: number) => {
+
+                                                const headName = headObj.feeHead;
+                                                const due = Number(fDues?.[headName] ?? 0);
                                                 
                                                 // Only show inputs for heads that actually have pending dues
                                                 if (due <= 0) return null; 
 
                                                 return (
                                                     <Input 
-                                                        key={head} 
-                                                        id={`m_${head}`} 
+                                                        // key={head} 
+                                                        key={`${headName}-${index}`}
+                                                        // id={`m_${head}`} 
+                                                        id={`m_${headName}`}
                                                         type="number" 
-                                                        label={`${head} (Max ₹${due})`} 
-                                                        value={feeData.paidHeads[head] || ''} 
+                                                        // label={`${head} (Max ₹${due})`} 
+                                                        label={`${headName} (Max ₹${due})`}
+                                                        // value={feeData.paidHeads[head] || ''} 
+                                                        value={feeData.paidHeads[headName] || ''}
                                                         onChange={(e) => setFeeData({ 
                                                             ...feeData, 
                                                             paidHeads: { 
                                                                 ...feeData.paidHeads, 
                                                                 // Prevent negative numbers and map directly to the dynamic key
-                                                                [head]: Math.max(0, Number(e.target.value)) 
+                                                                // [head]: Math.max(0, Number(e.target.value)) 
+                                                                [headName]: Math.max(0, Number(e.target.value))
                                                             } 
                                                         })} 
                                                         max={due} 

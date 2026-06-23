@@ -5,7 +5,7 @@ import type { RootState } from "../../../features/store/store";
 import { useGetSchoolById } from "../../../api_services/schoolConfig_api/schoolapi";
 import { getAcademicYears } from "../../../utils/utils";
 import { useGetStudentRecordByIdV1 } from "../../../api_services/student_api/studentRecordApi";
-import { useGetFeeConfig } from "../../../api_services/feeStructure_api/feeStructureConfigApi";
+import { useGetFeeConfig, type FeeHeadItem } from "../../../api_services/feeStructure_api/feeStructureConfigApi";
 import { SearchSelect } from "../../../shared/ui/SearchSelect";
 // import { RootState } from "@/store";
 // import { useGetSchoolById } from "@/hooks/school/useGetSchoolById";
@@ -61,15 +61,19 @@ const StudentFeeInfo: React.FC<StudentFeeInfoProps> = ({
     const fPaid = record?.feePaidv1 || {};
     const fDues = record?.duesv1 || {};
     const receipts = record?.receipts || [];
-    const orderedHeads: string[] = feeConfig?.feeHeads || [];
+    const orderedHeads: FeeHeadItem[] = feeConfig?.feeHeads || [];
 
     const totalSuccessfullyPaid = receipts
         .filter((tx: any) => tx.status === "success")
         .reduce((sum: number, tx: any) => sum + Number(tx.amountPaid || 0), 0);
 
-    const grandTotal = orderedHeads.reduce((sum, h) => sum + Number(fStruct?.[h] ?? 0), 0);
-    const grandPaid = orderedHeads.reduce((sum, h) => sum + Number(fPaid?.[h] ?? 0), 0);
-    const grandDue = orderedHeads.reduce((sum, h) => sum + Number(fDues?.[h] ?? 0), 0);
+    // const grandTotal = orderedHeads.reduce((sum, h) => sum + Number(fStruct?.[h] ?? 0), 0);
+    // const grandPaid = orderedHeads.reduce((sum, h) => sum + Number(fPaid?.[h] ?? 0), 0);
+    // const grandDue = orderedHeads.reduce((sum, h) => sum + Number(fDues?.[h] ?? 0), 0);
+
+    const grandTotal = orderedHeads.reduce((sum, h) => sum + Number(fStruct?.[h.feeHead] ?? 0), 0);
+    const grandPaid = orderedHeads.reduce((sum, h) => sum + Number(fPaid?.[h.feeHead] ?? 0), 0);
+    const grandDue = orderedHeads.reduce((sum, h) => sum + Number(fDues?.[h.feeHead] ?? 0), 0);
 
     const handleRevertFee = (txId: string) => {
         if (onRevertFee) onRevertFee(txId);
@@ -177,7 +181,7 @@ const StudentFeeInfo: React.FC<StudentFeeInfoProps> = ({
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
-                                {orderedHeads.map((head) => (
+                                {/* {orderedHeads.map((head) => (
                                     <tr key={head} className="hover:bg-background/50 transition-colors">
                                         <td className="px-4 py-3 font-medium text-foreground">{head}</td>
                                         <td className="px-4 py-3 text-right text-foreground">
@@ -190,7 +194,27 @@ const StudentFeeInfo: React.FC<StudentFeeInfoProps> = ({
                                             ₹{Number(fDues?.[head] ?? 0).toLocaleString("en-IN")}
                                         </td>
                                     </tr>
-                                ))}
+                                ))} */}
+
+                                {orderedHeads.map((headObj, index) => {
+                                    // Extract the actual string name from the object
+                                    const headName = headObj.feeHead;
+
+                                    return (
+                                        <tr key={`${headName}-${index}`} className="hover:bg-background/50 transition-colors">
+                                            <td className="px-4 py-3 font-medium text-foreground">{headName}</td>
+                                            <td className="px-4 py-3 text-right text-foreground">
+                                                ₹{Number(fStruct?.[headName] ?? 0).toLocaleString("en-IN")}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-success font-medium">
+                                                ₹{Number(fPaid?.[headName] ?? 0).toLocaleString("en-IN")}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-danger font-medium">
+                                                ₹{Number(fDues?.[headName] ?? 0).toLocaleString("en-IN")}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                             <tfoot>
                                 <tr className="bg-primary-soft/30 border-t-2 border-border">
@@ -385,8 +409,8 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
         status === "success"
             ? "bg-success/10 text-success border-success/20"
             : status === "pending" || status === "draft"
-            ? "bg-warning/10 text-warning border-warning/20"
-            : "bg-danger/10 text-danger border-danger/20";
+                ? "bg-warning/10 text-warning border-warning/20"
+                : "bg-danger/10 text-danger border-danger/20";
 
     return (
         <span className={`px-2.5 py-1 rounded text-xs font-medium border capitalize ${cls}`}>

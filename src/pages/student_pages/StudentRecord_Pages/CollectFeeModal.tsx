@@ -4,7 +4,8 @@ import { Input, Label } from '../../../shared/ui/Input'; // Adjust path
 import { Button } from '../../../shared/ui/Button'; // Adjust path
 import { Toggle } from '../../../shared/ui/Toggle'; // Adjust path
 import { toast } from '../../../shared/ui/ToastContext'; // Adjust path
-import {  useCollectFeev1 } from '../../../api_services/student_api/studentRecordApi';
+import { useCollectFeev1 } from '../../../api_services/student_api/studentRecordApi';
+import type { FeeHeadItem } from '../../../api_services/feeStructure_api/feeStructureConfigApi';
 // import { useCollectFeeAndManageRecord } from '../../../api_services/feeStructure_api/feeStructureApi'; // Adjust path to actual mutation hook
 
 interface CollectFeeModalProps {
@@ -14,7 +15,7 @@ interface CollectFeeModalProps {
     studentId: string;
     record: any; // The student record data
     refetch: () => void;
-    feeConfig: { feeHeads: string[] } | null;  // add this
+    feeConfig: { feeHeads: FeeHeadItem[] } | null;  // add this
 
 }
 
@@ -30,7 +31,7 @@ export default function CollectFeeModal({
     // const collectFeeMutation = useCollectFee(); // Replace with your actual hook name
     const collectFeeMutation = useCollectFeev1(); // Replace with your actual hook name
 
-    console.log("feeConfig student record", feeConfig)
+    // console.log("feeConfig student record", feeConfig)
 
     // Safe extraction of nested IDs
     const actualStudentId = typeof record?.studentId === 'object' ? record?.studentId?._id : record?.studentId;
@@ -61,7 +62,7 @@ export default function CollectFeeModal({
     });
 
 
-    
+
 
     const [denominations, setDenominations] = useState({
         notes500: 0, notes200: 0, notes100: 0, notes50: 0, notes20: 0, notes10: 0
@@ -157,7 +158,8 @@ export default function CollectFeeModal({
         }
     };
 
-    const totalDues = feeConfig?.feeHeads?.reduce((sum, head) => sum + Number(fDues?.[head] ?? 0), 0) ?? 0;
+    // const totalDues = feeConfig?.feeHeads?.reduce((sum, head) => sum + Number(fDues?.[head] ?? 0), 0) ?? 0;
+    const totalDues = feeConfig?.feeHeads?.reduce((sum, headObj) => sum + Number(fDues?.[headObj.feeHead] ?? 0), 0) ?? 0;
 
     // Performance Optimization: If modal is closed, don't render its heavy contents
     // if (!isOpen) return null;
@@ -220,7 +222,7 @@ export default function CollectFeeModal({
                                 )} */}
 
 
-                                {feeConfig?.feeHeads?.map((head) => {
+                                {/* {feeConfig?.feeHeads?.map((head) => {
                                     const due = Number(fDues?.[head] ?? 0);
                                     // if (due <= 0) return null;
                                     return (
@@ -233,6 +235,31 @@ export default function CollectFeeModal({
                                             onChange={(e) => setFeeData({
                                                 ...feeData,
                                                 paidHeads: { ...feeData.paidHeads, [head]: Math.max(0, Number(e.target.value)) }
+                                            })}
+                                            max={due}
+                                        />
+                                    );
+                                })} */}
+
+                                {feeConfig?.feeHeads?.map((headObj, index) => {
+                                    const headName = headObj.feeHead; // 🌟 Extract string value
+                                    const due = Number(fDues?.[headName] ?? 0);
+
+                                    // if (due <= 0) return null;
+
+                                    return (
+                                        <Input
+                                            key={`${headName}-${index}`}
+                                            id={`m_${headName}`}
+                                            type="number"
+                                            label={`${headName} (Max ₹${due})`}
+                                            value={feeData.paidHeads[headName] || ''}
+                                            onChange={(e) => setFeeData({
+                                                ...feeData,
+                                                paidHeads: {
+                                                    ...feeData.paidHeads,
+                                                    [headName]: Math.max(0, Number(e.target.value))
+                                                }
                                             })}
                                             max={due}
                                         />

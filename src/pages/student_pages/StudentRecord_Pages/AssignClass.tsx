@@ -11,8 +11,10 @@ import { useGetSections } from '../../../api_services/schoolConfig_api/sectionAp
 // Import your mutations (replace with your actual hook names/paths)
 import { useAssignStudentToClassV1, useRemoveStudentFromClassV1 } from '../../../api_services/student_api/studentRecordApi';
 import { toast } from '../../../shared/ui/ToastContext';
-import { Toggle } from '../../../shared/ui/Toggle';
+// import { Toggle } from '../../../shared/ui/Toggle';
 import { getAcademicYears } from '../../../utils/utils';
+import { useNavigate } from 'react-router-dom';
+import { useRoleCheck } from '../../../hooks/useRoleCheck';
 
 interface AssignClassProps {
     isOpen: boolean;
@@ -31,9 +33,15 @@ export default function AssignClass({ isOpen, onClose, record, schoolId, refetch
         sectionName: '', // <-- Added
         academicYear: selectedAcademicYear,
         rollNumber: '',
-        isBusApplicable: false // 🌟 Added new state property
+        // isBusApplicable: false // 🌟 Added new state property
     });
 
+
+    const { isParent, isTeacher } = useRoleCheck()
+
+    const navigate = useNavigate()
+
+    const canShowFeeStructurePage = !isParent && !isTeacher
     // --- Mutations ---
     // const assignClassMutation = useAssignStudentToClass(); // Use your actual hook
     // const removeClassMutation = useRemoveStudentFromClass(); // Use your actual hook
@@ -67,7 +75,7 @@ export default function AssignClass({ isOpen, onClose, record, schoolId, refetch
                 sectionName: record?.sectionName || record?.sectionId?.name || '', // <-- Added
                 academicYear: record?.academicYear || null,
                 rollNumber: record?.rollNumber || '',
-                isBusApplicable: record?.isBusApplicable || false // 🌟 Sync from database record
+                // isBusApplicable: record?.isBusApplicable || false // 🌟 Sync from database record
             });
         }
     }, [record, isOpen]);
@@ -114,12 +122,41 @@ export default function AssignClass({ isOpen, onClose, record, schoolId, refetch
                 <div className="space-y-4 pr-2">
 
                     {/* 🌟 PREMIUM INFORMATIONAL CALLOUT BANNER */}
-                    <div className="flex items-start gap-3 p-3.5 bg-primary-soft/40 border border-primary/20 rounded-xl text-sm">
+                    {/* <div className="flex items-start gap-3 p-3.5 bg-primary-soft/40 border border-primary/20 rounded-xl text-sm">
                         <i className="fas fa-circle-info text-primary mt-0.5 text-base shrink-0"></i>
                         <div className="text-content-muted leading-relaxed">
                             <span className="font-bold text-foreground block mb-0.5">Fee Structure Required</span>
                             Please ensure the fee configuration for the selected class is initialized for this academic year before assigning students.
                         </div>
+                    </div> */}
+
+                    <div className="flex flex-col gap-3 p-3 bg-primary/5 border border-primary/20 rounded-xl text-sm shadow-sm">
+
+                        {/* --- TOP ROW: Icon, Heading, and Button perfectly aligned --- */}
+                        <div className="flex items-center justify-between gap-4 w-full">
+                            <div className="flex items-center gap-3">
+                                {/* Removed mt-0.5 so it centers naturally with the heading */}
+                                <i className="fas fa-circle-info text-primary text-base shrink-0"></i>
+                                <span className="font-bold text-foreground">Fee Structure Required</span>
+                            </div>
+
+                            {canShowFeeStructurePage && (
+                                <Button
+                                    onClick={() => navigate('/dashboard/fee-structure')}
+                                    variant='outline'
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] h-8 shrink-0"
+                                >
+                                    View Fee Settings
+                                    <i className="fas fa-arrow-right text-[10px]"></i>
+                                </Button>
+                            )}
+                        </div>
+
+                        {/* --- BOTTOM ROW: Description Text --- */}
+                        {/* Added pl-7 (width of icon 16px + gap 12px) to keep it perfectly indented below the text */}
+                        <p className="text-xs sm:text-sm text-muted leading-relaxed pl-2">
+                            Please ensure the fee configuration for the selected class is initialized for this academic year before assigning students.
+                        </p>
                     </div>
 
                     <SearchSelect
@@ -165,7 +202,7 @@ export default function AssignClass({ isOpen, onClose, record, schoolId, refetch
 
                         />
                         {/* Styled Toggle Container matching the Input height */}
-                        <div className="flex items-center px-2 bg-surface border border-border rounded-lg transition-colors hover:bg-mainBg">
+                        {/* <div className="flex items-center px-2 bg-surface border border-border rounded-lg transition-colors hover:bg-mainBg">
                             <Toggle
                                 checked={assignData.isBusApplicable}
                                 onChange={(checked) => setAssignData({ ...assignData, isBusApplicable: checked })}
@@ -178,16 +215,17 @@ export default function AssignClass({ isOpen, onClose, record, schoolId, refetch
                                 // 2. Thumb: Add a border to make the circle pop against the background
                                 thumbClassName="border border-border"
                             />
-                        </div>
+                        </div> */}
+                        <Input id="rollNumber" label="Roll Number (Optional)" value={assignData.rollNumber} onChange={(e) => setAssignData({ ...assignData, rollNumber: e.target.value })} />
+
                     </div>
 
-                    <Input id="rollNumber" label="Roll Number (Optional)" value={assignData.rollNumber} onChange={(e) => setAssignData({ ...assignData, rollNumber: e.target.value })} />
 
                 </div>
 
                 <div className="mt-auto pt-6 flex justify-end gap-3 border-t border-border">
                     {record?.classId && (
-                        <Button type="button" variant="ghost" className="text-danger mr-auto" onClick={handleRemoveClass}>
+                        <Button type="button" variant="outline" className="text-danger mr-auto" onClick={handleRemoveClass}>
                             Remove from Class
                         </Button>
                     )}

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Api } from '../../lib/api'; // Adjust path to your axios instance
-import { useAuthData } from '../../hooks/useAuthData'; // Adjust path
-import { checkPermission } from '../../utils/utils';
+import { Api } from '../../../lib/api'; // Adjust path to your axios instance
+import { useAuthData } from '../../../hooks/useAuthData'; // Adjust path
+import { checkPermission } from '../../../utils/utils';
 
 // --- Interfaces ---
 export interface CreateBillBookParams {
@@ -64,7 +64,7 @@ export const useGetAllBillBooks = (schoolId: string | undefined) => {
                 checkPermission(currentRole, ["correspondent", "administrator"]);
 
                 const { data } = await Api.get(`/api/school-config/bill-book/${schoolId}`);
-                
+
                 if (data.ok) {
                     return data.data; // Return just the data array
                 } else {

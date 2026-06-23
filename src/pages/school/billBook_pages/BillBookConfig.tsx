@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Card, CardHeader, CardContent } from '../../shared/ui/Card';
-import { Button } from '../../shared/ui/Button';
-import { Input } from '../../shared/ui/Input';
-import { toast } from '../../shared/ui/ToastContext';
-import type { RootState } from '../../features/store/store';
+import { Card, CardHeader, CardContent } from '../../../shared/ui/Card';
+import { Button } from '../../../shared/ui/Button';
+import { Input } from '../../../shared/ui/Input';
+import { toast } from '../../../shared/ui/ToastContext';
+import type { RootState } from '../../../features/store/store';
 // Adjust these imports to where your hooks actually live
 import {
     useGetAllBillBooks,
@@ -12,9 +12,10 @@ import {
     useUpdateBillBook,
     useEditBillSequence,
     useDeleteBillBook
-} from '../../api_services/schoolConfig_api/billBookApi';
-import { Toggle } from '../../shared/ui/Toggle';
-import { SideModal } from '../../shared/ui/SideModal';
+} from '../../../api_services/schoolConfig_api/billBook_api/billBookApi';
+import { Toggle } from '../../../shared/ui/Toggle';
+import { SideModal } from '../../../shared/ui/SideModal';
+import BillRecordsMain from './BillRecordsMain';
 
 export default function BillBookConfig() {
     const { schoolId } = useSelector((state: RootState) => state.auth);
@@ -32,6 +33,8 @@ export default function BillBookConfig() {
         startingBillNumber: '' // Now treated strictly as a string
     });
 
+
+    const [selectedBookForRecords, setSelectedBookForRecords] = useState<any>(null);
 
     // --- Edit Modal State ---
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -125,6 +128,18 @@ export default function BillBookConfig() {
     };
 
 
+    // 🌟 NEW: View Switcher Logic
+    if (selectedBookForRecords) {
+        return (
+            <div className="h-full">
+                <BillRecordsMain
+                    billBook={selectedBookForRecords}
+                    onBack={() => setSelectedBookForRecords(null)}
+                />
+            </div>
+        );
+    }
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
             {/* Left Col: Create New Book */}
@@ -191,6 +206,16 @@ export default function BillBookConfig() {
                                             onClick={() => handleOpenEdit(book)}
                                         >
                                             Edit
+                                        </Button>
+
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            leftIcon="fas fa-list-alt"
+                                            // onClick={() => handleShowRecords(book._id)}
+                                            onClick={() => setSelectedBookForRecords(book)}
+                                        >
+                                            Records
                                         </Button>
 
                                         {/* 🌟 DELETE BUTTON (Hidden if active) */}

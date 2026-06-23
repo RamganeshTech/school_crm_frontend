@@ -254,9 +254,9 @@ export const useUpsertAcademicTermDates = () => {
       id: string; 
       data: { 
         academicYear: string; 
-        firstTermDate?: string | Date | null; 
-        secondTermDate?: string | Date | null; 
-        thirdTermDate?: string | Date | null; 
+        firstTerm?: string | Date | null; 
+        secondTerm?: string | Date | null; 
+        thirdTerm?: string | Date | null; 
       } 
     }) => {
       try {

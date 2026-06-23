@@ -27,7 +27,7 @@ import AssignClass from './AssignClass';
 import CollectFeeModal from './CollectFeeModal';
 import { getAcademicYears } from '../../../utils/utils';
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
-import { useGetFeeConfig } from './../../../api_services/feeStructure_api/feeStructureConfigApi';
+import { useGetFeeConfig, type FeeHeadItem } from './../../../api_services/feeStructure_api/feeStructureConfigApi';
 
 export default function StudentRecordSingle() {
     const { studentId } = useParams() as { studentId: string }
@@ -98,9 +98,9 @@ export default function StudentRecordSingle() {
     const fStruct = record?.feeStructurev1 || {};
     const fPaid = record?.feePaidv1 || {};
     const fDues = record?.duesv1 || {};
-    const orderedHeads: string[] = feeConfig?.feeHeads || [];
+    const orderedHeads: FeeHeadItem[] = feeConfig?.feeHeads || [];
 
-   
+
 
     const concession = record?.concession || {};
     const receipts = record?.receipts || [];
@@ -548,15 +548,28 @@ export default function StudentRecordSingle() {
                             )} */}
 
 
-                            {orderedHeads.map((head) => (
+                            {/* {orderedHeads.map((head) => (
                                 <tr key={head} className="hover:bg-background/50 transition-colors">
                                     <td className="px-4 py-3 font-medium text-foreground">{head}</td>
                                     <td className="px-4 py-3 text-right">₹{fStruct?.[head] ?? 0}</td>
                                     <td className="px-4 py-3 text-right text-success font-medium">₹{fPaid?.[head] ?? 0}</td>
                                     <td className="px-4 py-3 text-right text-danger font-medium">₹{fDues?.[head] ?? 0}</td>
                                 </tr>
-                            ))}
+                            ))} */}
 
+
+                            {orderedHeads.map((headObj, index) => {
+                                const headName = headObj.feeHead; // 🌟 Extract the string value
+
+                                return (
+                                    <tr key={`${headName}-${index}`} className="hover:bg-background/50 transition-colors">
+                                        <td className="px-4 py-3 font-medium text-foreground">{headName}</td>
+                                        <td className="px-4 py-3 text-right">₹{fStruct?.[headName] ?? 0}</td>
+                                        <td className="px-4 py-3 text-right text-success font-medium">₹{fPaid?.[headName] ?? 0}</td>
+                                        <td className="px-4 py-3 text-right text-danger font-medium">₹{fDues?.[headName] ?? 0}</td>
+                                    </tr>
+                                );
+                            })}
 
                             {/* <tr className="bg-primary-soft/30 border-t-2 border-border">
                                 <td className="px-4 py-4 font-bold text-foreground">Grand Total</td>
@@ -572,7 +585,7 @@ export default function StudentRecordSingle() {
                             </tr> */}
 
                             {/* Grand Total row — replace all the hardcoded additions: */}
-                            <tr className="bg-primary-soft/30 border-t-2 border-border">
+                            {/* <tr className="bg-primary-soft/30 border-t-2 border-border">
                                 <td className="px-4 py-4 font-bold text-foreground">Grand Total</td>
                                 <td className="px-4 py-4 text-right font-bold">
                                     ₹{orderedHeads.reduce((sum, h) => sum + Number(fStruct?.[h] ?? 0), 0)}
@@ -583,7 +596,21 @@ export default function StudentRecordSingle() {
                                 <td className="px-4 py-4 text-right text-danger font-bold">
                                     ₹{orderedHeads.reduce((sum, h) => sum + Number(fDues?.[h] ?? 0), 0)}
                                 </td>
-                            </tr>
+                            </tr> */}
+
+                            <tr className="bg-primary-soft/30 border-t-2 border-border">
+    <td className="px-4 py-4 font-bold text-foreground">Grand Total</td>
+    <td className="px-4 py-4 text-right font-bold">
+        {/* 🌟 Use h.feeHead in the reduce functions */}
+        ₹{orderedHeads.reduce((sum, h) => sum + Number(fStruct?.[h.feeHead] ?? 0), 0)}
+    </td>
+    <td className="px-4 py-4 text-right text-success font-bold">
+        ₹{orderedHeads.reduce((sum, h) => sum + Number(fPaid?.[h.feeHead] ?? 0), 0)}
+    </td>
+    <td className="px-4 py-4 text-right text-danger font-bold">
+        ₹{orderedHeads.reduce((sum, h) => sum + Number(fDues?.[h.feeHead] ?? 0), 0)}
+    </td>
+</tr>
                         </tbody>
                     </table>
                 </div>
@@ -655,7 +682,7 @@ export default function StudentRecordSingle() {
                                             <p className="font-semibold text-foreground">{tx.receiptNo || 'N/A'}</p>
                                             <p className="text-xs text-muted">{new Date(tx.paymentDate).toLocaleString()}</p>
                                         </td>
-                                          <td className="px-4 py-3">
+                                        <td className="px-4 py-3">
                                             <p className="font-semibold text-foreground">{tx?.billNo || 'N/A'}</p>
                                         </td>
                                         <td className="px-4 py-3">

@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuthData } from '../../hooks/useAuthData';
 import { useGetClasses } from '../../api_services/schoolConfig_api/classApi';
 import { useGetFeeStructureByClass } from '../../api_services/feeStructure_api/feeStructureApi';
-import { useGetFeeConfig } from '../../api_services/feeStructure_api/feeStructureConfigApi';
+import { useGetFeeConfig, type FeeHeadItem } from '../../api_services/feeStructure_api/feeStructureConfigApi';
 // import { Button } from '../../shared/ui/Button';
 
 export default function FeeStructureMain() {
@@ -86,14 +86,14 @@ export default function FeeStructureMain() {
                 {/* MOBILE OVERLAY */}
                 {isMobileMenuOpen && (
                     <div
-                        className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+                        className="fixed inset-0 bg-black/40 z-30 lg:hidden backdrop-blur-sm transition-opacity"
                         onClick={() => setIsMobileMenuOpen(false)}
                     />
                 )}
 
                 {/* LEFT PANEL (20%): Class List */}
                 <div className={`
-                    fixed inset-y-0 left-0 z-50 w-[280px] bg-surface border-r border-border shadow-2xl flex flex-col transition-transform duration-300 ease-in-out
+                    fixed inset-y-0 left-0 z-30 w-[280px] bg-surface border-r border-border shadow-2xl flex flex-col transition-transform duration-300 ease-in-out
                     lg:static lg:w-1/4 xl:w-1/5 lg:shrink-0 lg:rounded-xl lg:shadow-sm lg:translate-x-0 lg:border
                     ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
                 `}>
@@ -263,7 +263,7 @@ export default function FeeStructureMain() {
 
 // --- Helper Component: Compact & Scrollable FeeCard ---
 // function FeeCard({ type, data, icon, colorClass, bgClass }: { type: string, data: any, icon: string, colorClass: string, bgClass: string }) {
-function FeeCard({ type, data, icon, colorClass, bgClass, globalFeeHeads }: { type: string, data: any, icon: string, colorClass: string, bgClass: string, globalFeeHeads: string[] }) {
+function FeeCard({ type, data, icon, colorClass, bgClass, globalFeeHeads }: { type: string, data: any, icon: string, colorClass: string, bgClass: string, globalFeeHeads: FeeHeadItem[] }) {
     // const hasData = !!data && data.totalAmount > 0;
     // const hasData = true; // Hardcoded to true for visualization, change back to logic above
 
@@ -291,23 +291,18 @@ function FeeCard({ type, data, icon, colorClass, bgClass, globalFeeHeads }: { ty
                     </div>
                 ) : (
                     <div className="flex flex-col h-full">
-                        {/* <div className="space-y-0.5 mb-4">
-                            <FeeRow label="Admission Fee" amount={data?.feeHead?.admissionFee} />
-                            <FeeRow label="First Term Amount" amount={data?.feeHead?.firstTermAmt} />
-                            <FeeRow label="Second Term Amount" amount={data?.feeHead?.secondTermAmt} />
-                            <FeeRow label="Bus First Term" amount={data?.feeHead?.busFirstTermAmt} />
-                            <FeeRow label="Bus Second Term" amount={data?.feeHead?.busSecondTermAmt} />
-                        </div> */}
-
+                       
                         <div className="space-y-0.5 mb-4">
                             {/* 🌟 Loop through GLOBAL heads, not the class data directly */}
-                            {globalFeeHeads.map((headName) => {
+                            {globalFeeHeads.map((headObj, index) => {
+                                const headName = headObj.feeHead; // Extract string
                                 // Match the amount from the class data, default to 0 if it doesn't exist
                                 const amount = data?.feeHeads?.[headName] || 0;
                                 
                                 return (
                                     <FeeRow 
-                                        key={headName} 
+                                        // key={headName} 
+                                        key={`${headName}-${index}`} // Safe key
                                         label={headName} 
                                         amount={amount} 
                                     />

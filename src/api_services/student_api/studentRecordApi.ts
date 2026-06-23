@@ -425,7 +425,7 @@ export const useCollectFee = () => {
   return useMutation({
     mutationFn: async (formData: FormData) => {
       try {
-        checkPermission(currentRole, ["correspondent", "accountant"]);
+        checkPermission(currentRole, ["correspondent", "accountant", "administrator"]);
 
         const { data } = await Api.post<ApiResponse>('/api/studentrecord/collectfee', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -460,7 +460,7 @@ export const useCollectFeev1 = () => {
   return useMutation({
     mutationFn: async (formData: FormData) => {
       try {
-        checkPermission(currentRole, ["correspondent", "accountant"]);
+        checkPermission(currentRole, ["correspondent", "accountant", "administrator"]);
 
         const { data } = await Api.post<ApiResponse>('/api/studentrecord/v1/collectfee', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -493,7 +493,7 @@ export const useRevertFeeTransaction = () => {
   return useMutation({
     mutationFn: async (payload: RevertReceiptParams) => {
       try {
-        checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+        checkPermission(currentRole, ["correspondent", "accountant", "principal", "administrator"]);
 
         const { data } = await Api.put<ApiResponse>('/api/studentrecord/revertreceipt', payload);
 
@@ -525,7 +525,7 @@ export const useRevertFeeTransactionv1 = () => {
   return useMutation({
     mutationFn: async (payload: RevertReceiptParams) => {
       try {
-        checkPermission(currentRole, ["correspondent", "accountant", "principal"]);
+        checkPermission(currentRole, ["correspondent", "accountant", "principal", "administrator"]);
 
         const { data } = await Api.put<ApiResponse>('/api/studentrecord/v1/revertreceipt', payload);
 
@@ -679,7 +679,7 @@ export const useDeleteStudentRecord = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       try {
-        checkPermission(currentRole, ["correspondent"]);
+        checkPermission(currentRole, ["correspondent", "administrator"]);
 
         const { data } = await Api.delete<ApiResponse>(`/api/studentrecord/deleterecord/${id}`);
 

@@ -7,7 +7,7 @@ import { toast } from '../../shared/ui/ToastContext';
 import { Input } from '../../shared/ui/Input';
 import { Button } from '../../shared/ui/Button';
 import { useRoleCheck } from '../../hooks/useRoleCheck';
-import { useGetFeeConfig } from '../../api_services/feeStructure_api/feeStructureConfigApi';
+import { useGetFeeConfig, type FeeHeadItem } from '../../api_services/feeStructure_api/feeStructureConfigApi';
 
 export default function FeeStructureSingle() {
     const { classId } = useParams();
@@ -42,10 +42,10 @@ export default function FeeStructureSingle() {
     // --- Queries ---
     const { data: classesData } = useGetClasses(schoolId!);
     const { data: feeStructures, isLoading: isFeesLoading } = useGetFeeStructureByClass(schoolId!, classId);
-    
+
     // 🌟 Fetch global config to know which inputs to generate
     const { data: configData, isLoading: _isConfigLoading } = useGetFeeConfig(schoolId!);
-    const globalFeeHeads: string[] = useMemo(() => configData?.feeHeads || [], [configData]);
+    const globalFeeHeads: FeeHeadItem[] = useMemo(() => configData?.feeHeads || [], [configData]);
 
     const setFeeMutation = useSetFeeStructure();
 
@@ -125,10 +125,12 @@ export default function FeeStructureSingle() {
             // Safely look for feeHeads property
             const savedHeads = targetData?.feeHeads || {};
 
-            globalFeeHeads.forEach(head => {
-                newFeeData[head] = savedHeads[head] !== undefined ? savedHeads[head].toString() : '';
+            globalFeeHeads.forEach(headObj => {
+                const headName = headObj.feeHead; // Extract string
+                // newFeeData[head] = savedHeads[head] !== undefined ? savedHeads[head].toString() : '';
+                newFeeData[headName] = savedHeads[headName] !== undefined ? savedHeads[headName].toString() : '';
             });
-            
+
             setFeeData(newFeeData);
         }
     }, [feeStructures, activeTab, globalFeeHeads]);
@@ -142,13 +144,18 @@ export default function FeeStructureSingle() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (globalFeeHeads.length === 0) return toast.error("Global fee configuration is empty.");
 
         // Build the dynamic payload object
         const submittedFeeHeads: Record<string, number> = {};
-        globalFeeHeads.forEach(head => {
-            submittedFeeHeads[head] = Number(feeData[head]) || 0;
+        // globalFeeHeads.forEach(head => {
+        //     submittedFeeHeads[head] = Number(feeData[head]) || 0;
+        // });
+
+        globalFeeHeads.forEach(headObj => {
+            const headName = headObj?.feeHead;
+            submittedFeeHeads[headName] = Number(feeData[headName]) || 0;
         });
 
         try {
@@ -157,8 +164,8 @@ export default function FeeStructureSingle() {
                 classId: classId!,
                 type: activeTab,
                 feeHead: submittedFeeHeads // 🌟 Sending dynamic object to backend
-            } as any); 
-            
+            } as any);
+
             toast.success(`Fee structure for ${activeTab.toUpperCase()} students saved!`);
         } catch (error: any) {
             toast.error(error.message || "Failed to save fee structure");
@@ -275,15 +282,23 @@ export default function FeeStructureSingle() {
                                 <div className="space-y-4 sm:space-y-5">
                                     {/* 🌟 Dynamic Inputs Grid */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {globalFeeHeads.map((head) => (
-                                            <Input
-                                                key={head}
-                                                label={`${toTitleCase(head)} (₹)`}
-                                                value={feeData[head] || ''}
-                                                onChange={(e) => handleInputChange(head, e.target.value)}
+                                        {globalFeeHeads.map((headObj, index) => {
+                                            const headName = headObj.feeHead; // Extract string
+
+                                            return (<Input
+                                                // key={head}
+                                                key={`${headName}-${index}`}
+                                                // label={`${toTitleCase(head)} (₹)`}
+                                                // value={feeData[head] || ''}
+                                                // onChange={(e) => handleInputChange(head, e.target.value)}
+
+                                                label={`${toTitleCase(headName)} (₹)`}
+                                                value={feeData[headName] || ''}
+                                                onChange={(e) => handleInputChange(headName, e.target.value)}
                                                 placeholder="0"
                                             />
-                                        ))}
+                                            )
+                                        })}
                                     </div>
                                 </div>
 
@@ -335,25 +350,38 @@ export default function FeeStructureSingle() {
                             </div> */}
 
                             <div className="flex-1 space-y-3 sm:space-y-4 text-xs sm:text-sm p-5 sm:p-6 md:p-8 ">
-                                    {/* 🌟 Dynamic Preview Rows */}
-                                    {globalFeeHeads.map((head) => {
-                                        return (
-                                            <div key={head} className="flex justify-between text-muted">
-                                                <span className="font-medium capitalize">{head}</span>
-                                                <span className="font-bold text-foreground">
-                                                    ₹{Number(feeData[head] || 0).toLocaleString('en-IN')}
-                                                </span>
-                                            </div>
-                                        );
-                                    })}
+                                {/* 🌟 Dynamic Preview Rows */}
+                                {/* {globalFeeHeads.map((head) => {
+                                    return (
+                                        <div key={head} className="flex justify-between text-muted">
+                                            <span className="font-medium capitalize">{head}</span>
+                                            <span className="font-bold text-foreground">
+                                                ₹{Number(feeData[head] || 0).toLocaleString('en-IN')}
+                                            </span>
+                                        </div>
+                                    );
+                                })} */}
 
-                                     <div className="mt-6 pt-4 sm:pt-5 border-t-2 border-dashed border-border">
+                                {globalFeeHeads.map((headObj, index) => {
+                                    const headName = headObj.feeHead; // Extract string
+
+                                    return (
+                                        <div key={`${headName}-${index}`} className="flex justify-between text-muted">
+                                            <span className="font-medium capitalize">{headName}</span>
+                                            <span className="font-bold text-foreground">
+                                                ₹{Number(feeData[headName] || 0).toLocaleString('en-IN')}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+
+                                <div className="mt-6 pt-4 sm:pt-5 border-t-2 border-dashed border-border">
                                     <p className="text-[9px] sm:text-[10px] text-muted font-bold uppercase tracking-widest mb-1">Calculated Total</p>
                                     <p className="text-2xl sm:text-3xl font-bold text-primary">
                                         ₹{previewTotal.toLocaleString('en-IN')}
                                     </p>
                                 </div>
-                                </div>
+                            </div>
 
                         </div>
                     )}

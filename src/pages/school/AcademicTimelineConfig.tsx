@@ -48,9 +48,9 @@ export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineC
     const [selectedYear, setSelectedYear] = useState<string>(schoolData?.currentAcademicYear || '');
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [formData, setFormData] = useState({
-        firstTermDate: '',
-        secondTermDate: '',
-        thirdTermDate: ''
+        firstTerm: '',
+        secondTerm: '',
+        thirdTerm: ''
     });
 
     // Check if the currently selected year already has saved data
@@ -65,14 +65,14 @@ export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineC
                 // Data exists -> default to Read-Only view, but prepopulate form in case they hit Edit
                 setIsEditing(false);
                 setFormData({
-                    firstTermDate: formatForInput(existingConfig.firstTermDate),
-                    secondTermDate: formatForInput(existingConfig.secondTermDate),
-                    thirdTermDate: formatForInput(existingConfig.thirdTermDate),
+                    firstTerm: formatForInput(existingConfig.firstTerm),
+                    secondTerm: formatForInput(existingConfig.secondTerm),
+                    thirdTerm: formatForInput(existingConfig.thirdTerm),
                 });
             } else {
                 // No data -> default to Form view
                 setIsEditing(true);
-                setFormData({ firstTermDate: '', secondTermDate: '', thirdTermDate: '' });
+                setFormData({ firstTerm: '', secondTerm: '', thirdTerm: '' });
             }
         }
     }, [selectedYear, schoolData?.academicTermDates]);
@@ -91,9 +91,9 @@ export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineC
                 id: schoolData._id,
                 data: {
                     academicYear: selectedYear,
-                    firstTermDate: formData.firstTermDate || null,
-                    secondTermDate: formData.secondTermDate || null,
-                    thirdTermDate: formData.thirdTermDate || null,
+                    firstTerm: formData.firstTerm || null,
+                    secondTerm: formData.secondTerm || null,
+                    thirdTerm: formData.thirdTerm || null,
                 }
             });
             toast.success("Term dates saved successfully!");
@@ -196,15 +196,15 @@ export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineC
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                         <div className="flex flex-col items-center justify-center p-4 bg-surface rounded-lg border border-border/40 text-center">
                                             <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-2">Term 1</p>
-                                            <p className="text-sm font-bold text-foreground">{formatForDisplay(existingConfig.firstTermDate)}</p>
+                                            <p className="text-sm font-bold text-foreground">{formatForDisplay(existingConfig.firstTerm)}</p>
                                         </div>
                                         <div className="flex flex-col items-center justify-center p-4 bg-surface rounded-lg border border-border/40 text-center">
                                             <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-2">Term 2</p>
-                                            <p className="text-sm font-bold text-foreground">{formatForDisplay(existingConfig.secondTermDate)}</p>
+                                            <p className="text-sm font-bold text-foreground">{formatForDisplay(existingConfig.secondTerm)}</p>
                                         </div>
                                         <div className="flex flex-col items-center justify-center p-4 bg-surface rounded-lg border border-border/40 text-center">
                                             <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-2">Term 3</p>
-                                            <p className="text-sm font-bold text-foreground">{formatForDisplay(existingConfig.thirdTermDate)}</p>
+                                            <p className="text-sm font-bold text-foreground">{formatForDisplay(existingConfig.thirdTerm)}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -246,26 +246,26 @@ export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineC
                                         <form onSubmit={handleSave} className="space-y-6">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <Input
-                                                    id="firstTermDate"
+                                                    id="firstTerm"
                                                     type="date"
                                                     label="Term 1 Start Date"
-                                                    value={formData.firstTermDate}
+                                                    value={formData.firstTerm}
                                                     onChange={handleInputChange}
                                                     disabled={!canModify}
                                                 />
                                                 <Input
-                                                    id="secondTermDate"
+                                                    id="secondTerm"
                                                     type="date"
                                                     label="Term 2 Start Date"
-                                                    value={formData.secondTermDate}
+                                                    value={formData.secondTerm}
                                                     onChange={handleInputChange}
                                                     disabled={!canModify}
                                                 />
                                                 <Input
-                                                    id="thirdTermDate"
+                                                    id="thirdTerm"
                                                     type="date"
                                                     label="Term 3 Start Date"
-                                                    value={formData.thirdTermDate}
+                                                    value={formData.thirdTerm}
                                                     onChange={handleInputChange}
                                                     disabled={!canModify}
                                                 />
