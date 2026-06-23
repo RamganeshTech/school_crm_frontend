@@ -137,6 +137,13 @@ export default function StudentRecordSingle() {
         e.preventDefault();
         if (!record || !schoolId) return;
 
+        if (!selectedAcademicYear) {
+            toast.error("Select the Academic Year")
+            return;
+        }
+
+
+
         const formData = new FormData();
         formData.append('schoolId', schoolId);
 
@@ -149,6 +156,7 @@ export default function StudentRecordSingle() {
         formData.append('concessionType', concessionData.type); // 'amount' or 'percentage'
         formData.append('concessionValue', concessionData.value);
         formData.append('remark', concessionData.remark);       // 'Sibling', 'Staff'
+        formData.append('academicYear', selectedAcademicYear);
 
         if (concessionFile) formData.append('file', concessionFile);
 
@@ -405,11 +413,16 @@ export default function StudentRecordSingle() {
                             <p className="text-xs text-muted mt-1 capitalize">Admission: <span className='font-bold'>{record?.newOld || 'N/A'}</span></p>
                         </div>
 
+
                         <div className="col-span-2 flex flex-wrap gap-3 pt-2 border-t border-border/50">
                             {/* <span className={`px-2.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 ${record?.isBusApplicable ? 'bg-primary-soft text-primary border-primary/20' : 'bg-surface text-muted border-border'}`}>
                                 <i className={`fas fa-bus ${record?.isBusApplicable ? 'text-primary' : 'text-muted/50'}`}></i>
                                 Bus Subscriber: {record?.isBusApplicable ? 'Yes' : 'No'}
                             </span> */}
+                            <span className={`px-2.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 ${record?.feeStatus === "paid" ? 'bg-success/10 text-success border-success/20' : 'bg-surface text-muted border-border'}`}>
+                                <i className={`fas fa-check-double ${record?.feeStatus === "paid" ? 'text-success' : 'text-muted/50'}`}></i>
+                                Fee Status: {record?.feeStatus}
+                            </span>
                             <span className={`px-2.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 ${record?.isFullyPaid ? 'bg-success/10 text-success border-success/20' : 'bg-surface text-muted border-border'}`}>
                                 <i className={`fas fa-check-double ${record?.isFullyPaid ? 'text-success' : 'text-muted/50'}`}></i>
                                 Fully Paid: {record?.isFullyPaid ? 'Yes' : 'No'}
@@ -599,18 +612,18 @@ export default function StudentRecordSingle() {
                             </tr> */}
 
                             <tr className="bg-primary-soft/30 border-t-2 border-border">
-    <td className="px-4 py-4 font-bold text-foreground">Grand Total</td>
-    <td className="px-4 py-4 text-right font-bold">
-        {/* 🌟 Use h.feeHead in the reduce functions */}
-        ₹{orderedHeads.reduce((sum, h) => sum + Number(fStruct?.[h.feeHead] ?? 0), 0)}
-    </td>
-    <td className="px-4 py-4 text-right text-success font-bold">
-        ₹{orderedHeads.reduce((sum, h) => sum + Number(fPaid?.[h.feeHead] ?? 0), 0)}
-    </td>
-    <td className="px-4 py-4 text-right text-danger font-bold">
-        ₹{orderedHeads.reduce((sum, h) => sum + Number(fDues?.[h.feeHead] ?? 0), 0)}
-    </td>
-</tr>
+                                <td className="px-4 py-4 font-bold text-foreground">Grand Total</td>
+                                <td className="px-4 py-4 text-right font-bold">
+                                    {/* 🌟 Use h.feeHead in the reduce functions */}
+                                    ₹{orderedHeads.reduce((sum, h) => sum + Number(fStruct?.[h.feeHead] ?? 0), 0)}
+                                </td>
+                                <td className="px-4 py-4 text-right text-success font-bold">
+                                    ₹{orderedHeads.reduce((sum, h) => sum + Number(fPaid?.[h.feeHead] ?? 0), 0)}
+                                </td>
+                                <td className="px-4 py-4 text-right text-danger font-bold">
+                                    ₹{orderedHeads.reduce((sum, h) => sum + Number(fDues?.[h.feeHead] ?? 0), 0)}
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -754,6 +767,7 @@ export default function StudentRecordSingle() {
                 isOpen={isFeeModalOpen}
                 onClose={() => setIsFeeModalOpen(false)}
                 schoolId={schoolId!}
+                selectedAcademicYear={selectedAcademicYear}
                 studentId={studentId!}
                 record={record}
                 refetch={refetch}

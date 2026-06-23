@@ -11,6 +11,7 @@ import type { FeeHeadItem } from '../../../api_services/feeStructure_api/feeStru
 interface CollectFeeModalProps {
     isOpen: boolean;
     onClose: () => void;
+    selectedAcademicYear: string
     schoolId: string;
     studentId: string;
     record: any; // The student record data
@@ -22,6 +23,7 @@ interface CollectFeeModalProps {
 export default function CollectFeeModal({
     isOpen,
     onClose,
+    selectedAcademicYear,
     schoolId,
     studentId,
     record,
@@ -91,6 +93,11 @@ export default function CollectFeeModal({
         e.preventDefault();
         if (!schoolId || !studentId || !record) return;
 
+        if(!selectedAcademicYear) {
+            toast.error("Select the Academic Year")
+            return;
+        }
+
         const formData = new FormData();
         formData.append('schoolId', schoolId);
         formData.append('studentId', actualStudentId || '');
@@ -101,6 +108,7 @@ export default function CollectFeeModal({
         formData.append('paymentMode', feeData.paymentMode);
         formData.append('remarks', feeData.remarks);
         formData.append('newOld', record?.newOld || 'new');
+        formData.append('academicYear', selectedAcademicYear);
 
         // Add Manual Allocation Data
         formData.append('manualDueAllocation', String(feeData.manualDueAllocation));
