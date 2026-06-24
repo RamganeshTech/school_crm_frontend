@@ -110,7 +110,13 @@ const baseManagementMenu: MenuItem[] = [
                 name: "TimeTable",
                 path: "/dashboard/timetable",
                 icon: "fas fa-table"
-            }
+            },
+            {
+                name: 'Calendar',
+                path: "/dashboard/academic-calendar",
+                icon: 'fas fa-calendar-check'
+            },
+
         ]
     },
 
@@ -398,6 +404,11 @@ export const teacherMenu: MenuItem[] = [
     // { name: 'Attendance', path: "/dashboard/attendance", icon: 'fas fa-clipboard' },
     // { name: 'Teacher Assignments', path: "/dashboard/teacher-assignment", icon: 'fas fa-chalkboard-user' },
     // { name: 'Homework', path: "/dashboard/homework", icon: 'fas fa-calendar-check' },
+    {
+        name: 'Calendar',
+        path: "/dashboard/academic-calendar",
+        icon: 'fas fa-calendar-check'
+    },
 
     {
         name: "Classroom Management",
@@ -458,6 +469,11 @@ export const getParentInitialMenu = (): MenuItem[] => [
         path: "/dashboard/profile-selection",
         icon: "fas fa-user-group",
     },
+    {
+        name: 'Calendar',
+        path: "/dashboard/academic-calendar",
+        icon: 'fas fa-calendar-check'
+    },
 ];
 
 // export const getParentMenu = (studentId: string | null): MenuItem[] => {
@@ -498,6 +514,7 @@ export const getParentMenu = ({ studentId, classId, sectionId, academicYear }: P
         { name: 'Profile Selection', path: "/dashboard/profile-selection", icon: 'fas fa-user-group' },
         { name: 'Parent Profile', path: `/dashboard/parent/profile`, icon: 'fas fa-user' },
         { name: 'Clubs', path: "/dashboard/student/club", icon: 'fas fa-layer-group' },
+
         {
             name: 'Academics',
             path: '#', // Acts as a toggle/wrapper, not a direct link
