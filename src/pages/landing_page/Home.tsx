@@ -56,6 +56,8 @@ const Home = () => {
   }, []);
 
   const handleGetStarted = () => {
+
+    console.log("currentRole", currentRole)
     if (!userId) {
       navigate('/login');
     } else if (currentRole === 'parent') {
@@ -350,30 +352,7 @@ const Home = () => {
 
 
 
-      {/* --- CLEAN FOOTER --- */}
-      {/* <footer className="bg-white border-t border-slate-100 pt-16 pb-8">
-
-
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
-                <i className="fa-solid fa-graduation-cap text-sm text-white"></i>
-              </div>
-              <span className="text-lg font-bold tracking-tight text-slate-900">{DOMAIN_NAME}</span>
-            </div>
-            <div className="flex items-center gap-6 text-slate-400">
-              <a href="#" className="hover:text-[var(--brand)] transition-colors"><i className="fa-brands fa-twitter text-xl"></i></a>
-              <a href="#" className="hover:text-[var(--brand)] transition-colors"><i className="fa-brands fa-linkedin text-xl"></i></a>
-              <a href="#" className="hover:text-[var(--brand)] transition-colors"><i className="fa-brands fa-instagram text-xl"></i></a>
-            </div>
-          </div>
-
-          <div className="border-t border-slate-100 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
-            <p>&copy; {new Date().getFullYear()} {DOMAIN_NAME} LMS. All rights reserved.</p>
-          </div>
-        </div>
-      </footer> */}
+      
 
 
       <footer className="bg-white border-t border-slate-100 pt-16 pb-8">

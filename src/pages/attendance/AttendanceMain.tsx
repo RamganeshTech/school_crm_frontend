@@ -16,6 +16,7 @@ import { TableContainer } from '../../shared/ui/TableLayout';
 import { SideModal } from '../../shared/ui/SideModal';
 import { toast } from '../../shared/ui/ToastContext';
 import { getAcademicYears } from '../../utils/utils';
+import { useGetSchoolById } from '../../api_services/schoolConfig_api/schoolapi';
 
 export default function AttendanceMain() {
     const { schoolId } = useSelector((state: RootState) => state.auth);
@@ -31,6 +32,18 @@ export default function AttendanceMain() {
         sectionId: '',
         month: currentYearMonth
     });
+
+
+    const { data: schoolData } = useGetSchoolById(schoolId!)
+
+
+    useEffect(() => {
+        if (schoolData) {
+            setFilters((prev) => ({ ...prev, academicYear: schoolData?.currentAcademicYear || "2025-2026" }))
+        }
+    }, [schoolData])
+
+
 
     // --- Data Fetching: Filters ---
     const { data: classesData } = useGetClasses(schoolId!);
@@ -96,15 +109,6 @@ export default function AttendanceMain() {
 
         const newMap: Record<string, AttendanceRecord> = {};
 
-        // if (singleSheetData && singleSheetData && singleSheetData.length > 0) {
-        //     singleSheetData.forEach((rec: any) => {
-        //         newMap[rec.studentId] = { studentId: rec.studentId, status: rec.status, remark: rec.remark || '' };
-        //     });
-        // } else if (students.length > 0) {
-        //     students.forEach((student: any) => {
-        //         newMap[student._id] = { studentId: student._id, status: '' as any, remark: '' }; // Default Present
-        //     });
-        // }
 
         if (singleSheetData && singleSheetData.length > 0) {
             singleSheetData.forEach((rec: any) => {
@@ -113,7 +117,7 @@ export default function AttendanceMain() {
 
                 newMap[rec.studentId] = {
                     studentId: rec.studentId,
-                    studentName: rec.studentName || matchedStudent?.studentName || 'Unknown',
+                    studentName: rec?.studentName || matchedStudent?.studentName || 'Unknown',
                     rollNumber: rec.rollNumber || matchedStudent?.nonMandatory?.rollNumber || matchedStudent?.rollNumber || '-',
                     status: rec.status,
                     remark: rec.remark || ''
@@ -123,8 +127,8 @@ export default function AttendanceMain() {
             students.forEach((student: any) => {
                 newMap[student._id] = {
                     studentId: student._id,
-                    studentName: student.studentName || 'Unknown',
-                    rollNumber: student.nonMandatory?.rollNumber || student.rollNumber || '-',
+                    studentName: student?.studentName || 'Unknown',
+                    rollNumber: student?.nonMandatory?.rollNumber || student.rollNumber || '-',
                     status: '' as any,
                     remark: ''
                 };
@@ -258,7 +262,7 @@ export default function AttendanceMain() {
                                             Student Details
                                         </th>
                                         {/* DATE COLUMNS */}
-                                        {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => (
+                                        {/* {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => (
                                             <th
                                                 key={day}
                                                 onClick={() => handleGridDateClick(day)}
@@ -267,7 +271,62 @@ export default function AttendanceMain() {
                                             >
                                                 {day}
                                             </th>
-                                        ))}
+                                        ))} */}
+
+
+                                        {/* DATE COLUMNS */}
+                                        {/* DATE COLUMNS */}
+                                        {/* DATE COLUMNS */}
+                                        {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+
+                                            // 1. Get exact current date numbers
+                                            const today = new Date();
+                                            const currentDay = today.getDate();
+                                            const currentMonth = today.getMonth() + 1; // getMonth is 0-11, so add 1
+                                            const currentYear = today.getFullYear();
+
+                                            // 2. Safely extract year and month from your filter (Assuming format "2026-06")
+                                            // By converting to String first, we prevent crashes if filters.month is undefined
+                                            const filterString = String(filters.month || "");
+                                            const [yearStr, monthStr] = filterString.split('-');
+
+                                            const filterYear = parseInt(yearStr, 10);
+                                            const filterMonth = parseInt(monthStr, 10);
+
+                                            // 3. Strict comparison
+                                            const isToday =
+                                                day === currentDay &&
+                                                filterMonth === currentMonth &&
+                                                filterYear === currentYear;
+
+                                            // Uncomment this line temporarily if it still doesn't work to see what is failing!
+                                            // if (day === currentDay) console.log(`Checking Today: Filter(${filterYear}-${filterMonth}) vs Actual(${currentYear}-${currentMonth}) -> isToday: ${isToday}`);
+
+                                            return (
+                                                <th
+                                                    key={day}
+                                                    onClick={() => handleGridDateClick(day)}
+                                                    className={`px-2 py-2 text-center font-bold border-r border-border/50 border-b w-10 min-w-[40px] cursor-pointer transition-all relative
+                ${isToday
+                                                            ? 'bg-primary/10 text-primary border-b-primary shadow-[inset_0_-3px_0_var(--theme-primary)]' // 🌟 Changed to primary/10 so it is unmistakably the "today" highlight
+                                                            : 'bg-background hover:bg-primary-soft/50 hover:text-primary text-muted' // Explicitly set standard background
+                                                        }
+            `}
+                                                    title={`Mark attendance for ${day} ${filters.month} ${isToday ? '(Today)' : ''}`}
+                                                >
+                                                    <div className="flex flex-col items-center justify-center">
+                                                        <span className={isToday ? "text-primary" : ""}>{day}</span>
+
+                                                        {/* The Dot Indicator */}
+                                                        {isToday ? (
+                                                            <div className="w-1 h-1 rounded-full bg-primary mt-0.5"></div>
+                                                        ) : (
+                                                            <div className="w-1 h-1 mt-0.5 bg-transparent"></div>
+                                                        )}
+                                                    </div>
+                                                </th>
+                                            );
+                                        })}
 
                                         {/* DATE COLUMNS */}
                                         {/* {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {

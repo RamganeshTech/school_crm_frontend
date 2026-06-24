@@ -11,6 +11,7 @@ import { useGetSchoolById } from '../../api_services/schoolConfig_api/schoolapi'
 import { useGetAllHomeworkSubmissions, useSubmitHomeworkStatus } from '../../api_services/homework_api/homeWorksubmissionApi';
 import { toast } from '../../shared/ui/ToastContext';
 import { useRoleCheck } from '../../hooks/useRoleCheck';
+import { ImageGallery } from '../../shared/components/ImageGallery';
 
 export default function HomeworkSubmissionMain() {
     const { schoolId } = useAuthData();
@@ -259,7 +260,7 @@ export default function HomeworkSubmissionMain() {
                                             <p className="text-sm text-muted whitespace-pre-wrap">{sub.description}</p>
 
                                             {/* Action Area */}
-                                            <div className="pt-3 border-t border-border mt-1 flex justify-between items-center">
+                                            {/* <div className="pt-3 border-t border-border mt-1 flex justify-between items-center">
                                                 <div className="flex gap-2">
                                                     {sub.attachments?.map((file: any) => (
                                                         <a key={file._id} href={file.url} target="_blank" rel="noreferrer" className="text-[10px] text-primary border border-border px-2 py-1 rounded hover:bg-primary-soft">
@@ -272,6 +273,52 @@ export default function HomeworkSubmissionMain() {
                                                     <Button variant="outline" size="sm" onClick={() => handleOpenSubmitForm(sub)}>
                                                         Submit Work
                                                     </Button>
+                                                )}
+                                            </div> */}
+
+
+                                            <div className="pt-3 border-t border-border mt-3 flex flex-col gap-4">
+
+                                                {/* --- ATTACHMENTS AREA --- */}
+                                                {sub.attachments?.length > 0 && (
+                                                    <div className="flex flex-col gap-3">
+
+                                                        {/* 1. Image Gallery (Everything except PDF) */}
+                                                        {sub.attachments.some((file: any) => file.type !== 'pdf') && (
+                                                            <ImageGallery
+                                                                images={sub.attachments.filter((file: any) => file.type !== 'pdf')}
+                                                                // Ensure only authorized users can delete
+                                                                // {...(canModify && !isPastActiveDate ? { handleDelete: (image: any) => handleDeleteAttachment(activeDayData._id, sub._id, image._id) } : {})}
+                                                                heightClass="!h-20 sm:h-32"
+                                                                widthClass="w-24 sm:w-32"
+                                                            />
+                                                        )}
+
+                                                        {/* 2. PDF Links */}
+                                                        {sub.attachments.some((file: any) => file.type === 'pdf') && (
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {sub.attachments
+                                                                    .filter((file: any) => file.type === 'pdf')
+                                                                    .map((file: any) => (
+                                                                        <div key={file._id} className="flex items-center gap-3 px-2 py-1.5 bg-background rounded border border-border shadow-sm group">
+                                                                            <a href={file.url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-[10px] font-medium text-primary hover:underline transition-colors flex-1 min-w-0" title="View Document">
+                                                                                <i className="fas fa-file-pdf text-danger shrink-0 text-xs"></i>
+                                                                                <span className="truncate max-w-[120px]">{file.originalName}</span>
+                                                                            </a>
+                                                                        </div>
+                                                                    ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* --- ACTION AREA --- */}
+                                                {(canModify && !submission && !isPastActiveDate) && (
+                                                    <div className="flex justify-end mt-1">
+                                                        <Button variant="outline" size="sm" onClick={() => handleOpenSubmitForm(sub)}>
+                                                            Submit Work
+                                                        </Button>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

@@ -424,7 +424,7 @@ export default function HomeworkMain() {
                                             <div className="flex justify-between items-center">
                                                 <div>
                                                     <p className="font-bold text-sm text-foreground">{sub.studentId?.studentName || 'Unknown Student'}</p>
-                                                    <p className="text-[10px] text-muted">ID: {sub.studentId?._id || sub.studentId}</p>
+                                                    {/* <p className="text-[10px] text-muted">ID: {sub.studentId?._id || sub.studentId}</p> */}
                                                 </div>
                                                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${sub.status === 'completed' ? 'bg-success/10 text-success border-success/20' : 'bg-warning/10 text-warning border-warning/20'
                                                     }`}>

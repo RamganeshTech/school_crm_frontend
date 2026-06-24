@@ -194,9 +194,15 @@ const Login = () => {
         // 3. SECURE ROUTING LOGIC: Check role and navigate accordingly
         if (response.user.role?.toLowerCase() === 'parent') {
           navigate('/dashboard/profile-selection');
-        } else {
+        }
+        else if (response.user.role?.toLowerCase() === 'teacher') {
+          navigate(`/dashboard/attendance-report`)
+        }
+        else {
           navigate('/dashboard');
         }
+
+
 
         // navigate('/dashboard');
       }

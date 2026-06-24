@@ -13,6 +13,13 @@ const GENERAL_READ_ROLES: UserRole[] = ["correspondent", "teacher", "principal",
 const SOCIAL_WRITE_ROLES: UserRole[] = ["correspondent", "administrator"];
 const SOCIAL_READ_ROLES: UserRole[] = ["correspondent", "teacher", "parent", "principal", "administrator", "viceprincipal", "accountant"];
 
+
+export interface AcademicTermDates {
+        academicYear: string,  // e.g., "2025-2026"
+        firstTerm: Date | null
+        secondTerm: Date | null
+        thirdTerm: Date | null
+    }
 // --- Types ---
 export interface SchoolData {
   _id: string;
@@ -22,6 +29,7 @@ export interface SchoolData {
   address: string;
   currentAcademicYear: string;
   logo?: {url:string} | null;
+  academicTermDates: AcademicTermDates[]
   socialPlatforms?: Record<string, string>;
 }
 

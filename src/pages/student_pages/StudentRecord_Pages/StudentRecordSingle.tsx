@@ -28,11 +28,13 @@ import CollectFeeModal from './CollectFeeModal';
 import { getAcademicYears } from '../../../utils/utils';
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
 import { useGetFeeConfig, type FeeHeadItem } from './../../../api_services/feeStructure_api/feeStructureConfigApi';
+import { useGetSchoolById } from '../../../api_services/schoolConfig_api/schoolapi';
 
 export default function StudentRecordSingle() {
     const { studentId } = useParams() as { studentId: string }
     const [searchParams] = useSearchParams()
     const studentAcademicYear = searchParams.get("academicYear")
+
 
     const navigate = useNavigate();
     const location = useLocation()
@@ -54,6 +56,10 @@ export default function StudentRecordSingle() {
     // const { data: record, isLoading, isError, refetch } = useGetStudentRecordById(schoolId!, studentId);
     const { data: record, isLoading, isError, refetch } = useGetStudentRecordByIdV1(schoolId!, studentId, selectedAcademicYear);
     const { data: feeConfig } = useGetFeeConfig(schoolId!);
+
+    const { data: schoolData } = useGetSchoolById(schoolId!)
+
+
 
     // Mutations
     const toggleStatusMutation = useToggleStudentRecordStatus();
@@ -116,11 +122,8 @@ export default function StudentRecordSingle() {
     const displayClassName = record?.className || record?.classId?.name || 'Unassigned';
     const displaySectionName = record?.sectionName || record?.sectionId?.name || 'Unassigned';
 
-
-
     const { data: classesData } = useGetClasses(schoolId!);
     const { data: sectionsData, } = useGetSections({ schoolId: schoolId!, classId: concessionData.classId });
-
 
 
     const classOptions = classesData?.map((cls: any) => ({ label: cls.name, value: cls._id })) || [];
@@ -132,6 +135,34 @@ export default function StudentRecordSingle() {
     const hasSections = selectedClassObj?.hasSections === true;
 
 
+    const getActiveTermLabel = () => {
+        if (!schoolData?.currentAcademicYear || !schoolData?.academicTermDates?.length) {
+            return "Term Status"; // Fallback if no data
+        }
+
+        // Find the term configuration for the current academic year
+        const currentTimeline = schoolData?.academicTermDates.find(
+            (timeline) => timeline?.academicYear === schoolData?.currentAcademicYear
+        );
+
+        if (!currentTimeline) return "Term Status";
+
+        const today = new Date().getTime();
+
+        // Safely parse dates to timestamps
+        const firstTerm = currentTimeline?.firstTerm ? new Date(currentTimeline?.firstTerm).getTime() : null;
+        const secondTerm = currentTimeline?.secondTerm ? new Date(currentTimeline?.secondTerm).getTime() : null;
+        const thirdTerm = currentTimeline?.thirdTerm ? new Date(currentTimeline?.thirdTerm).getTime() : null;
+
+        // Check in reverse chronological order
+        if (thirdTerm && today >= thirdTerm) return "III Term Status";
+        if (secondTerm && today >= secondTerm) return "II Term Status";
+        if (firstTerm && today >= firstTerm) return "I Term Status";
+
+        return "Term Status"; // Fallback if today is before the first term even starts
+    };
+
+    const termLabel = getActiveTermLabel();
 
     const handleConcessionSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -389,7 +420,7 @@ export default function StudentRecordSingle() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 {/* Academic & Class Details */}
-                <div className="bg-surface p-6 rounded-xl border border-border shadow-sm space-y-4">
+                {/* <section className="bg-surface p-6 rounded-xl border border-border shadow-sm space-y-4">
                     <div className="flex items-center gap-2 border-b border-border pb-3 mb-2">
                         <i className="fas fa-chalkboard-user text-primary"></i>
                         <h3 className="font-semibold text-foreground">Academic Information</h3>
@@ -401,10 +432,6 @@ export default function StudentRecordSingle() {
                             <p className="font-medium text-foreground text-sm mt-0.5">
                                 {displayClassName} - {displaySectionName}
                             </p>
-                            {/* <div className="mt-1 space-y-0.5">
-                                <p className="text-[10px] text-muted/70 truncate" title={actualClassId}>Class ID: {actualClassId || 'N/A'}</p>
-                                <p className="text-[10px] text-muted/70 truncate" title={actualSectionId}>Section ID: {actualSectionId || 'N/A'}</p>
-                            </div> */}
                         </div>
 
                         <div>
@@ -415,10 +442,6 @@ export default function StudentRecordSingle() {
 
 
                         <div className="col-span-2 flex flex-wrap gap-3 pt-2 border-t border-border/50">
-                            {/* <span className={`px-2.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 ${record?.isBusApplicable ? 'bg-primary-soft text-primary border-primary/20' : 'bg-surface text-muted border-border'}`}>
-                                <i className={`fas fa-bus ${record?.isBusApplicable ? 'text-primary' : 'text-muted/50'}`}></i>
-                                Bus Subscriber: {record?.isBusApplicable ? 'Yes' : 'No'}
-                            </span> */}
                             <span className={`px-2.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 ${record?.feeStatus === "paid" ? 'bg-success/10 text-success border-success/20' : 'bg-surface text-muted border-border'}`}>
                                 <i className={`fas fa-check-double ${record?.feeStatus === "paid" ? 'text-success' : 'text-muted/50'}`}></i>
                                 Fee Status: {record?.feeStatus}
@@ -429,7 +452,58 @@ export default function StudentRecordSingle() {
                             </span>
                         </div>
                     </div>
-                </div>
+                </section> */}
+
+
+                {/* Academic & Class Details */}
+                <section className="bg-surface p-6 rounded-xl border border-border shadow-sm space-y-4">
+
+                    {/* 🌟 REDESIGNED HEADER: Status Badge on the Right */}
+                    <div className="flex items-center justify-between border-b border-border pb-3 mb-2">
+                        <div className="flex items-center gap-2">
+                            <i className="fas fa-chalkboard-user text-primary"></i>
+                            <h3 className="font-semibold text-foreground">Academic Information</h3>
+                        </div>
+
+                        {/* Dynamic Fee Status Badge */}
+                        <div className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border flex items-center gap-1.5 ${record?.feeStatus === "paid"
+                            ? 'bg-success/10 text-success border-success/20'
+                            : 'bg-danger/10 text-danger border-danger/20' // Danger styling for unpaid
+                            }`}>
+                            <i className={`fas ${record?.feeStatus === "paid" ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
+                            {termLabel}: {record?.feeStatus || 'Unknown'}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                        <div>
+                            <p className="text-muted text-xs font-semibold">Class & Section</p>
+                            <p className="font-medium text-foreground text-sm mt-0.5">
+                                {displayClassName} - {displaySectionName}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p className="text-muted text-xs font-semibold">Roll Number & Type</p>
+                            <p className="font-medium text-foreground text-sm mt-0.5">{actualRollNumber}</p>
+                            <p className="text-xs text-muted mt-1 capitalize">Admission: <span className='font-bold'>{record?.newOld || 'N/A'}</span></p>
+                        </div>
+
+                        {/* BOTTOM TAGS: Yearly Clearance & Subscriptions */}
+                        <div className="col-span-2 flex flex-wrap gap-3 pt-2 border-t border-border/50">
+                            {/* <span className={`px-2.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 ${record?.isBusApplicable ? 'bg-primary-soft text-primary border-primary/20' : 'bg-surface text-muted border-border'}`}>
+                <i className={`fas fa-bus ${record?.isBusApplicable ? 'text-primary' : 'text-muted/50'}`}></i>
+                Bus Subscriber: {record?.isBusApplicable ? 'Yes' : 'No'}
+            </span> */}
+
+                            <span className={`px-2.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 ${record?.isFullyPaid ? 'bg-success/10 text-success border-success/20' : 'bg-surface text-muted border-border'
+                                }`}>
+                                <i className={`fas ${record?.isFullyPaid ? 'fa-check-double text-success' : 'fa-clock text-muted/50'}`}></i>
+                                Fully Paid: {record?.isFullyPaid ? 'Yes' : 'Pending'}
+                            </span>
+                        </div>
+                    </div>
+                </section>
 
                 {/* Concession Details */}
                 <div className="bg-surface p-6 rounded-xl border border-border shadow-sm space-y-4">
