@@ -11,6 +11,7 @@ import type { UserRole } from '../../features/slices/authSlice';
 import { AUTH_CHECK_ROLES, type ValidUserRole } from '../../constants/constants';
 import { Input } from '../../shared/ui/Input';
 import { ParentStudentManagerModal } from './ParentStudentManagerModal';
+import { Outlet } from 'react-router-dom';
 
 // Initial state for the creation form
 const INITIAL_FORM_STATE = {
@@ -135,6 +136,13 @@ export default function UserListMain() {
             }
         }
     };
+
+
+    const isChild = location.pathname.includes('/single')
+
+    if (isChild) {
+        return <Outlet />
+    }
 
     return (
         <div className="w-full h-full flex flex-col bg-mainBg">

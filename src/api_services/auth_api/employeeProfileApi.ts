@@ -1,0 +1,196 @@
+import { useQuery, useMutation, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuthData } from '../../hooks/useAuthData';
+import { checkPermission } from '../../utils/utils';
+import { Api } from '../../lib/api';
+
+
+// --- Types ---
+export interface GetAllEmployeeProfilesParams {
+    schoolId: string;
+    department?: string;
+    designation?: string;
+    isActive?: boolean | string;
+    limit?: number;
+    page?: number;
+}
+
+export interface IEmployeeProfilePayload {
+    userId: string;
+    schoolId: string;
+    employeeNo?: string;
+    designation?: string;
+    department?: string;
+    dateOfJoining?: string | Date;
+    employmentType?: string;
+    nationalId?: string;
+    pfNumber?: string;
+    qualifications?: string[];
+    yearsOfExperience?: number;
+    previousWorkplace?: string;
+    bankDetails?: {
+        accountName?: string;
+        accountNumber?: string;
+        bankName?: string;
+        ifscCode?: string;
+    };
+    emergencyContact?: {
+        name?: string;
+        relation?: string;
+        phone?: string;
+    };
+    isActive?: boolean;
+}
+
+// ==========================================
+// 1. QUERIES (GET)
+// ==========================================
+
+// --- Hook: Get All Employee Profiles (Infinite / Paginated) ---
+export const useGetAllEmployeeProfilesInfinite = (params: Omit<GetAllEmployeeProfilesParams, 'page'>) => {
+    const { currentRole } = useAuthData();
+
+    return useInfiniteQuery({
+        queryKey: ['employee-profiles-infinite', params],
+        initialPageParam: 1,
+        queryFn: async ({ pageParam = 1 }) => {
+            try {
+                // Roles match your backend route
+                checkPermission(currentRole, ["correspondent", "administrator", "principal", "viceprincipal", "accountant", "teacher"]);
+
+                const { data } = await Api.get('/api/employee-profile/getall', {
+                    params: { ...params, page: pageParam }
+                });
+
+                if (data.ok) {
+                    return data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch employee profiles');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
+        },
+        getNextPageParam: (lastPage) => {
+            // Using the pagination logic exactly as requested
+            const currentPage = Number(lastPage?.pagination?.currentPage) || 1;
+            const totalPages = Number(lastPage?.pagination?.totalPages) || 1;
+
+            if (currentPage < totalPages) {
+                return currentPage + 1; // There is a next page
+            }
+            return undefined; // No more pages
+        },
+        enabled: !!params.schoolId, // Only fetch if schoolId is available
+    });
+};
+
+// --- Hook: Get Single Profile By User ID ---
+export const useGetEmployeeProfileByUserId = (userId: string | undefined) => {
+    const { currentRole } = useAuthData();
+
+    return useQuery({
+        queryKey: ['employee-profile-single', userId],
+        queryFn: async () => {
+            try {
+                checkPermission(currentRole, ["correspondent", "administrator", "principal", "viceprincipal", "accountant", "teacher"]);
+
+                const { data } = await Api.get(`/api/employee-profile/get/${userId}`);
+
+                if (data.ok) {
+                    return data.data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch employee profile details');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
+        },
+        enabled: !!userId,
+    });
+};
+
+
+// ==========================================
+// 2. MUTATIONS (POST / PUT / DELETE)
+// ==========================================
+
+// --- Hook: Create Employee Profile ---
+export const useCreateEmployeeProfile = () => {
+    const { currentRole } = useAuthData();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (payload: IEmployeeProfilePayload) => {
+            try {
+                // Admins/Correspondents only
+                checkPermission(currentRole, ["correspondent", "administrator"]);
+
+                const { data } = await Api.post('/api/employee-profile/create', payload);
+
+                if (!data.ok) throw new Error(data.message || 'Failed to create employee profile');
+                return data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
+        },
+        onSuccess: () => {
+            // Invalidate the infinite list so it refetches new data
+            queryClient.invalidateQueries({ queryKey: ['employee-profiles-infinite'] });
+        },
+    });
+};
+
+// --- Hook: Update Employee Profile ---
+export const useUpdateEmployeeProfile = () => {
+    const { currentRole } = useAuthData();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ userId, updateData }: { userId: string; updateData: Partial<IEmployeeProfilePayload> }) => {
+            try {
+                checkPermission(currentRole, ["correspondent", "administrator"]);
+
+                const { data } = await Api.put(`/api/employee-profile/update/${userId}`, updateData);
+
+                if (!data.ok) throw new Error(data.message || 'Failed to update employee profile');
+                return data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
+        },
+        onSuccess: (_, variables) => {
+            // Invalidate both the list and the specific user's detail query
+            queryClient.invalidateQueries({ queryKey: ['employee-profiles-infinite'] });
+            queryClient.invalidateQueries({ queryKey: ['employee-profile-single', variables.userId] });
+        },
+    });
+};
+
+// --- Hook: Soft Delete Employee Profile ---
+export const useDeleteEmployeeProfile = () => {
+    const { currentRole } = useAuthData();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (userId: string) => {
+            try {
+                checkPermission(currentRole, ["correspondent", "administrator"]);
+
+                const { data } = await Api.delete(`/api/employee-profile/delete/${userId}`);
+
+                if (!data.ok) throw new Error(data.message || 'Failed to delete employee profile');
+                return data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employee-profiles-infinite'] });
+        },
+    });
+};

@@ -103,41 +103,84 @@ export default function AttendanceMain() {
     const markAttendanceMutation = useMarkAttendance();
 
     // Sync Marking Modal with Sheet Data or Defaults
+    // useEffect(() => {
+    //     console.log("111111111111111")
+
+    //     // Don't do anything if modal is closed or if data is still fetching
+    //     if (!isMarkModalOpen || isSingleSheetLoading) return;
+
+    //     const newMap: Record<string, AttendanceRecord> = {};
+
+
+    //     console.log("atteandance main")
+    //     if (singleSheetData && singleSheetData.length > 0) {
+    //         console.log("singleSheetData", singleSheetData)
+
+    //         singleSheetData.forEach((rec: any) => {
+
+    //             // We find the matching student just in case the old DB records don't have the name/roll cached yet
+    //             const matchedStudent = students.find((s: any) => s._id === rec.studentId);
+
+    //             newMap[rec.studentId] = {
+    //                 studentId: rec.studentId,
+    //                 studentName: rec?.studentName || matchedStudent?.studentName || 'Unknown',
+    //                 rollNumber: rec.rollNumber || matchedStudent?.nonMandatory?.rollNumber || matchedStudent?.rollNumber || '-',
+    //                 status: rec.status,
+    //                 remark: rec.remark || ''
+    //             };
+    //         });
+    //     } else if (students.length > 0) {
+
+    //         console.log("students", students)
+    //         students.forEach((student: any) => {
+
+    //             if (!student._id) {
+    //                 console.warn("Student missing ID", student);
+    //                 return;
+    //             }
+
+    //             newMap[student._id] = {
+    //                 studentId: student._id,
+    //                 studentName: student?.studentName || 'Unknown',
+    //                 rollNumber: student?.nonMandatory?.rollNumber || student.rollNumber || '-',
+    //                 status: '' as any,
+    //                 remark: ''
+    //             };
+    //         });
+    //     }
+
+    //     setAttendanceMap(newMap);
+
+    // }, [singleSheetData, students, isMarkModalOpen, markDate, isSingleSheetLoading]); // Added isSingleSheetLoading
+
+
+    // Sync Marking Modal with Sheet Data or Defaults
     useEffect(() => {
         // Don't do anything if modal is closed or if data is still fetching
         if (!isMarkModalOpen || isSingleSheetLoading) return;
 
         const newMap: Record<string, AttendanceRecord> = {};
 
+        // 🌟 ALWAYS loop over the 'students' array so nobody is left out
+        students.forEach((student: any) => {
+            if (!student._id) return;
 
-        if (singleSheetData && singleSheetData.length > 0) {
-            singleSheetData.forEach((rec: any) => {
-                // We find the matching student just in case the old DB records don't have the name/roll cached yet
-                const matchedStudent = students.find((s: any) => s._id === rec.studentId);
+            // Try to find if this student was already saved in the singleSheetData
+            const existingRecord = singleSheetData?.find((rec: any) => rec?.studentId === student._id);
 
-                newMap[rec.studentId] = {
-                    studentId: rec.studentId,
-                    studentName: rec?.studentName || matchedStudent?.studentName || 'Unknown',
-                    rollNumber: rec.rollNumber || matchedStudent?.nonMandatory?.rollNumber || matchedStudent?.rollNumber || '-',
-                    status: rec.status,
-                    remark: rec.remark || ''
-                };
-            });
-        } else if (students.length > 0) {
-            students.forEach((student: any) => {
-                newMap[student._id] = {
-                    studentId: student._id,
-                    studentName: student?.studentName || 'Unknown',
-                    rollNumber: student?.nonMandatory?.rollNumber || student.rollNumber || '-',
-                    status: '' as any,
-                    remark: ''
-                };
-            });
-        }
+            newMap[student._id] = {
+                studentId: student?._id,
+                studentName: student?.studentName || 'Unknown',
+                rollNumber: student?.nonMandatory?.rollNumber || student?.rollNumber || '-',
+                // Use the saved status if it exists, otherwise default to empty ""
+                status: existingRecord ? existingRecord?.status : ('' as any),
+                remark: existingRecord ? (existingRecord.remark || '') : ''
+            };
+        });
 
         setAttendanceMap(newMap);
 
-    }, [singleSheetData, students, isMarkModalOpen, markDate, isSingleSheetLoading]); // Added isSingleSheetLoading
+    }, [singleSheetData, students, isMarkModalOpen, markDate, isSingleSheetLoading]);
 
     const handleSaveAttendance = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -531,7 +574,8 @@ export default function AttendanceMain() {
                             type="submit"
                             variant="primary"
                             isLoading={markAttendanceMutation.isPending}
-                            disabled={students.length === 0 || Object.values(attendanceMap).some(rec => !rec.status)}
+                            // disabled={students.length === 0 || Object.values(attendanceMap).some(rec => !rec.status)}
+                            disabled={students.length === 0}
                         >
                             Save Attendance
                         </Button>

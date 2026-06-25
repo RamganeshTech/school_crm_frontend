@@ -91,11 +91,23 @@ export default function HomeworkMain() {
     const allHomework = useMemo(() => homeworkData?.pages.flatMap(page => page.data || []) || [], [homeworkData]);
 
 
-    const getHomeworkForDate = (date: Date) => {
-        const dStr = date.toISOString().split('T')[0];
-        return allHomework.find(hw => hw.homeworkDate.split('T')[0] === dStr);
-    };
+    // const getHomeworkForDate = (date: Date) => {
+    //     const dStr = date.toISOString().split('T')[0];
+    //     return allHomework.find(hw => hw.homeworkDate.split('T')[0] === dStr);
+    // };
 
+
+    const getHomeworkForDate = (date: Date) => {
+        const year = date?.getFullYear();
+        const month = String(date?.getMonth() + 1).padStart(2, "0");
+        const day = String(date?.getDate()).padStart(2, "0");
+
+        const dStr = `${year}-${month}-${day}`;
+
+        return allHomework.find(hw =>
+            hw?.homeworkDate?.split('T')[0] === dStr
+        );
+    };
 
     const activeDayData = activeDate ? getHomeworkForDate(activeDate) : null;
     const academicYearOptions = useMemo(() => getAcademicYears(), []);
@@ -157,7 +169,9 @@ export default function HomeworkMain() {
             formData.append('academicYear', selectedAcademicYear); // Use selected year
             formData.append('classId', selectedClassId);
             if (selectedSectionId) formData.append('sectionId', selectedSectionId);
-            formData.append('homeworkDate', activeDate.toISOString());
+            // formData.append('homeworkDate', activeDate.toISOString());
+            formData.append('homeworkDate', activeDate.toLocaleDateString("en-CA")
+            );
             formData.append('subjectName', formState.subjectName);
             formData.append('description', formState.description);
             selectedFiles.forEach(file => formData.append('files', file));
