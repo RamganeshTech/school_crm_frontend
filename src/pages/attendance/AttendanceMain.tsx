@@ -27,7 +27,7 @@ export default function AttendanceMain() {
 
     // --- Top Bar Filters ---
     const [filters, setFilters] = useState({
-        academicYear: '2025-2026',
+        academicYear: '',
         classId: '',
         sectionId: '',
         month: currentYearMonth

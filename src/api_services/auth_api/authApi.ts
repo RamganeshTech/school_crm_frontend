@@ -67,7 +67,7 @@ interface BaseResponse {
 }
 
 interface UpdateUserParams {
-  id: string;
+  userId: string;
   data: {
     email?: string;
     phoneNo?: string;
@@ -169,13 +169,13 @@ export const useCreateUser = () => {
 export const useUpdateUser = () => {
   const { currentRole } = useAuthData();
   return useMutation({
-    mutationFn: async ({ id, data: updateData }: UpdateUserParams) => {
+    mutationFn: async ({ userId, data: updateData }: UpdateUserParams) => {
       try {
         checkPermission(currentRole, [
           "correspondent", "teacher", "principal", "parent", "accountant", "administrator", "viceprincipal"
         ]);
 
-        const { data } = await Api.put<BaseResponse>(`/api/user/update/${id}`, updateData);
+        const { data } = await Api.put<BaseResponse>(`/api/user/update/${userId}`, updateData);
 
         if (data.ok) {
           return data;
@@ -188,7 +188,7 @@ export const useUpdateUser = () => {
       }
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['user', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['user', variables.userId] });
     },
   });
 };
@@ -197,6 +197,8 @@ export const useUpdateUser = () => {
 
 // --- Hook 2: Get Single User (Query) ---
 export const useGetSingleUser = (userId: string | undefined) => {
+
+  console.log("userDid frms nslkdfhslkdfj", userId)
   const { currentRole } = useAuthData();
   return useQuery({
     queryKey: ['user', userId],

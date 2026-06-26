@@ -11,7 +11,7 @@ import type { UserRole } from '../../features/slices/authSlice';
 import { AUTH_CHECK_ROLES, type ValidUserRole } from '../../constants/constants';
 import { Input } from '../../shared/ui/Input';
 import { ParentStudentManagerModal } from './ParentStudentManagerModal';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 
 // Initial state for the creation form
 const INITIAL_FORM_STATE = {
@@ -27,6 +27,8 @@ export default function UserListMain() {
     const { schoolId } = useAuthData();
     const [roleFilter, setRoleFilter] = useState<Exclude<UserRole, null> | 'all'>('all');
     const [searchQuery, setSearchQuery] = useState('');
+
+    const navigate = useNavigate()
 
     // Modal States
     const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -227,6 +229,16 @@ export default function UserListMain() {
                                 <Td>
                                     <div className="flex items-center justify-center gap-2 sm:gap-3">
 
+
+
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => navigate(`single/${user?._id}`)}
+                                            title="view in detailed way"
+                                        >
+                                            View
+                                        </Button>
                                         {/* ADD THIS BUTTON BLOCK */}
                                         {user.role === 'parent' && (
                                             <Button
