@@ -8,7 +8,7 @@ import { SearchSelect } from '../../shared/ui/SearchSelect';
 import { toast } from '../../shared/ui/ToastContext';
 
 // Import your Auth/User hooks (Adjust names if they differ in your authApi)
-import { useAssignRole, useGetAllUsers, useGetSingleUser, useUpdateUser } from '../../api_services/auth_api/authApi';
+import { useAssignRole, useGetSingleUser, useUpdateUser } from '../../api_services/auth_api/authApi';
 import { AUTH_CHECK_ROLES, type ValidUserRole } from '../../constants/constants';
 import { useCreateEmployeeProfile, useGetEmployeeProfileByUserId, useUpdateEmployeeProfile } from '../../api_services/auth_api/employeeProfileApi';
 
