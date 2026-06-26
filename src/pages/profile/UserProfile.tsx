@@ -136,7 +136,7 @@ export default function UserProfile() {
     const handleSaveProfile = async () => {
         try {
             await updateUserMutation.mutateAsync({
-                id: _id!,
+                userId: _id!,
                 data: formData
             });
             setIsEditing(false);
