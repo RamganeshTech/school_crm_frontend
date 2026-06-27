@@ -339,7 +339,7 @@ export default function AdmissionFormCompo({
                 <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     <Input id="admissionSoughtFor" label="Admission Sought For" value={formData.admissionSoughtFor} onChange={handleInputChange} />
                     <Input id="examinationPassed" label="Previous Exam Passed" value={formData.examinationPassed} onChange={handleInputChange} />
-                    <Input id="Mobile Number" label="Primary Mobile Number" value={formData.mobileNumber} onChange={handleInputChange} />
+                    <Input id="mobileNumber" label="Primary Mobile Number" value={formData.mobileNumber} onChange={handleInputChange} />
                     <Input id="currentAddress" label="Current Address" value={formData.currentAddress} onChange={handleInputChange} className="md:col-span-2 lg:col-span-3" />
                     <Input id="permanentAddress" label="Permanent Address" value={formData.permanentAddress} onChange={handleInputChange} className="md:col-span-2 lg:col-span-3" />
                 </CardContent>
