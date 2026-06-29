@@ -222,7 +222,7 @@ export default function MarkReportSingle({
                     // Send actual mark, or 0 if empty
                     marksObtained: examMarks[sub.subjectName] !== undefined && examMarks[sub.subjectName] !== null
                         ? examMarks[sub.subjectName]
-                        : 0,
+                        : null,
                     maxMarks: exam.maxMarks || 100,
                     minPassingMarks: exam.passingMarks || 35,
                 }))
