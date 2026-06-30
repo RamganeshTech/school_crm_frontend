@@ -31,6 +31,10 @@ export interface IEmployeeProfilePayload {
         yearOfPassing?: string | null;
         grade?: string | null
     }[]
+    currentAddress: string
+    permanentAddress: string
+
+    aadharNumber: string
 
     yearsOfExperience?: number;
     previousWorkplace?: string;
@@ -132,7 +136,7 @@ export const useCreateEmployeeProfile = () => {
         mutationFn: async (payload: IEmployeeProfilePayload | FormData) => {
             try {
                 // Admins/Correspondents only
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
 
                 const { data } = await Api.post('/api/employee-profile/create', payload);
 
@@ -158,7 +162,7 @@ export const useUpdateEmployeeProfile = () => {
     return useMutation({
         mutationFn: async ({ userId, updateData }: { userId: string; updateData: Partial<IEmployeeProfilePayload> }) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
 
                 const { data } = await Api.put(`/api/employee-profile/update/${userId}`, updateData);
 
@@ -211,7 +215,7 @@ export const useAddEmployeeDocuments = () => {
     return useMutation({
         mutationFn: async ({ userId, files }: { userId: string; files: File[] }) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
 
                 const formData = new FormData();
                 files.forEach((file) => formData.append("files", file));
@@ -241,7 +245,7 @@ export const useDeleteEmployeeDocument = () => {
     return useMutation({
         mutationFn: async ({ userId, documentId }: { userId: string; documentId: string }) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
 
                 const { data } = await Api.delete(`/api/employee-profile/${userId}/documents/${documentId}`);
 

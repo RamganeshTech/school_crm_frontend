@@ -10,20 +10,26 @@ import { toast } from '../../shared/ui/ToastContext';
 // Import your Auth/User hooks (Adjust names if they differ in your authApi)
 import { useAssignRole, useGetSingleUser, useUpdateUser } from '../../api_services/auth_api/authApi';
 import { AUTH_CHECK_ROLES, type ValidUserRole } from '../../constants/constants';
-import { useAddEmployeeDocuments, useCreateEmployeeProfile, useDeleteEmployeeDocument, useGetEmployeeProfileByUserId, useUpdateEmployeeProfile } from '../../api_services/auth_api/employeeProfileApi';
-import { ImageGallery } from '../../shared/components/ImageGallery';
+import { 
+    // useAddEmployeeDocuments, useCreateEmployeeProfile, useDeleteEmployeeDocument,
+     useGetEmployeeProfileByUserId, 
+    //  useUpdateEmployeeProfile 
+    } from '../../api_services/auth_api/employeeProfileApi';
+// import { ImageGallery } from '../../shared/components/ImageGallery';
+import { HrDetailsTab } from './user_components/HrDetailsTab';
+import { DocumentsTab } from './user_components/DocumentsTab';
 
 
 type TabType = 'profile' | 'details' | 'documents';
 
-const INITIAL_PROFILE_STATE = {
-    employeeNo: '', designation: '', department: '', employmentType: '',
-    dateOfJoining: '', nationalId: '', pfNumber: '', yearsOfExperience: 0,
-    currentAddress: '', permanentAddress: '',
+// const INITIAL_PROFILE_STATE = {
+//     employeeNo: '', designation: '', department: '', employmentType: '',
+//     dateOfJoining: '', nationalId: '', pfNumber: '', yearsOfExperience: 0,
+//     currentAddress: '', permanentAddress: '',
 
-    emergencyContact: { name: '', relation: '', phone: '' },
-    bankDetails: { accountName: '', accountNumber: '', bankName: '', ifscCode: '' }
-};
+//     emergencyContact: { name: '', relation: '', phone: '' },
+//     bankDetails: { accountName: '', accountNumber: '', bankName: '', ifscCode: '' }
+// };
 
 export default function UserSingle() {
     const { userId } = useParams<{ userId: string }>();
@@ -32,10 +38,10 @@ export default function UserSingle() {
 
     const [activeTab, setActiveTab] = useState<TabType>('profile');
     const [isEditingUser, setIsEditingUser] = useState(false);
-    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    // const [isEditingProfile, setIsEditingProfile] = useState(false);
 
     const [userFormData, setUserFormData] = useState<any>({});
-    const [profileFormData, setProfileFormData] = useState<any>(INITIAL_PROFILE_STATE);
+    // const [profileFormData, setProfileFormData] = useState<any>(INITIAL_PROFILE_STATE);
 
     // const { data: users, isLoading: isUsersLoading, refetch } = useGetAllUsers({ role: 'all', schoolId: schoolId! });
     const { data: userDetails, isLoading: isUsersLoading } = useGetSingleUser(userId);
@@ -51,11 +57,11 @@ export default function UserSingle() {
 
     const { mutateAsync: updateUser, isPending: isUserUpdating } = useUpdateUser();
     const { mutateAsync: assignRole, } = useAssignRole(); // Add this line
-    const { mutateAsync: createProfile, isPending: isCreatingProfile } = useCreateEmployeeProfile();
-    const { mutateAsync: updateProfile, isPending: isUpdatingProfile } = useUpdateEmployeeProfile();
-    const { mutateAsync: addDocuments, isPending: isUploadingDocs } = useAddEmployeeDocuments();
-    const { mutateAsync: deleteDocument, isPending: isDeletingDoc } = useDeleteEmployeeDocument();
-    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    // const { mutateAsync: createProfile, isPending: isCreatingProfile } = useCreateEmployeeProfile();
+    // const { mutateAsync: updateProfile, isPending: isUpdatingProfile } = useUpdateEmployeeProfile();
+    // const { mutateAsync: addDocuments, isPending: isUploadingDocs } = useAddEmployeeDocuments();
+    // const { mutateAsync: deleteDocument, isPending: isDeletingDoc } = useDeleteEmployeeDocument();
+    // const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
     // Sync User Account Data
     useEffect(() => {
@@ -68,20 +74,22 @@ export default function UserSingle() {
     }, [userDetails]);
 
     // Sync HR Profile Data
-    useEffect(() => {
-        if (hasProfile) {
-            setProfileFormData({
-                ...validProfile,
-                dateOfJoining: validProfile.dateOfJoining ? new Date(validProfile.dateOfJoining).toISOString().split('T')[0] : '',
-                emergencyContact: validProfile.emergencyContact || INITIAL_PROFILE_STATE.emergencyContact,
-                bankDetails: validProfile.bankDetails || INITIAL_PROFILE_STATE.bankDetails
-            });
-            setIsEditingProfile(false);
-        } else {
-            setProfileFormData(INITIAL_PROFILE_STATE);
-            setIsEditingProfile(true);
-        }
-    }, [validProfile, hasProfile]);
+    // useEffect(() => {
+    //     if (hasProfile) {
+    //         setProfileFormData({
+    //             ...validProfile,
+    //             dateOfJoining: validProfile.dateOfJoining ? new Date(validProfile.dateOfJoining).toISOString().split('T')[0] : '',
+    //             emergencyContact: validProfile.emergencyContact || INITIAL_PROFILE_STATE.emergencyContact,
+    //             bankDetails: validProfile.bankDetails || INITIAL_PROFILE_STATE.bankDetails,
+    //                         educationDetails: validProfile.educationDetails?.length ? validProfile.educationDetails : []
+
+    //         });
+    //         setIsEditingProfile(false);
+    //     } else {
+    //         setProfileFormData(INITIAL_PROFILE_STATE);
+    //         setIsEditingProfile(true);
+    //     }
+    // }, [validProfile, hasProfile]);
 
 
     // Handlers
@@ -153,93 +161,93 @@ export default function UserSingle() {
         setIsEditingUser(false);
     };
 
-    const handleProfileSubmit = async () => {
-        try {
-            if (hasProfile) {
-                await updateProfile({ userId: userId!, updateData: profileFormData });
-                toast.success("Employment record updated!");
-                setIsEditingProfile(false);
-            } else {
-                // await createProfile({ ...profileFormData, userId: userId!, schoolId: schoolId! });
+    // const handleProfileSubmit = async () => {
+    //     try {
+    //         if (hasProfile) {
+    //             await updateProfile({ userId: userId!, updateData: profileFormData });
+    //             toast.success("Employment record updated!");
+    //             setIsEditingProfile(false);
+    //         } else {
+    //             // await createProfile({ ...profileFormData, userId: userId!, schoolId: schoolId! });
 
-                const formData = new FormData();
-                const payload = { ...profileFormData, userId: userId!, schoolId: schoolId! };
+    //             const formData = new FormData();
+    //             const payload = { ...profileFormData, userId: userId!, schoolId: schoolId! };
 
-                Object.entries(payload).forEach(([key, value]) => {
-                    if (value === undefined || value === null) return;
-                    if (typeof value === "object") {
-                        formData.append(key, JSON.stringify(value));
-                    } else {
-                        formData.append(key, value as string);
-                    }
-                });
+    //             Object.entries(payload).forEach(([key, value]) => {
+    //                 if (value === undefined || value === null) return;
+    //                 if (typeof value === "object") {
+    //                     formData.append(key, JSON.stringify(value));
+    //                 } else {
+    //                     formData.append(key, value as string);
+    //                 }
+    //             });
 
-                selectedFiles.forEach((file) => formData.append("files", file));
+    //             selectedFiles.forEach((file) => formData.append("files", file));
 
-                await createProfile(formData);
-                toast.success("Employment record created!");
-                setIsEditingProfile(false)
-                refetch()
-                // toast.success("Employment record created!");
-            }
-        } catch (error: any) {
-            toast.error(error.message || "Failed to save employment record");
-        }
-    };
+    //             await createProfile(formData);
+    //             toast.success("Employment record created!");
+    //             setIsEditingProfile(false)
+    //             refetch()
+    //             // toast.success("Employment record created!");
+    //         }
+    //     } catch (error: any) {
+    //         toast.error(error.message || "Failed to save employment record");
+    //     }
+    // };
 
-    const handleCancelProfileEdit = () => {
-        setProfileFormData({
-            ...validProfile,
-            dateOfJoining: validProfile?.dateOfJoining ? new Date(validProfile.dateOfJoining).toISOString().split('T')[0] : '',
-            emergencyContact: validProfile?.emergencyContact || INITIAL_PROFILE_STATE.emergencyContact
-        });
-        setIsEditingProfile(false);
-    };
+    // const handleCancelProfileEdit = () => {
+    //     setProfileFormData({
+    //         ...validProfile,
+    //         dateOfJoining: validProfile?.dateOfJoining ? new Date(validProfile.dateOfJoining).toISOString().split('T')[0] : '',
+    //         emergencyContact: validProfile?.emergencyContact || INITIAL_PROFILE_STATE.emergencyContact
+    //     });
+    //     setIsEditingProfile(false);
+    // };
 
-    const handleDocumentUpload = async () => {
-        if (selectedFiles.length === 0) {
-            toast.error("Please select at least one file.");
-            return;
-        }
-        try {
-            await addDocuments({ userId: userId!, files: selectedFiles });
-            toast.success("Documents uploaded successfully!");
-            setSelectedFiles([]);
-            refetch()
-        } catch (error: any) {
-            toast.error(error.message || "Failed to upload documents");
-        }
-    };
-
-
-    const allDocs = validProfile?.documents || [];
-    const imageDocs = allDocs?.filter((doc: any) => doc?.type === 'image');
-    const pdfDocs = allDocs?.filter((doc: any) => doc.type === 'pdf');
-
-    const galleryImages: any[] = imageDocs.map((doc: any) => ({
-        type: 'image',
-        key: doc.key,
-        url: doc.url,
-        originalName: doc.originalName || 'Document photo',
-        uploadedAt: doc.uploadedAt || new Date(),
-        _id: doc._id
-    }));
+    // const handleDocumentUpload = async () => {
+    //     if (selectedFiles.length === 0) {
+    //         toast.error("Please select at least one file.");
+    //         return;
+    //     }
+    //     try {
+    //         await addDocuments({ userId: userId!, files: selectedFiles });
+    //         toast.success("Documents uploaded successfully!");
+    //         setSelectedFiles([]);
+    //         refetch()
+    //     } catch (error: any) {
+    //         toast.error(error.message || "Failed to upload documents");
+    //     }
+    // };
 
 
-    const handleDocumentDelete = async (documentId: string) => {
-        try {
-            await deleteDocument({ userId: userId!, documentId });
-            toast.success("Document deleted.");
-            refetch()
+    // const allDocs = validProfile?.documents || [];
+    // const imageDocs = allDocs?.filter((doc: any) => doc?.type === 'image');
+    // const pdfDocs = allDocs?.filter((doc: any) => doc.type === 'pdf');
 
-        } catch (error: any) {
-            toast.error(error.message || "Failed to delete document");
-        }
-    };
+    // const galleryImages: any[] = imageDocs.map((doc: any) => ({
+    //     type: 'image',
+    //     key: doc.key,
+    //     url: doc.url,
+    //     originalName: doc.originalName || 'Document photo',
+    //     uploadedAt: doc.uploadedAt || new Date(),
+    //     _id: doc._id
+    // }));
 
-      const handleGalleryDelete = (image: any) => {
-        handleDocumentDelete(image._id);
-    };
+
+    // const handleDocumentDelete = async (documentId: string) => {
+    //     try {
+    //         await deleteDocument({ userId: userId!, documentId });
+    //         toast.success("Document deleted.");
+    //         refetch()
+
+    //     } catch (error: any) {
+    //         toast.error(error.message || "Failed to delete document");
+    //     }
+    // };
+
+    // const handleGalleryDelete = (image: any) => {
+    //     handleDocumentDelete(image._id);
+    // };
 
     if (isUsersLoading) return <div className="p-6 text-center text-muted"><i className="fas fa-spinner fa-spin mr-2"></i> Loading user...</div>;
     if (!userDetails) return <div className="p-6 text-center text-muted">User not found.</div>;
@@ -310,7 +318,7 @@ export default function UserSingle() {
             )}
 
             {/* TAB 2: HR DETAILS */}
-            {activeTab === 'details' && (
+            {/* {activeTab === 'details' && (
                 <div className="bg-surface border border-border rounded-xl p-6 shadow-sm max-w-7xl">
                     <div className="flex justify-between items-start mb-6">
                         <h2 className="text-lg font-bold text-foreground">
@@ -325,10 +333,8 @@ export default function UserSingle() {
                     {isProfileLoading ? (
                         <div className="py-12 text-center text-muted"><i className="fas fa-spinner fa-spin mr-2"></i> Loading HR data...</div>
 
-                        // 🌟 FIX 2: Explicitly force Form view if !hasProfile. This stops the lifecycle crash.
                     ) : (!hasProfile || isEditingProfile) ? (
 
-                        // EDIT / CREATE FORM VIEW
                         <div className="space-y-8 animate-fade-in">
                             {!hasProfile && (
                                 <div className="bg-primary-soft/50 border border-primary/20 p-4 rounded-lg flex items-start gap-3 mb-6">
@@ -401,9 +407,7 @@ export default function UserSingle() {
 
                     ) : (
 
-                        // READ-ONLY VIEW
-                        // 🌟 FIX 3: Replaced `validProfile.dateOfJoining` with `validProfile?.dateOfJoining` just to be unbreakable.
-                        <div className="space-y-8 animate-fade-in">
+                         <div className="space-y-8 animate-fade-in">
                             <div>
                                 <h3 className="text-sm font-bold text-primary mb-4 pb-2 border-b border-border">Professional Identity</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -427,7 +431,6 @@ export default function UserSingle() {
                                 </div>
                             </div>
 
-                            {/* 🌟 NEW: BANK DETAILS READ-ONLY */}
                             <div>
                                 <h3 className="text-sm font-bold text-primary mb-4 pb-2 border-b border-border">Bank Details</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -449,11 +452,14 @@ export default function UserSingle() {
                         </div>
                     )}
                 </div>
-            )}
+            )} */}
 
-            
 
-            {activeTab === 'documents' && (
+
+
+
+
+            {/* {activeTab === 'documents' && (
                 <div className="bg-surface border border-border rounded-xl p-6 shadow-sm max-w-7xl">
                     <div className="flex justify-between items-start mb-6">
                         <div>
@@ -469,7 +475,6 @@ export default function UserSingle() {
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            {/* Upload Zone */}
                             <label
                                 htmlFor="document-upload-input"
                                 className="group flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border rounded-xl px-6 py-10 cursor-pointer transition-colors hover:border-primary hover:bg-primary-soft/30"
@@ -480,7 +485,6 @@ export default function UserSingle() {
                                 <div className="text-center">
                                     <p className="text-sm font-semibold text-foreground">
                                         Click to upload
-                                        {/* <span className="font-normal text-muted">or drag and drop</span> */}
                                     </p>
                                     <p className="text-xs text-muted mt-1">PDF or image files, multiple files supported</p>
                                 </div>
@@ -494,7 +498,6 @@ export default function UserSingle() {
                                 />
                             </label>
 
-                            {/* Selected files preview, shown only when files are staged but not yet uploaded */}
                             {selectedFiles.length > 0 && (
                                 <div className="border border-border rounded-lg p-4 space-y-3 bg-mainBg/50">
                                     <div className="flex items-center justify-between">
@@ -533,7 +536,6 @@ export default function UserSingle() {
                                 </div>
                             )}
 
-                            {/* Existing documents list */}
                             <div>
                                 <p className="text-xs font-bold text-muted uppercase tracking-wider mb-3">
                                     Saved Documents {validProfile?.documents?.length ? `(${validProfile.documents.length})` : ''}
@@ -548,31 +550,7 @@ export default function UserSingle() {
                                         <p className="text-xs text-muted">Files you upload above will appear here.</p>
                                     </div>
                                 ) : (
-                                    // <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                                    //     {validProfile.documents.map((doc: any) => (
-                                    //         <div key={doc._id} className="group border border-border rounded-lg p-3 flex items-center justify-between gap-2 hover:border-primary/40 transition-colors">
-                                    //             <a
-                                    //                 href={doc.url}
-                                    //                 target="_blank"
-                                    //                 rel="noreferrer"
-                                    //                 className="flex items-center gap-2 min-w-0 text-sm text-foreground hover:text-primary transition-colors"
-                                    //             >
-                                    //                 <span className="w-8 h-8 shrink-0 rounded-md bg-primary-soft flex items-center justify-center text-primary text-xs">
-                                    //                     <i className={`fas ${doc.type === 'image' ? 'fa-image' : 'fa-file-pdf'}`}></i>
-                                    //                 </span>
-                                    //                 <span className="truncate font-medium">{doc.originalName}</span>
-                                    //             </a>
-                                    //             <button
-                                    //                 disabled={isDeletingDoc}
-                                    //                 onClick={() => handleDocumentDelete(doc._id)}
-                                    //                 className="opacity-0 group-hover:opacity-100 text-muted hover:text-red-500 text-xs transition-opacity shrink-0"
-                                    //             >
-                                    //                 <i className="fas fa-trash"></i>
-                                    //             </button>
-                                    //         </div>
-                                    //     ))}
-                                    // </div>
-
+                                   
                                     <div className="space-y-5">
                                         {galleryImages.length > 0 && (
                                             <div>
@@ -621,6 +599,27 @@ export default function UserSingle() {
                         </div>
                     )}
                 </div>
+            )} */}
+
+
+            {activeTab === 'details' && (
+                <HrDetailsTab
+                    userId={userId!}
+                    schoolId={schoolId!}
+                    validProfile={validProfile}
+                    hasProfile={hasProfile}
+                    isLoading={isProfileLoading}
+                    refetch={refetch}
+                />
+            )}
+
+            {activeTab === 'documents' && (
+                <DocumentsTab
+                    userId={userId!}
+                    hasProfile={hasProfile}
+                    documents={validProfile?.documents || []}
+                    refetch={refetch}
+                />
             )}
         </div>
     );

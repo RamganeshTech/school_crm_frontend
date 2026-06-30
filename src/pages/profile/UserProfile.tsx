@@ -7,6 +7,9 @@ import { Button } from '../../shared/ui/Button';
 // import { useToast } from '../../shared/ui/ToastContext';
 import type { RootState } from '../../features/store/store';
 import { toast } from '../../shared/ui/ToastContext';
+import { useGetEmployeeProfileByUserId } from '../../api_services/auth_api/employeeProfileApi';
+import { HrDetailsTab } from '../userList/user_components/HrDetailsTab';
+import { DocumentsTab } from '../userList/user_components/DocumentsTab';
 
 // --- Types based on your Mongoose Population ---
 interface UploadedFile {
@@ -55,6 +58,9 @@ export interface UserProfileData {
     studentId?: Student | Student[]; // Can be one or multiple children
 }
 
+type TabType = 'profile' | 'details' | 'documents';
+
+
 
 export default function UserProfile() {
     const { _id, role } = useSelector((state: RootState) => state.auth);
@@ -74,6 +80,13 @@ export default function UserProfile() {
         email: '',
         phoneNo: ''
     });
+
+    const [activeTab, setActiveTab] = useState<TabType>('profile');
+
+    const { data: rawEmployeeProfile, isLoading: isProfileLoading, refetch: refetchProfile } = useGetEmployeeProfileByUserId(_id!);
+
+    const validProfile = rawEmployeeProfile?.data !== undefined ? rawEmployeeProfile.data : rawEmployeeProfile;
+    const hasProfile = !!validProfile && Object.keys(validProfile || {})?.length > 0;
 
     // ✅ THE FIX: Sync directly in the component body
     // This runs whenever 'user' or 'isEditing' changes, 
@@ -98,13 +111,13 @@ export default function UserProfile() {
         }
     }, [user, isEditing]);
 
-  
+
 
     if (isLoading) {
-        return  <div className="flex flex-col items-center justify-center h-full space-y-4 p-8">
-                <i className="fas fa-circle-notch fa-spin text-4xl text-primary opacity-50"></i>
-                <p className="text-sm font-semibold text-muted">Loading...</p>
-            </div>
+        return <div className="flex flex-col items-center justify-center h-full space-y-4 p-8">
+            <i className="fas fa-circle-notch fa-spin text-4xl text-primary opacity-50"></i>
+            <p className="text-sm font-semibold text-muted">Loading...</p>
+        </div>
     }
 
     if (isError || !user) {
@@ -172,239 +185,280 @@ export default function UserProfile() {
                 </div>
             </div>
 
-
-            {/* --- Main Profile & School Grid --- */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                {/* 1. Basic User Info Card */}
-                <div className="lg:col-span-1 bg-surface border border-border rounded-xl p-6 shadow-sm flex flex-col items-center text-center relative">
-
-                    {/* Edit Toggle Button */}
-                    {!isEditing && (
-                        <button
-                            onClick={() => setIsEditing(true)}
-                            className="absolute cursor-pointer top-4 right-4 w-8 h-8 rounded-full bg-surface hover:bg-primary-soft text-muted hover:text-primary transition-colors flex items-center justify-center border border-border"
-                            title="Edit Profile"
-                        >
-                            <i className="fas fa-pen text-sm"></i>
-                        </button>
-                    )}
-
-                    <div className="w-24 h-24 rounded-full bg-primary-soft text-primary flex items-center justify-center text-3xl mb-4 shadow-sm">
-                        <i className="fas fa-user"></i>
-                    </div>
-
-                    {!isEditing ? (
-                        // --- VIEW MODE ---
-                        <>
-                            <h2 className="text-xl font-semibold text-foreground mb-1">{user?.userName}</h2>
-                            <span className="px-3 py-1 bg-primary-soft text-primary text-sm font-medium rounded-full uppercase tracking-wide mb-4">
-                                {user?.role}
-                            </span>
-
-                            <div className="w-full space-y-3 mt-2 text-left border-t border-border pt-4">
-                                <div className="flex items-center gap-3 text-muted text-sm">
-                                    <i className="fas fa-envelope w-4 text-center"></i>
-                                    <span className="text-foreground truncate">{user.email || 'N/A'}</span>
-                                </div>
-                                <div className="flex items-center gap-3 text-muted text-sm">
-                                    <i className="fas fa-phone w-4 text-center"></i>
-                                    <span className="text-foreground">{user.phoneNo || 'N/A'}</span>
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        // --- EDIT MODE ---
-                        <div className="w-full flex flex-col gap-4 mt-2">
-                            <span className="px-3 py-1 bg-primary-soft text-primary text-sm font-medium rounded-full uppercase tracking-wide mx-auto mb-2">
-                                {user?.role}
-                            </span>
-
-                            <Input
-                                id="userName"
-                                label="Full Name"
-                                name='userName'
-                                leftIcon="fas fa-user"
-                                value={formData.userName}
-                                onChange={handleInputChange}
-                                disabled={updateUserMutation.isPending}
-                            />
-                            <Input
-                                id="email"
-                                type="email"
-                                name='email'
-                                label="Email Address"
-                                leftIcon="fas fa-envelope"
-                                value={formData.email}
-                                onChange={handleInputChange}
-                                disabled={updateUserMutation.isPending}
-                            />
-                            <Input
-                                id="phoneNo"
-                                type="tel"
-                                name='phoneNo'
-                                label="Phone Number"
-                                leftIcon="fas fa-phone"
-                                value={formData.phoneNo}
-                                onChange={handleInputChange}
-                                disabled={updateUserMutation.isPending}
-                            />
-
-                            <div className="flex items-center gap-3 mt-4">
-                                <Button
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() => setIsEditing(false)}
-                                    disabled={updateUserMutation.isPending}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    className="flex-1"
-                                    onClick={handleSaveProfile}
-                                    isLoading={updateUserMutation.isPending}
-                                >
-                                    Save
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* 2. School Information Card */}
-                {user.schoolId && (
-                    <div className="lg:col-span-2 bg-surface border border-border rounded-xl p-6 shadow-sm">
-                        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                            <i className="fas fa-school text-primary"></i>
-                            School Details
-                        </h3>
-
-                        <div className="flex flex-col md:flex-row gap-6 items-start">
-                            {user.schoolId.logo ? (
-                                <img
-                                    src={user.schoolId.logo.url || user.schoolId.logo.path}
-                                    alt="School Logo"
-                                    className="w-20 h-20 rounded-lg object-cover border border-border"
-                                />
-                            ) : (
-                                <div className="w-20 h-20 rounded-lg bg-primary-soft flex items-center justify-center text-primary text-2xl shrink-0">
-                                    <i className="fas fa-building"></i>
-                                </div>
-                            )}
-
-                            <div className="flex-1 space-y-3 w-full">
-                                <div>
-                                    <p className="text-sm text-muted mb-1">Institution Name</p>
-                                    <p className="font-medium text-foreground">{user.schoolId.name}</p>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-sm text-muted mb-1">Academic Year</p>
-                                        <p className="font-medium text-foreground">{user.schoolId.currentAcademicYear || 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted mb-1">Contact Number</p>
-                                        <p className="font-medium text-foreground">{user.schoolId.phoneNo || 'N/A'}</p>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <p className="text-sm text-muted mb-1">Address</p>
-                                    <p className="text-sm text-foreground flex items-start gap-2">
-                                        <i className="fas fa-map-marker-alt mt-1 text-muted"></i>
-                                        {user.schoolId.address || 'N/A'}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* --- Conditional: Parent's Students Section --- */}
-            {isParent && students.length > 0 && (
-                <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
-                    <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                        <i className="fas fa-child text-primary"></i>
-                        Enrolled Students
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {students.map((student) => {
-                            const className = typeof student.currentClassId === 'object' ? student.currentClassId?.name : 'N/A';
-                            const sectionName = typeof student.currentSectionId === 'object' ? student.currentSectionId?.name : 'N/A';
-
-                            return (
-                                <div key={student._id} className="flex items-center gap-4 p-4 border border-border rounded-lg bg-background">
-                                    {/* Student Avatar */}
-                                    {student.studentImage ? (
-                                        <img
-                                            src={student.studentImage.url || student.studentImage.path}
-                                            alt={student.studentName}
-                                            className="w-14 h-14 rounded-full object-cover border border-border"
-                                        />
-                                    ) : (
-                                        <div className="w-14 h-14 rounded-full bg-primary-soft text-primary flex items-center justify-center text-xl shrink-0">
-                                            <i className="fas fa-user-graduate"></i>
-                                        </div>
-                                    )}
-
-                                    {/* Student Details */}
-                                    <div className="flex-1 overflow-hidden">
-                                        <p className="font-medium text-foreground truncate">{student.studentName}</p>
-                                        <div className="flex gap-2 mt-1">
-                                            <span className="px-2 py-0.5 bg-surface border border-border text-xs text-muted rounded">
-                                                Class: {className}
-                                            </span>
-                                            <span className="px-2 py-0.5 bg-surface border border-border text-xs text-muted rounded">
-                                                Sec: {sectionName}
-                                            </span>
-                                        </div>
-                                        <p className="text-xs text-muted mt-2 font-mono">ID: {student._id}</p>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+            {!isParent && (
+                <div className="flex items-center gap-6 border-b border-border mb-2">
+                    <button onClick={() => setActiveTab('profile')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
+                        <i className="far fa-id-card mr-2"></i> Profile
+                    </button>
+                    <button onClick={() => setActiveTab('details')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
+                        <i className="fas fa-briefcase mr-2"></i> HR & Employment Details
+                    </button>
+                    <button onClick={() => setActiveTab('documents')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'documents' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
+                        <i className="fas fa-folder-open mr-2"></i> Documents
+                    </button>
                 </div>
             )}
 
-            {/* --- Conditional: Teacher/Staff Assignments --- */}
-            {isTeacher && hasAssignments && (
-                <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                            <i className="fas fa-chalkboard-teacher text-primary"></i>
-                            Class Assignments
-                        </h3>
-                        <button
-                            onClick={() => setShowAssignments(!showAssignments)}
-                            className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary-soft rounded-lg transition-colors border border-transparent hover:border-border"
-                        >
-                            {showAssignments ? 'Hide Assignments' : 'View Assignments'}
-                        </button>
-                    </div>
 
-                    {showAssignments && (
-                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 border-t border-border pt-4">
-                            {user.assignments!.map((assignment: any, index: number) => (
-                                <div key={assignment._id || index} className="flex items-center justify-between p-3 border border-border rounded-lg bg-background">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded bg-primary-soft flex items-center justify-center text-primary text-sm">
-                                            <i className="fas fa-book"></i>
+
+            {activeTab === 'profile' && (
+
+                <>
+                    {/* --- Main Profile & School Grid --- */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                        {/* 1. Basic User Info Card */}
+                        <div className="lg:col-span-1 bg-surface border border-border rounded-xl p-6 shadow-sm flex flex-col items-center text-center relative">
+
+                            {/* Edit Toggle Button */}
+                            {!isEditing && (
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="absolute cursor-pointer top-4 right-4 w-8 h-8 rounded-full bg-surface hover:bg-primary-soft text-muted hover:text-primary transition-colors flex items-center justify-center border border-border"
+                                    title="Edit Profile"
+                                >
+                                    <i className="fas fa-pen text-sm"></i>
+                                </button>
+                            )}
+
+                            <div className="w-24 h-24 rounded-full bg-primary-soft text-primary flex items-center justify-center text-3xl mb-4 shadow-sm">
+                                <i className="fas fa-user"></i>
+                            </div>
+
+                            {!isEditing ? (
+                                // --- VIEW MODE ---
+                                <>
+                                    <h2 className="text-xl font-semibold text-foreground mb-1">{user?.userName}</h2>
+                                    <span className="px-3 py-1 bg-primary-soft text-primary text-sm font-medium rounded-full uppercase tracking-wide mb-4">
+                                        {user?.role}
+                                    </span>
+
+                                    <div className="w-full space-y-3 mt-2 text-left border-t border-border pt-4">
+                                        <div className="flex items-center gap-3 text-muted text-sm">
+                                            <i className="fas fa-envelope w-4 text-center"></i>
+                                            <span className="text-foreground truncate">{user.email || 'N/A'}</span>
                                         </div>
+                                        <div className="flex items-center gap-3 text-muted text-sm">
+                                            <i className="fas fa-phone w-4 text-center"></i>
+                                            <span className="text-foreground">{user.phoneNo || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                // --- EDIT MODE ---
+                                <div className="w-full flex flex-col gap-4 mt-2">
+                                    <span className="px-3 py-1 bg-primary-soft text-primary text-sm font-medium rounded-full uppercase tracking-wide mx-auto mb-2">
+                                        {user?.role}
+                                    </span>
+
+                                    <Input
+                                        id="userName"
+                                        label="Full Name"
+                                        name='userName'
+                                        leftIcon="fas fa-user"
+                                        value={formData.userName}
+                                        onChange={handleInputChange}
+                                        disabled={updateUserMutation.isPending}
+                                    />
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        name='email'
+                                        label="Email Address"
+                                        leftIcon="fas fa-envelope"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        disabled={updateUserMutation.isPending}
+                                    />
+                                    <Input
+                                        id="phoneNo"
+                                        type="tel"
+                                        name='phoneNo'
+                                        label="Phone Number"
+                                        leftIcon="fas fa-phone"
+                                        value={formData.phoneNo}
+                                        onChange={handleInputChange}
+                                        disabled={updateUserMutation.isPending}
+                                    />
+
+                                    <div className="flex items-center gap-3 mt-4">
+                                        <Button
+                                            variant="outline"
+                                            className="flex-1"
+                                            onClick={() => setIsEditing(false)}
+                                            disabled={updateUserMutation.isPending}
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            variant="primary"
+                                            className="flex-1"
+                                            onClick={handleSaveProfile}
+                                            isLoading={updateUserMutation.isPending}
+                                        >
+                                            Save
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 2. School Information Card */}
+                        {user.schoolId && (
+                            <div className="lg:col-span-2 bg-surface border border-border rounded-xl p-6 shadow-sm">
+                                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                                    <i className="fas fa-school text-primary"></i>
+                                    School Details
+                                </h3>
+
+                                <div className="flex flex-col md:flex-row gap-6 items-start">
+                                    {user.schoolId.logo ? (
+                                        <img
+                                            src={user.schoolId.logo.url || user.schoolId.logo.path}
+                                            alt="School Logo"
+                                            className="w-20 h-20 rounded-lg object-cover border border-border"
+                                        />
+                                    ) : (
+                                        <div className="w-20 h-20 rounded-lg bg-primary-soft flex items-center justify-center text-primary text-2xl shrink-0">
+                                            <i className="fas fa-building"></i>
+                                        </div>
+                                    )}
+
+                                    <div className="flex-1 space-y-3 w-full">
                                         <div>
-                                            <p className="text-sm font-medium text-foreground">{assignment.classId?.name || 'Unknown Class'}</p>
-                                            <p className="text-xs text-muted">Section {assignment.sectionId?.name || 'N/A'}</p>
+                                            <p className="text-sm text-muted mb-1">Institution Name</p>
+                                            <p className="font-medium text-foreground">{user.schoolId.name}</p>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-sm text-muted mb-1">Academic Year</p>
+                                                <p className="font-medium text-foreground">{user.schoolId.currentAcademicYear || 'N/A'}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-muted mb-1">Contact Number</p>
+                                                <p className="font-medium text-foreground">{user.schoolId.phoneNo || 'N/A'}</p>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-sm text-muted mb-1">Address</p>
+                                            <p className="text-sm text-foreground flex items-start gap-2">
+                                                <i className="fas fa-map-marker-alt mt-1 text-muted"></i>
+                                                {user.schoolId.address || 'N/A'}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* --- Conditional: Parent's Students Section --- */}
+                    {isParent && students.length > 0 && (
+                        <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
+                            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                                <i className="fas fa-child text-primary"></i>
+                                Enrolled Students
+                            </h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {students.map((student) => {
+                                    const className = typeof student.currentClassId === 'object' ? student.currentClassId?.name : 'N/A';
+                                    const sectionName = typeof student.currentSectionId === 'object' ? student.currentSectionId?.name : 'N/A';
+
+                                    return (
+                                        <div key={student._id} className="flex items-center gap-4 p-4 border border-border rounded-lg bg-background">
+                                            {/* Student Avatar */}
+                                            {student.studentImage ? (
+                                                <img
+                                                    src={student.studentImage.url || student.studentImage.path}
+                                                    alt={student.studentName}
+                                                    className="w-14 h-14 rounded-full object-cover border border-border"
+                                                />
+                                            ) : (
+                                                <div className="w-14 h-14 rounded-full bg-primary-soft text-primary flex items-center justify-center text-xl shrink-0">
+                                                    <i className="fas fa-user-graduate"></i>
+                                                </div>
+                                            )}
+
+                                            {/* Student Details */}
+                                            <div className="flex-1 overflow-hidden">
+                                                <p className="font-medium text-foreground truncate">{student.studentName}</p>
+                                                <div className="flex gap-2 mt-1">
+                                                    <span className="px-2 py-0.5 bg-surface border border-border text-xs text-muted rounded">
+                                                        Class: {className}
+                                                    </span>
+                                                    <span className="px-2 py-0.5 bg-surface border border-border text-xs text-muted rounded">
+                                                        Sec: {sectionName}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-muted mt-2 font-mono">ID: {student._id}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     )}
-                </div>
+
+                    {/* --- Conditional: Teacher/Staff Assignments --- */}
+                    {isTeacher && hasAssignments && (
+                        <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                                    <i className="fas fa-chalkboard-teacher text-primary"></i>
+                                    Class Assignments
+                                </h3>
+                                <button
+                                    onClick={() => setShowAssignments(!showAssignments)}
+                                    className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary-soft rounded-lg transition-colors border border-transparent hover:border-border"
+                                >
+                                    {showAssignments ? 'Hide Assignments' : 'View Assignments'}
+                                </button>
+                            </div>
+
+                            {showAssignments && (
+                                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 border-t border-border pt-4">
+                                    {user.assignments!.map((assignment: any, index: number) => (
+                                        <div key={assignment._id || index} className="flex items-center justify-between p-3 border border-border rounded-lg bg-background">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded bg-primary-soft flex items-center justify-center text-primary text-sm">
+                                                    <i className="fas fa-book"></i>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-foreground">{assignment.classId?.name || 'Unknown Class'}</p>
+                                                    <p className="text-xs text-muted">Section {assignment.sectionId?.name || 'N/A'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </>
+            )
+            }
+
+            {activeTab === 'details' && !isParent && (
+                <HrDetailsTab
+                    userId={_id!}
+                    schoolId={user?.schoolId?._id!}
+                    validProfile={validProfile}
+                    hasProfile={hasProfile}
+                    isLoading={isProfileLoading}
+                    refetch={refetchProfile}
+                />
+            )}
+
+            {activeTab === 'documents' && !isParent && (
+                <DocumentsTab
+                    userId={_id!}
+                    hasProfile={hasProfile}
+                    documents={validProfile?.documents || []}
+                    refetch={refetchProfile}
+                />
             )}
 
         </div>
