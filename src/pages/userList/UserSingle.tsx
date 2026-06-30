@@ -10,366 +10,17 @@ import { toast } from '../../shared/ui/ToastContext';
 // Import your Auth/User hooks (Adjust names if they differ in your authApi)
 import { useAssignRole, useGetSingleUser, useUpdateUser } from '../../api_services/auth_api/authApi';
 import { AUTH_CHECK_ROLES, type ValidUserRole } from '../../constants/constants';
-import { useCreateEmployeeProfile, useGetEmployeeProfileByUserId, useUpdateEmployeeProfile } from '../../api_services/auth_api/employeeProfileApi';
+import { useAddEmployeeDocuments, useCreateEmployeeProfile, useDeleteEmployeeDocument, useGetEmployeeProfileByUserId, useUpdateEmployeeProfile } from '../../api_services/auth_api/employeeProfileApi';
+import { ImageGallery } from '../../shared/components/ImageGallery';
 
 
-
-
-
-// type TabType = 'profile' | 'details';
-
-// export default function UserSingle() {
-//     const { userId } = useParams<{ userId: string }>();
-//     const navigate = useNavigate();
-//     const { schoolId } = useAuthData();
-
-//     // 1. State
-//     const [activeTab, setActiveTab] = useState<TabType>('profile');
-
-//     // Modal States
-//     const [isUserEditModalOpen, setIsUserEditModalOpen] = useState(false);
-//     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-
-//     // Form States
-//     const [userFormData, setUserFormData] = useState<any>({});
-//     const [profileFormData, setProfileFormData] = useState<any>({
-//         employeeNo: '', designation: '', department: '', employmentType: '',
-//         dateOfJoining: '', nationalId: '', pfNumber: '', yearsOfExperience: 0,
-//         emergencyContact: { name: '', relation: '', phone: '' },
-//         bankDetails: { accountName: '', accountNumber: '', bankName: '', ifscCode: '' }
-//     });
-
-//     // 2. Data Fetching
-//     // (Assuming you get the specific user from the cache/list. Alternatively, use a useGetUserById hook if you have one)
-//     const { data: users } = useGetAllUsers({ role: 'all', schoolId: schoolId! });
-//     const userDetails = users?.find((u: any) => u._id === userId);
-
-//     const { data: employeeProfile, isLoading: isProfileLoading } = useGetEmployeeProfileByUserId(userId);
-
-//     const { mutateAsync: updateUser, isPending: isUserUpdating } = useUpdateUser(); // Ensure this exists in your authApi
-//     const { mutateAsync: createProfile, isPending: isCreatingProfile } = useCreateEmployeeProfile();
-//     const { mutateAsync: updateProfile, isPending: isUpdatingProfile } = useUpdateEmployeeProfile();
-
-//     // 3. Handlers
-//     const formatRole = (role: string) => role ? role.charAt(0).toUpperCase() + role.slice(1) : "N/A";
-
-//     const roleOptions = useMemo(() => {
-//         return AUTH_CHECK_ROLES.map(role => ({ label: formatRole((role || '')), value: role }));
-//     }, []);
-
-//     // --- User Edit Submit ---
-//     const handleUserEditSubmit = async () => {
-//         try {
-//             await updateUser({ userId: userId!, data: userFormData });
-//             setIsUserEditModalOpen(false);
-//             toast.success("User profile updated successfully");
-//         } catch (error: any) {
-//             toast.error(error.message || "Failed to update user");
-//         }
-//     };
-
-//     // --- Employee Profile Submit (Create or Update) ---
-//     const handleProfileSubmit = async () => {
-//         try {
-//             if (employeeProfile) {
-//                 await updateProfile({ userId: userId!, updateData: profileFormData });
-//                 toast.success("Employee details updated!");
-//             } else {
-//                 await createProfile({ ...profileFormData, userId, schoolId });
-//                 toast.success("Employee profile created!");
-//             }
-//             setIsProfileModalOpen(false);
-//         } catch (error: any) {
-//             toast.error(error.message || "Failed to save employee profile");
-//         }
-//     };
-
-//     // Populate forms when opening modals
-//     const openUserEditModal = () => {
-//         setUserFormData({
-//             userName: userDetails?.userName || '',
-//             email: userDetails?.email || '',
-//             phoneNo: userDetails?.phoneNo || '',
-//             role: userDetails?.role || ''
-//         });
-//         setIsUserEditModalOpen(true);
-//     };
-
-//     const openProfileModal = () => {
-//         if (employeeProfile) {
-//             setProfileFormData({
-//                 ...employeeProfile,
-//                 dateOfJoining: employeeProfile.dateOfJoining ? new Date(employeeProfile.dateOfJoining).toISOString().split('T')[0] : '',
-//                 emergencyContact: employeeProfile.emergencyContact || { name: '', relation: '', phone: '' },
-//                 bankDetails: employeeProfile.bankDetails || { accountName: '', accountNumber: '', bankName: '', ifscCode: '' }
-//             });
-//         }
-//         setIsProfileModalOpen(true);
-//     };
-
-//     if (!userDetails) return <div className="p-6 text-center text-muted">Loading user...</div>;
-
-//     return (
-//         <div className="w-full h-full flex flex-col bg-mainBg p-4 sm:p-6 animate-fade-in">
-//             {/* --- HEADER --- */}
-//             <header className="flex items-center gap-4 mb-6 border-b border-border pb-4">
-//                 <button
-//                     onClick={() => navigate(-1)}
-//                     className="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-border text-muted hover:text-primary transition-colors"
-//                 >
-//                     <i className="fas fa-arrow-left"></i>
-//                 </button>
-//                 <div>
-//                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-//                         {userDetails.userName}
-//                         <span className="px-2 py-1 bg-primary-soft text-primary rounded-md text-[10px] font-bold uppercase tracking-wider">
-//                             {formatRole(userDetails.role)}
-//                         </span>
-//                     </h1>
-//                     <p className="text-sm text-muted mt-1">{userDetails.email || "No email"} | {userDetails.phoneNo || "No phone"}</p>
-//                 </div>
-//             </header>
-
-//             {/* --- TABS --- */}
-//             <div className="flex items-center gap-6 border-b border-border mb-6">
-//                 <button
-//                     onClick={() => setActiveTab('profile')}
-//                     className={`pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
-//                 >
-//                     <i className="far fa-id-card mr-2"></i> Account Profile
-//                 </button>
-//                 <button
-//                     onClick={() => setActiveTab('details')}
-//                     className={`pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
-//                 >
-//                     <i className="fas fa-briefcase mr-2"></i> HR & Employment Details
-//                 </button>
-//             </div>
-
-//             {/* --- TAB CONTENT: PROFILE --- */}
-//             {activeTab === 'profile' && (
-//                 <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
-//                     <div className="flex justify-between items-start mb-6">
-//                         <h2 className="text-lg font-bold text-foreground">Basic Information</h2>
-//                         <Button variant="outline" size="sm" onClick={openUserEditModal} leftIcon="fas fa-pen">
-//                             Edit Profile
-//                         </Button>
-//                     </div>
-
-//                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-//                         <div>
-//                             <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Full Name</p>
-//                             <p className="font-medium text-foreground">{userDetails.userName}</p>
-//                         </div>
-//                         <div>
-//                             <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Role Configuration</p>
-//                             <p className="font-medium text-foreground">{formatRole(userDetails.role)}</p>
-//                         </div>
-//                         <div>
-//                             <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Email Address</p>
-//                             <p className="font-medium text-foreground">{userDetails.email || '-'}</p>
-//                         </div>
-//                         <div>
-//                             <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Phone Number</p>
-//                             <p className="font-medium text-foreground">{userDetails.phoneNo || '-'}</p>
-//                         </div>
-//                     </div>
-//                 </div>
-//             )}
-
-//             {/* --- TAB CONTENT: HR DETAILS --- */}
-//             {activeTab === 'details' && (
-//                 <div className="bg-surface border border-border rounded-xl p-6 shadow-sm">
-//                     <div className="flex justify-between items-start mb-6">
-//                         <h2 className="text-lg font-bold text-foreground">Employment Record</h2>
-//                         <Button
-//                             variant={employeeProfile ? "outline" : "primary"}
-//                             size="sm"
-//                             onClick={openProfileModal}
-//                             leftIcon={employeeProfile ? "fas fa-pen" : "fas fa-plus"}
-//                         >
-//                             {employeeProfile ? "Edit Details" : "Create Profile"}
-//                         </Button>
-//                     </div>
-
-//                     {isProfileLoading ? (
-//                         <div className="py-12 text-center text-muted"><i className="fas fa-spinner fa-spin mr-2"></i> Loading record...</div>
-//                     ) : !employeeProfile ? (
-//                         <div className="py-12 text-center flex flex-col items-center">
-//                             <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center border border-border mb-4 text-muted text-2xl">
-//                                 <i className="fas fa-folder-open"></i>
-//                             </div>
-//                             <h3 className="text-foreground font-semibold">No Employment Record Found</h3>
-//                             <p className="text-sm text-muted mb-4">This user does not have an active HR profile mapped to them.</p>
-//                         </div>
-//                     ) : (
-//                         <div className="space-y-8">
-//                             {/* Professional Details */}
-//                             <div>
-//                                 <h3 className="text-sm font-bold text-primary mb-4 pb-2 border-b border-border">Professional Identity</h3>
-//                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-//                                     <div>
-//                                         <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Employee No</p>
-//                                         <p className="font-medium text-foreground">{employeeProfile.employeeNo || '-'}</p>
-//                                     </div>
-//                                     <div>
-//                                         <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Designation</p>
-//                                         <p className="font-medium text-foreground">{employeeProfile.designation || '-'}</p>
-//                                     </div>
-//                                     <div>
-//                                         <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Department</p>
-//                                         <p className="font-medium text-foreground">{employeeProfile.department || '-'}</p>
-//                                     </div>
-//                                     <div>
-//                                         <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Employment Type</p>
-//                                         <p className="font-medium text-foreground capitalize">{employeeProfile.employmentType?.replace('_', ' ') || '-'}</p>
-//                                     </div>
-//                                     <div>
-//                                         <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Date of Joining</p>
-//                                         <p className="font-medium text-foreground">
-//                                             {employeeProfile.dateOfJoining ? new Date(employeeProfile.dateOfJoining).toLocaleDateString() : '-'}
-//                                         </p>
-//                                     </div>
-//                                 </div>
-//                             </div>
-
-//                             {/* Compliance & Background */}
-//                             <div>
-//                                 <h3 className="text-sm font-bold text-primary mb-4 pb-2 border-b border-border">Compliance & Background</h3>
-//                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-//                                     <div>
-//                                         <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">National ID</p>
-//                                         <p className="font-medium text-foreground">{employeeProfile.nationalId || '-'}</p>
-//                                     </div>
-//                                     <div>
-//                                         <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">PF Number</p>
-//                                         <p className="font-medium text-foreground">{employeeProfile.pfNumber || '-'}</p>
-//                                     </div>
-//                                     <div>
-//                                         <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Years of Experience</p>
-//                                         <p className="font-medium text-foreground">{employeeProfile.yearsOfExperience || 0} Years</p>
-//                                     </div>
-//                                 </div>
-//                             </div>
-
-//                             {/* Emergency Contact */}
-//                             <div>
-//                                 <h3 className="text-sm font-bold text-primary mb-4 pb-2 border-b border-border">Emergency Contact</h3>
-//                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-//                                     <div>
-//                                         <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Contact Name</p>
-//                                         <p className="font-medium text-foreground">{employeeProfile.emergencyContact?.name || '-'}</p>
-//                                     </div>
-//                                     <div>
-//                                         <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Relation</p>
-//                                         <p className="font-medium text-foreground">{employeeProfile.emergencyContact?.relation || '-'}</p>
-//                                     </div>
-//                                     <div>
-//                                         <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Phone Number</p>
-//                                         <p className="font-medium text-foreground">{employeeProfile.emergencyContact?.phone || '-'}</p>
-//                                     </div>
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     )}
-//                 </div>
-//             )}
-
-//             {/* ========================================= */}
-//             {/* MODALS */}
-//             {/* ========================================= */}
-
-//             {/* 1. USER EDIT MODAL */}
-//             <SideModal
-//                 isOpen={isUserEditModalOpen}
-//                 onClose={() => setIsUserEditModalOpen(false)}
-//                 title="Edit Account Profile"
-//             >
-//                 <div className="space-y-4">
-//                     <Input label="Full Name" value={userFormData.userName} onChange={(e) => setUserFormData({ ...userFormData, userName: e.target.value })} />
-//                     <Input label="Email Address" type="email" value={userFormData.email} onChange={(e) => setUserFormData({ ...userFormData, email: e.target.value })} />
-//                     <Input
-//                         label="Phone Number" type="tel" maxLength={10} value={userFormData.phoneNo}
-//                         onChange={(e) => setUserFormData({ ...userFormData, phoneNo: e.target.value.replace(/\D/g, '') })}
-//                     />
-//                     <SearchSelect
-//                         label="System Role"
-//                         options={roleOptions}
-//                         value={userFormData.role}
-//                         onChange={(opt) => setUserFormData({ ...userFormData, role: opt.value as ValidUserRole })}
-//                         isClearable={false}
-//                     />
-//                     <div className="pt-6 border-t border-border flex justify-end gap-3">
-//                         <Button variant="outline" onClick={() => setIsUserEditModalOpen(false)}>Cancel</Button>
-//                         <Button variant="primary" isLoading={isUserUpdating} onClick={handleUserEditSubmit}>Save Changes</Button>
-//                     </div>
-//                 </div>
-//             </SideModal>
-
-//             {/* 2. EMPLOYEE PROFILE MODAL */}
-//             <SideModal
-//                 isOpen={isProfileModalOpen}
-//                 onClose={() => setIsProfileModalOpen(false)}
-//                 title={employeeProfile ? "Update Employment Record" : "Create Employment Record"}
-//                 width="w-full sm:w-[500px] md:w-[600px]"
-//             >
-//                 <div className="space-y-6">
-//                     {/* Work Info */}
-//                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-//                         <Input label="Employee Number" value={profileFormData.employeeNo} onChange={(e) => setProfileFormData({ ...profileFormData, employeeNo: e.target.value })} />
-//                         <Input label="Date of Joining" type="date" value={profileFormData.dateOfJoining} onChange={(e) => setProfileFormData({ ...profileFormData, dateOfJoining: e.target.value })} />
-//                         <Input label="Designation" value={profileFormData.designation} onChange={(e) => setProfileFormData({ ...profileFormData, designation: e.target.value })} />
-//                         <Input label="Department" value={profileFormData.department} onChange={(e) => setProfileFormData({ ...profileFormData, department: e.target.value })} />
-
-//                         <div className="sm:col-span-2">
-//                             <SearchSelect
-//                                 label="Employment Type"
-//                                 options={[
-//                                     { label: "Full Time", value: "full_time" },
-//                                     { label: "Part Time", value: "part_time" },
-//                                     { label: "Contract", value: "contract" },
-//                                     { label: "Temporary", value: "temporary" }
-//                                 ]}
-//                                 value={profileFormData.employmentType}
-//                                 onChange={(opt: any) => setProfileFormData({ ...profileFormData, employmentType: opt.value })}
-//                                 isClearable={false}
-//                             />
-//                         </div>
-//                     </div>
-
-//                     <div className="border-t border-border pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-//                         <Input label="National ID (Aadhaar/PAN)" value={profileFormData.nationalId} onChange={(e) => setProfileFormData({ ...profileFormData, nationalId: e.target.value })} />
-//                         <Input label="PF Number" value={profileFormData.pfNumber} onChange={(e) => setProfileFormData({ ...profileFormData, pfNumber: e.target.value })} />
-//                         <Input label="Years of Experience" type="number" min="0" value={profileFormData.yearsOfExperience} onChange={(e) => setProfileFormData({ ...profileFormData, yearsOfExperience: Number(e.target.value) })} />
-//                     </div>
-
-//                     <div className="border-t border-border pt-4">
-//                         <h4 className="text-xs font-bold text-muted uppercase mb-3">Emergency Contact</h4>
-//                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-//                             <Input label="Contact Name" value={profileFormData.emergencyContact.name} onChange={(e) => setProfileFormData({ ...profileFormData, emergencyContact: { ...profileFormData.emergencyContact, name: e.target.value } })} />
-//                             <Input label="Relation" value={profileFormData.emergencyContact.relation} onChange={(e) => setProfileFormData({ ...profileFormData, emergencyContact: { ...profileFormData.emergencyContact, relation: e.target.value } })} />
-//                             <Input label="Phone Number" maxLength={10} value={profileFormData.emergencyContact.phone} onChange={(e) => setProfileFormData({ ...profileFormData, emergencyContact: { ...profileFormData.emergencyContact, phone: e.target.value.replace(/\D/g, '') } })} />
-//                         </div>
-//                     </div>
-
-//                     <div className="pt-6 border-t border-border flex justify-end gap-3">
-//                         <Button variant="outline" onClick={() => setIsProfileModalOpen(false)}>Cancel</Button>
-//                         <Button variant="primary" isLoading={isCreatingProfile || isUpdatingProfile} onClick={handleProfileSubmit}>Save Record</Button>
-//                     </div>
-//                 </div>
-//             </SideModal>
-
-//         </div>
-//     );
-// }
-
-
-
-type TabType = 'profile' | 'details';
+type TabType = 'profile' | 'details' | 'documents';
 
 const INITIAL_PROFILE_STATE = {
     employeeNo: '', designation: '', department: '', employmentType: '',
     dateOfJoining: '', nationalId: '', pfNumber: '', yearsOfExperience: 0,
+    currentAddress: '', permanentAddress: '',
+
     emergencyContact: { name: '', relation: '', phone: '' },
     bankDetails: { accountName: '', accountNumber: '', bankName: '', ifscCode: '' }
 };
@@ -387,21 +38,24 @@ export default function UserSingle() {
     const [profileFormData, setProfileFormData] = useState<any>(INITIAL_PROFILE_STATE);
 
     // const { data: users, isLoading: isUsersLoading, refetch } = useGetAllUsers({ role: 'all', schoolId: schoolId! });
-    const { data: userDetails, isLoading: isUsersLoading, refetch } = useGetSingleUser(userId);
+    const { data: userDetails, isLoading: isUsersLoading } = useGetSingleUser(userId);
 
     console.log("userDetails", userDetails)
     // const userDetails = users?.find((u: any) => u._id === userId);
 
-    const { data: rawEmployeeProfile, isLoading: isProfileLoading } = useGetEmployeeProfileByUserId(userId);
+    const { data: rawEmployeeProfile, isLoading: isProfileLoading, refetch } = useGetEmployeeProfileByUserId(userId);
 
     // 🌟 FIX 1: Safely extract the profile. Handles cases where the API returns { ok: true, data: null }
     const validProfile = rawEmployeeProfile?.data !== undefined ? rawEmployeeProfile.data : rawEmployeeProfile;
-    const hasProfile = !!validProfile && Object.keys(validProfile).length > 0;
+    const hasProfile = !!validProfile && Object.keys(validProfile)?.length > 0;
 
     const { mutateAsync: updateUser, isPending: isUserUpdating } = useUpdateUser();
     const { mutateAsync: assignRole, } = useAssignRole(); // Add this line
     const { mutateAsync: createProfile, isPending: isCreatingProfile } = useCreateEmployeeProfile();
     const { mutateAsync: updateProfile, isPending: isUpdatingProfile } = useUpdateEmployeeProfile();
+    const { mutateAsync: addDocuments, isPending: isUploadingDocs } = useAddEmployeeDocuments();
+    const { mutateAsync: deleteDocument, isPending: isDeletingDoc } = useDeleteEmployeeDocument();
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
     // Sync User Account Data
     useEffect(() => {
@@ -506,8 +160,27 @@ export default function UserSingle() {
                 toast.success("Employment record updated!");
                 setIsEditingProfile(false);
             } else {
-                await createProfile({ ...profileFormData, userId: userId!, schoolId: schoolId! });
+                // await createProfile({ ...profileFormData, userId: userId!, schoolId: schoolId! });
+
+                const formData = new FormData();
+                const payload = { ...profileFormData, userId: userId!, schoolId: schoolId! };
+
+                Object.entries(payload).forEach(([key, value]) => {
+                    if (value === undefined || value === null) return;
+                    if (typeof value === "object") {
+                        formData.append(key, JSON.stringify(value));
+                    } else {
+                        formData.append(key, value as string);
+                    }
+                });
+
+                selectedFiles.forEach((file) => formData.append("files", file));
+
+                await createProfile(formData);
                 toast.success("Employment record created!");
+                setIsEditingProfile(false)
+                refetch()
+                // toast.success("Employment record created!");
             }
         } catch (error: any) {
             toast.error(error.message || "Failed to save employment record");
@@ -521,6 +194,51 @@ export default function UserSingle() {
             emergencyContact: validProfile?.emergencyContact || INITIAL_PROFILE_STATE.emergencyContact
         });
         setIsEditingProfile(false);
+    };
+
+    const handleDocumentUpload = async () => {
+        if (selectedFiles.length === 0) {
+            toast.error("Please select at least one file.");
+            return;
+        }
+        try {
+            await addDocuments({ userId: userId!, files: selectedFiles });
+            toast.success("Documents uploaded successfully!");
+            setSelectedFiles([]);
+            refetch()
+        } catch (error: any) {
+            toast.error(error.message || "Failed to upload documents");
+        }
+    };
+
+
+    const allDocs = validProfile?.documents || [];
+    const imageDocs = allDocs?.filter((doc: any) => doc?.type === 'image');
+    const pdfDocs = allDocs?.filter((doc: any) => doc.type === 'pdf');
+
+    const galleryImages: any[] = imageDocs.map((doc: any) => ({
+        type: 'image',
+        key: doc.key,
+        url: doc.url,
+        originalName: doc.originalName || 'Document photo',
+        uploadedAt: doc.uploadedAt || new Date(),
+        _id: doc._id
+    }));
+
+
+    const handleDocumentDelete = async (documentId: string) => {
+        try {
+            await deleteDocument({ userId: userId!, documentId });
+            toast.success("Document deleted.");
+            refetch()
+
+        } catch (error: any) {
+            toast.error(error.message || "Failed to delete document");
+        }
+    };
+
+      const handleGalleryDelete = (image: any) => {
+        handleDocumentDelete(image._id);
     };
 
     if (isUsersLoading) return <div className="p-6 text-center text-muted"><i className="fas fa-spinner fa-spin mr-2"></i> Loading user...</div>;
@@ -546,11 +264,14 @@ export default function UserSingle() {
 
             {/* TABS */}
             <div className="flex items-center gap-6 border-b border-border mb-6">
-                <button onClick={() => setActiveTab('profile')} className={`pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
+                <button onClick={() => setActiveTab('profile')} className={` cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
                     <i className="far fa-id-card mr-2"></i> Account Profile
                 </button>
-                <button onClick={() => setActiveTab('details')} className={`pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
+                <button onClick={() => setActiveTab('details')} className={` cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
                     <i className="fas fa-briefcase mr-2"></i> HR & Employment Details
+                </button>
+                <button onClick={() => setActiveTab('documents')} className={` cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'documents' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
+                    <i className="fas fa-folder-open mr-2"></i> Documents
                 </button>
             </div>
 
@@ -642,8 +363,12 @@ export default function UserSingle() {
                                     <Input label="National ID (Aadhaar/PAN)" value={profileFormData.nationalId} onChange={(e) => setProfileFormData({ ...profileFormData, nationalId: e.target.value })} />
                                     <Input label="PF Number" value={profileFormData.pfNumber} onChange={(e) => setProfileFormData({ ...profileFormData, pfNumber: e.target.value })} />
                                     <Input label="Years of Experience" type="number" min="0" value={profileFormData.yearsOfExperience || ""} onChange={(e) => setProfileFormData({ ...profileFormData, yearsOfExperience: Math.max(0, Number(e.target.value)) })} />
+
+                                    <Input label="Current Address" value={profileFormData.currentAddress} onChange={(e) => setProfileFormData({ ...profileFormData, currentAddress: e.target.value })} />
+                                    <Input label="Permanent Address" value={profileFormData.permanentAddress} onChange={(e) => setProfileFormData({ ...profileFormData, permanentAddress: e.target.value })} />
                                 </div>
                             </div>
+
 
                             <div>
                                 <h3 className="text-sm font-bold text-primary mb-4 pb-2 border-b border-border">Bank Details</h3>
@@ -669,7 +394,7 @@ export default function UserSingle() {
                                     <Button variant="outline" onClick={handleCancelProfileEdit}>Cancel</Button>
                                 )}
                                 <Button variant="primary" isLoading={isCreatingProfile || isUpdatingProfile} onClick={handleProfileSubmit}>
-                                    {hasProfile ? "Update Record" : "Register Employee"}
+                                    {hasProfile ? "Update Record" : "Save"}
                                 </Button>
                             </div>
                         </div>
@@ -696,6 +421,9 @@ export default function UserSingle() {
                                     <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">National ID</p><p className="font-medium text-foreground">{validProfile?.nationalId || '-'}</p></div>
                                     <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">PF Number</p><p className="font-medium text-foreground">{validProfile?.pfNumber || '-'}</p></div>
                                     <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Experience</p><p className="font-medium text-foreground">{validProfile?.yearsOfExperience || 0} Years</p></div>
+
+                                    <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Current Address</p><p className="font-medium text-foreground">{validProfile?.currentAddress || '-'}</p></div>
+                                    <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Permanent Address</p><p className="font-medium text-foreground">{validProfile?.permanentAddress || '-'}</p></div>
                                 </div>
                             </div>
 
@@ -717,6 +445,178 @@ export default function UserSingle() {
                                     <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Relation</p><p className="font-medium text-foreground">{validProfile?.emergencyContact?.relation || '-'}</p></div>
                                     <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Phone Number</p><p className="font-medium text-foreground">{validProfile?.emergencyContact?.phone || '-'}</p></div>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            
+
+            {activeTab === 'documents' && (
+                <div className="bg-surface border border-border rounded-xl p-6 shadow-sm max-w-7xl">
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            <h2 className="text-lg font-bold text-foreground">Uploaded Documents</h2>
+                            <p className="text-xs text-muted mt-1">Resumes, certificates, ID proofs, and other employee records.</p>
+                        </div>
+                    </div>
+
+                    {!hasProfile ? (
+                        <div className="py-12 text-center text-muted text-sm">
+                            <i className="fas fa-circle-info mr-2"></i>
+                            Fill the employment details first before uploading documents.
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            {/* Upload Zone */}
+                            <label
+                                htmlFor="document-upload-input"
+                                className="group flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border rounded-xl px-6 py-10 cursor-pointer transition-colors hover:border-primary hover:bg-primary-soft/30"
+                            >
+                                <div className="w-12 h-12 rounded-full bg-primary-soft flex items-center justify-center text-primary text-lg group-hover:scale-105 transition-transform">
+                                    <i className="fas fa-cloud-arrow-up"></i>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-sm font-semibold text-foreground">
+                                        Click to upload
+                                        {/* <span className="font-normal text-muted">or drag and drop</span> */}
+                                    </p>
+                                    <p className="text-xs text-muted mt-1">PDF or image files, multiple files supported</p>
+                                </div>
+                                <input
+                                    id="document-upload-input"
+                                    type="file"
+                                    multiple
+                                    accept=".pdf,image/*"
+                                    onChange={(e) => setSelectedFiles(e.target.files ? Array.from(e.target.files) : [])}
+                                    className="hidden"
+                                />
+                            </label>
+
+                            {/* Selected files preview, shown only when files are staged but not yet uploaded */}
+                            {selectedFiles.length > 0 && (
+                                <div className="border border-border rounded-lg p-4 space-y-3 bg-mainBg/50">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-xs font-bold text-muted uppercase tracking-wider">
+                                            {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''} selected
+                                        </p>
+                                        <button
+                                            onClick={() => setSelectedFiles([])}
+                                            className="text-xs text-muted hover:text-red-500 transition-colors"
+                                        >
+                                            Clear all
+                                        </button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {selectedFiles.map((file, idx) => (
+                                            <div key={idx} className="flex items-center justify-between gap-2 bg-surface border border-border rounded-lg px-3 py-2">
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <i className={`fas ${file.type.startsWith('image/') ? 'fa-image' : 'fa-file-pdf'} text-primary text-sm`}></i>
+                                                    <span className="text-sm text-foreground truncate">{file.name}</span>
+                                                    <span className="text-xs text-muted shrink-0">{(file.size / 1024).toFixed(0)} KB</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => setSelectedFiles(selectedFiles.filter((_, i) => i !== idx))}
+                                                    className="text-muted hover:text-red-500 text-xs shrink-0"
+                                                >
+                                                    <i className="fas fa-xmark"></i>
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="flex justify-end pt-1">
+                                        <Button variant="primary" size="sm" isLoading={isUploadingDocs} onClick={handleDocumentUpload}>
+                                            Upload {selectedFiles.length} File{selectedFiles.length > 1 ? 's' : ''}
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Existing documents list */}
+                            <div>
+                                <p className="text-xs font-bold text-muted uppercase tracking-wider mb-3">
+                                    Saved Documents {validProfile?.documents?.length ? `(${validProfile.documents.length})` : ''}
+                                </p>
+
+                                {(!validProfile?.documents || validProfile.documents.length === 0) ? (
+                                    <div className="flex flex-col items-center justify-center gap-2 py-12 border border-dashed border-border rounded-xl text-center">
+                                        <div className="w-10 h-10 rounded-full bg-mainBg flex items-center justify-center text-muted">
+                                            <i className="far fa-folder-open"></i>
+                                        </div>
+                                        <p className="text-sm font-medium text-foreground">No documents uploaded yet</p>
+                                        <p className="text-xs text-muted">Files you upload above will appear here.</p>
+                                    </div>
+                                ) : (
+                                    // <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                    //     {validProfile.documents.map((doc: any) => (
+                                    //         <div key={doc._id} className="group border border-border rounded-lg p-3 flex items-center justify-between gap-2 hover:border-primary/40 transition-colors">
+                                    //             <a
+                                    //                 href={doc.url}
+                                    //                 target="_blank"
+                                    //                 rel="noreferrer"
+                                    //                 className="flex items-center gap-2 min-w-0 text-sm text-foreground hover:text-primary transition-colors"
+                                    //             >
+                                    //                 <span className="w-8 h-8 shrink-0 rounded-md bg-primary-soft flex items-center justify-center text-primary text-xs">
+                                    //                     <i className={`fas ${doc.type === 'image' ? 'fa-image' : 'fa-file-pdf'}`}></i>
+                                    //                 </span>
+                                    //                 <span className="truncate font-medium">{doc.originalName}</span>
+                                    //             </a>
+                                    //             <button
+                                    //                 disabled={isDeletingDoc}
+                                    //                 onClick={() => handleDocumentDelete(doc._id)}
+                                    //                 className="opacity-0 group-hover:opacity-100 text-muted hover:text-red-500 text-xs transition-opacity shrink-0"
+                                    //             >
+                                    //                 <i className="fas fa-trash"></i>
+                                    //             </button>
+                                    //         </div>
+                                    //     ))}
+                                    // </div>
+
+                                    <div className="space-y-5">
+                                        {galleryImages.length > 0 && (
+                                            <div>
+                                                <p className="text-xs font-semibold text-muted mb-2">Images</p>
+                                                <ImageGallery
+                                                    images={galleryImages}
+                                                    {...(!isDeletingDoc ? { handleDelete: handleGalleryDelete } : {})}
+                                                    heightClass="h-32 sm:h-40"
+                                                    widthClass="w-full sm:w-48 md:w-52"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {pdfDocs.length > 0 && (
+                                            <div>
+                                                <p className="text-xs font-semibold text-muted mb-2">PDFs</p>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                                    {pdfDocs.map((doc: any) => (
+                                                        <div key={doc._id} className="group border border-border rounded-lg p-3 flex items-center justify-between gap-2 hover:border-primary/40 transition-colors">
+                                                            <a
+                                                                href={doc.url}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="flex items-center gap-2 min-w-0 text-sm text-foreground hover:text-primary transition-colors"
+                                                            >
+                                                                <span className="w-8 h-8 shrink-0 rounded-md bg-primary-soft flex items-center justify-center text-primary text-xs">
+                                                                    <i className="fas fa-file-pdf"></i>
+                                                                </span>
+                                                                <span className="truncate font-medium">{doc.originalName}</span>
+                                                            </a>
+                                                            <button
+                                                                disabled={isDeletingDoc}
+                                                                onClick={() => handleDocumentDelete(doc._id)}
+                                                                className=" text-muted hover:text-red-500 text-xs transition-opacity shrink-0"
+                                                            >
+                                                                <i className="fas fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

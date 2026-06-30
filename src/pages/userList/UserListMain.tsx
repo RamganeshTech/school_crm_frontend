@@ -48,9 +48,11 @@ export default function UserListMain() {
     const filteredUsers = useMemo(() => {
         if (!users) return [];
         return users.filter((u: any) =>
+            u.role !== 'parent' && (// 🌟 ADD THIS LINE
             u?.userName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             (u.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             (u.phoneNo || '').includes(searchQuery)
+            )
         );
     }, [users, searchQuery]);
 
@@ -58,11 +60,13 @@ export default function UserListMain() {
 
     const roleOptions = useMemo(() => [
         { label: 'All Roles', value: 'all' },
-        ...AUTH_CHECK_ROLES.map(role => ({ label: formatRole((role || '')), value: role }))
+        // ...AUTH_CHECK_ROLES.map(role => ({ label: formatRole((role || '')), value: role }))
+        ...AUTH_CHECK_ROLES.filter(role => role !== 'parent').map(role => ({ label: formatRole((role || '')), value: role }))
     ], []);
 
     const createRoleOptions = useMemo(() => {
-        return AUTH_CHECK_ROLES.map(role => ({ label: formatRole((role || '')), value: role }));
+        // return AUTH_CHECK_ROLES.map(role => ({ label: formatRole((role || '')), value: role }));
+        return AUTH_CHECK_ROLES.filter(role => role !== 'parent').map(role => ({ label: formatRole((role || '')), value: role }));
     }, []);
 
     // 3. Handlers

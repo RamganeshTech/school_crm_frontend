@@ -24,7 +24,14 @@ export interface IEmployeeProfilePayload {
     employmentType?: string;
     nationalId?: string;
     pfNumber?: string;
-    qualifications?: string[];
+    // qualifications?: string[];
+    educationDetails: {
+        degree?: string | null;
+        institution?: string | null;
+        yearOfPassing?: string | null;
+        grade?: string | null
+    }[]
+
     yearsOfExperience?: number;
     previousWorkplace?: string;
     bankDetails?: {
@@ -122,7 +129,7 @@ export const useCreateEmployeeProfile = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (payload: IEmployeeProfilePayload) => {
+        mutationFn: async (payload: IEmployeeProfilePayload | FormData) => {
             try {
                 // Admins/Correspondents only
                 checkPermission(currentRole, ["correspondent", "administrator"]);
@@ -183,6 +190,62 @@ export const useDeleteEmployeeProfile = () => {
                 const { data } = await Api.delete(`/api/employee-profile/delete/${userId}`);
 
                 if (!data.ok) throw new Error(data.message || 'Failed to delete employee profile');
+                return data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employee-profiles-infinite'] });
+        },
+    });
+};
+
+
+// --- Hook: Add Documents to Existing Employee Profile ---
+export const useAddEmployeeDocuments = () => {
+    const { currentRole } = useAuthData();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ userId, files }: { userId: string; files: File[] }) => {
+            try {
+                checkPermission(currentRole, ["correspondent", "administrator"]);
+
+                const formData = new FormData();
+                files.forEach((file) => formData.append("files", file));
+
+                const { data } = await Api.post(`/api/employee-profile/${userId}/documents`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+
+                if (!data.ok) throw new Error(data.message || 'Failed to add documents');
+                return data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employee-profiles-infinite'] });
+        },
+    });
+};
+
+// --- Hook: Delete a Single Employee Document ---
+export const useDeleteEmployeeDocument = () => {
+    const { currentRole } = useAuthData();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ userId, documentId }: { userId: string; documentId: string }) => {
+            try {
+                checkPermission(currentRole, ["correspondent", "administrator"]);
+
+                const { data } = await Api.delete(`/api/employee-profile/${userId}/documents/${documentId}`);
+
+                if (!data.ok) throw new Error(data.message || 'Failed to delete document');
                 return data;
             } catch (error: any) {
                 const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { downloadImageUtil } from '../../api_services/download_api/downloadApi';
 
 export interface IStudentUpload {
+    // _id:string
     type: "image" | "pdf" | "video";
     key?: string;
     url?: string;
