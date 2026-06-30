@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '../../../shared/ui/Button';
 import { toast } from '../../../shared/ui/ToastContext';
 import { ImageGallery } from '../../../shared/components/ImageGallery';
-import { useAddEmployeeDocuments, useDeleteEmployeeDocument, useUpsertEmployeeProfile } from '../../../api_services/auth_api/employeeProfileApi';
+import {  useDeleteEmployeeDocument, useUpsertEmployeeProfile } from '../../../api_services/auth_api/employeeProfileApi';
 import { useAuthData } from '../../../hooks/useAuthData';
 
 interface DocumentsTabProps {
