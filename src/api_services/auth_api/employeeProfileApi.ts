@@ -261,3 +261,132 @@ export const useDeleteEmployeeDocument = () => {
         },
     });
 };
+
+
+export const useAddSalarySlip = () => {
+    const { currentRole } = useAuthData();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ userId, amount, salaryDate, file }: { userId: string; amount: number; salaryDate: string; file: File | null }) => {
+            try {
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
+
+                const formData = new FormData();
+                // formData.append("amount", String(amount));
+                // formData.append("salaryDate", salaryDate);
+                // formData.append("file", file);
+
+                // 🌟 FIX 1: Only append if the value actually exists!
+                if (amount) formData.append("amount", String(amount));
+                if (salaryDate) formData.append("salaryDate", salaryDate);
+                if (file) formData.append("file", file);
+
+                const { data } = await Api.post(`/api/employee-profile/${userId}/salary-slips`, formData,
+                    {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    }
+
+                );
+
+                if (!data.ok) throw new Error(data.message || 'Failed to add salary slip');
+                return data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
+        },
+        onSuccess: (_, variables) => {
+            // queryClient.invalidateQueries({ queryKey: ['employee-profiles-infinite'] });
+            queryClient.invalidateQueries({ queryKey: ['employee-profile-single', variables.userId] });
+
+        },
+    });
+};
+
+export const useDeleteSalarySlip = () => {
+    const { currentRole } = useAuthData();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ userId, slipId }: { userId: string; slipId: string }) => {
+            try {
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
+                const { data } = await Api.delete(`/api/employee-profile/${userId}/salary-slips/${slipId}`);
+                if (!data.ok) throw new Error(data.message || 'Failed to delete salary slip');
+                return data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['employee-profile-single', variables.userId] });
+        },
+    });
+};
+
+
+
+
+// NEW VERSION
+
+export const useUpsertEmployeeProfile = () => {
+    const { currentRole } = useAuthData();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({
+            userId, schoolId, fields, documents, salaryAmount, salaryDate, salarySlipFile
+        }: {
+            userId: string;
+            schoolId: string;
+            fields?: Record<string, any>;
+            documents?: File[];
+            salaryAmount?: number;
+            salaryDate?: string;
+            salarySlipFile?: File;
+        }) => {
+            try {
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
+
+                const formData = new FormData();
+                formData.append("schoolId", schoolId);
+
+                if (fields) {
+                    Object.entries(fields).forEach(([key, value]) => {
+                        if (value === undefined || value === null) return;
+                        formData.append(key, typeof value === "object" ? JSON.stringify(value) : value as string);
+                    });
+                }
+
+                if (documents) {
+                    documents.forEach((file) => formData.append("documents", file));
+                }
+
+                if (salaryAmount !== undefined) formData.append("salaryAmount", String(salaryAmount));
+                if (salaryDate !== undefined) formData.append("salaryDate", salaryDate);
+                if (salarySlipFile) formData.append("salarySlipFile", salarySlipFile);
+
+                const { data } = await Api.post(`/api/employee-profile/${userId}/upsert`, formData,
+                    {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    }
+                );
+
+                if (!data.ok) throw new Error(data.message || 'Failed to save profile');
+                return data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employee-profiles-infinite'] });
+        },
+    });
+};

@@ -8,8 +8,10 @@ import { Button } from '../../shared/ui/Button';
 import type { RootState } from '../../features/store/store';
 import { toast } from '../../shared/ui/ToastContext';
 import { useGetEmployeeProfileByUserId } from '../../api_services/auth_api/employeeProfileApi';
-import { HrDetailsTab } from '../userList/user_components/HrDetailsTab';
-import { DocumentsTab } from '../userList/user_components/DocumentsTab';
+// import { HrDetailsTab } from '../userList/user_components/HrDetailsTab';
+// import { DocumentsTab } from '../userList/user_components/DocumentsTab';
+import type { EmployeeProfileTabType } from '../userList/UserSingle';
+import { EMPLOYEE_PROFILE_TABS, UserProfileComponents } from '../userList/user_components/UserProfileComponentsGroup';
 
 // --- Types based on your Mongoose Population ---
 interface UploadedFile {
@@ -58,12 +60,12 @@ export interface UserProfileData {
     studentId?: Student | Student[]; // Can be one or multiple children
 }
 
-type TabType = 'profile' | 'details' | 'documents';
+// type TabType = 'profile' | 'details' | 'documents';
 
 
 
 export default function UserProfile() {
-    const { _id, role } = useSelector((state: RootState) => state.auth);
+    const { _id, role, schoolId } = useSelector((state: RootState) => state.auth);
 
     const { data: user, isLoading, isError } = useGetSingleUser(_id!);
     const updateUserMutation = useUpdateUser();
@@ -81,7 +83,7 @@ export default function UserProfile() {
         phoneNo: ''
     });
 
-    const [activeTab, setActiveTab] = useState<TabType>('profile');
+    const [activeTab, setActiveTab] = useState<EmployeeProfileTabType>('profile');
 
     const { data: rawEmployeeProfile, isLoading: isProfileLoading, refetch: refetchProfile } = useGetEmployeeProfileByUserId(_id!);
 
@@ -190,12 +192,22 @@ export default function UserProfile() {
                     <button onClick={() => setActiveTab('profile')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
                         <i className="far fa-id-card mr-2"></i> Profile
                     </button>
-                    <button onClick={() => setActiveTab('details')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
+                    {/* <button onClick={() => setActiveTab('details')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
                         <i className="fas fa-briefcase mr-2"></i> HR & Employment Details
                     </button>
                     <button onClick={() => setActiveTab('documents')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'documents' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
                         <i className="fas fa-folder-open mr-2"></i> Documents
-                    </button>
+                    </button> */}
+
+                    {EMPLOYEE_PROFILE_TABS.map((tab) => (
+                        <button
+                            key={tab.key}
+                            onClick={() => setActiveTab(tab.key)}
+                            className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
+                        >
+                            <i className={`${tab.icon} mr-1.5`}></i>{tab.label}
+                        </button>
+                    ))}
                 </div>
             )}
 
@@ -441,7 +453,7 @@ export default function UserProfile() {
             )
             }
 
-            {activeTab === 'details' && !isParent && (
+            {/* {activeTab === 'details' && !isParent && (
                 <HrDetailsTab
                     userId={_id!}
                     schoolId={user?.schoolId?._id!}
@@ -459,7 +471,17 @@ export default function UserProfile() {
                     documents={validProfile?.documents || []}
                     refetch={refetchProfile}
                 />
-            )}
+            )} */}
+
+            <UserProfileComponents
+                activeTab={activeTab}
+                userId={_id!}
+                schoolId={schoolId!}
+                validProfile={validProfile}
+                hasProfile={hasProfile}
+                isLoading={isProfileLoading}
+                refetch={refetchProfile}
+            />
 
         </div>
     );
