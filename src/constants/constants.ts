@@ -68,6 +68,7 @@ export const FINANCE_ACCESS: UserRole[] = ["correspondent", "administrator", "pr
 export const ACADEMIC_ACCESS: UserRole[] = ["correspondent", "administrator", "principal", "viceprincipal", "teacher"];
 
 export const HIGHER_OFFICIALS: UserRole[] = ["correspondent", "principal",];
+export const ADMIN_CORREPONDENT: UserRole[] = ["correspondent", "administrator",];
 export const ONLY_ADMIN: UserRole[] = ["administrator"];
 
 

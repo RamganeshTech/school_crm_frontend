@@ -17,7 +17,7 @@ import { lazy, Suspense } from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { ToastContainer } from './shared/ui/ToastContext';
 import { useAuthCheck } from './hooks/useAuthCheck';
-import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, ONLY_ADMIN, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
+import { ACADEMIC_ACCESS, ADMIN_CORREPONDENT, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
 const AcademicCalendar = lazy(() => import('./pages/academic_calendar/AcademicCalendar'));
@@ -244,21 +244,20 @@ function App() {
                 {/* STAFF: SUPER ADMIN ONLY                    */}
                 {/* ========================================== */}
 
-                <Route element={<ProtectedRoute allowedRoles={SUPER_ADMIN_ONLY} />}>
-                  <Route path="user-list" element={<UserListMain />} >
-                    <Route path="single/:userId" element={<UserSingle />} />
-                  </Route>
 
+                <Route element={<ProtectedRoute allowedRoles={SUPER_ADMIN_ONLY} />}>
+                 
                   <Route path="school-list" element={<SchoolListMain />} />
                 </Route>
 
 
-                <Route element={<ProtectedRoute allowedRoles={ONLY_ADMIN} />}>
+                <Route element={<ProtectedRoute allowedRoles={ADMIN_CORREPONDENT} />}>
                   <Route path="user-list" element={<UserListMain />} >
                     <Route path="single/:userId" element={<UserSingle />} />
                   </Route>
-
                 </Route>
+
+
 
 
 
