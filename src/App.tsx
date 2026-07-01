@@ -17,11 +17,11 @@ import { lazy, Suspense } from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { ToastContainer } from './shared/ui/ToastContext';
 import { useAuthCheck } from './hooks/useAuthCheck';
-import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
+import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, ONLY_ADMIN, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
-import AcademicCalendar from './pages/academic_calendar/AcademicCalendar';
-import UserSingle from './pages/userList/UserSingle';
+const AcademicCalendar = lazy(() => import('./pages/academic_calendar/AcademicCalendar'));
+const UserSingle = lazy(() => import('./pages/userList/UserSingle'));
 const AdmissionFormMain = lazy(() => import('./pages/school/Admission_Pages/AdmissionFormMain'));
 const AdmissionFormSingle = lazy(() => import('./pages/school/Admission_Pages/AdmissionSingle'));
 const FeeCollectionMain = lazy(() => import('./pages/fee_collection_pages/FeeCollectionMain'));
@@ -253,6 +253,14 @@ function App() {
                 </Route>
 
 
+                <Route element={<ProtectedRoute allowedRoles={ONLY_ADMIN} />}>
+                  <Route path="user-list" element={<UserListMain />} >
+                    <Route path="single/:userId" element={<UserSingle />} />
+                  </Route>
+
+                </Route>
+
+
 
                 {/* ========================================== */}
                 {/* STAFF: FINANCE & MANAGEMENT                */}
@@ -316,6 +324,8 @@ function App() {
                     <Route path="create" element={<MarkReportConfig />} />
                   </Route>
                 </Route>
+
+
 
                 {/* ========================================== */}
                 {/* STAFF: MANAGEMENT OPERATIONS               */}
