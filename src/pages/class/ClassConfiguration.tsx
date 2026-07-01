@@ -243,9 +243,12 @@ export default function ClassConfiguration() {
                     <p className="text-muted text-sm max-w-md mb-6">
                         You haven't added any classes to this school yet. Set up your academic structure by adding your first class.
                     </p>
-                    <Button onClick={openCreateForm} variant="primary" leftIcon="fas fa-plus">
+
+                    {!canModify && <p className="text-muted text-sm max-w-md mb-6">Request your administrator to create the classes</p>}
+
+                    {canModify && <Button onClick={openCreateForm} variant="primary" leftIcon="fas fa-plus">
                         Add First Class
-                    </Button>
+                    </Button>}
                 </div>
             )}
 

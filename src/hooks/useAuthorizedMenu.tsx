@@ -97,9 +97,9 @@ export const useAuthorizedMenu = () => {
         // --- 3. Neglect (Filter out) specific items based on role ---
 
         // Only correspondent gets to see 'Staffs'
-        if (currentRole !== 'correspondent') {
-            menu = menu.filter(item => item.name !== 'Staffs');
-        }
+        // if (currentRole !== 'correspondent') {
+        //     menu = menu.filter(item => item.name !== 'Staffs');
+        // }
 
         // ONLY show 'School List' if BOTH conditions are met:
         // 1. User is a correspondent

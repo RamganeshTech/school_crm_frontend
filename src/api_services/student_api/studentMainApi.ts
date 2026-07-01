@@ -287,7 +287,7 @@ export const useDeleteStudent = () => {
   return useMutation<ApiResponse, Error, string>({
     mutationFn: async (id: string) => {
       try {
-        checkPermission(currentRole, ["correspondent"]);
+        checkPermission(currentRole, ["correspondent", "administrator"]);
 
         const { data } = await Api.delete<ApiResponse>(`/api/student/delete/${id}`);
 

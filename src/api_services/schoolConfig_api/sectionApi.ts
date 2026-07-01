@@ -13,7 +13,7 @@ import { Api } from '../../lib/api';
 // --- Constants for Role Arrays ---
 const READ_ROLES: UserRole[] = ["correspondent", "teacher", "principal", "administrator", "viceprincipal", "accountant"];
 const WRITE_ROLES: UserRole[] = ["correspondent", "administrator"];
-const DELETE_ROLES: UserRole[] = ["correspondent"];
+const DELETE_ROLES: UserRole[] = ["correspondent" , "administrator"];
 
 // --- Types ---
 export interface SectionData {

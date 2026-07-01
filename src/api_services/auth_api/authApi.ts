@@ -297,7 +297,7 @@ export const useDeleteUser = () => {
       try {
         // Ensure only authorized roles can create users
         checkPermission(currentRole, [
-          "correspondent",
+          "correspondent", "administrator"
         ]);
 
         const { data } = await Api.delete(`/api/user/delete/${userId}`);
