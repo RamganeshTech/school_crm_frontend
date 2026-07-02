@@ -20,6 +20,7 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, ADMIN_CORREPONDENT, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
+const ParentListMain = lazy(() => import( './pages/parent/ParentListMain'));
 const AcademicCalendar = lazy(() => import('./pages/academic_calendar/AcademicCalendar'));
 const UserSingle = lazy(() => import('./pages/userList/UserSingle'));
 const AdmissionFormMain = lazy(() => import('./pages/school/Admission_Pages/AdmissionFormMain'));
@@ -246,7 +247,7 @@ function App() {
 
 
                 <Route element={<ProtectedRoute allowedRoles={SUPER_ADMIN_ONLY} />}>
-                 
+
                   <Route path="school-list" element={<SchoolListMain />} />
                 </Route>
 
@@ -255,6 +256,10 @@ function App() {
                   <Route path="user-list" element={<UserListMain />} >
                     <Route path="single/:userId" element={<UserSingle />} />
                   </Route>
+
+                  <Route path="parent-list" element={<ParentListMain />} />
+                    {/* <Route path="single/:userId" element={<UserSingle />} /> */}
+                  {/* </Route> */}
                 </Route>
 
 

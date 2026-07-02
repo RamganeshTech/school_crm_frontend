@@ -92,7 +92,7 @@ export const useMarkAttendance = () => {
   return useMutation({
     mutationFn: async (payload: MarkAttendanceParams) => {
       try {
-        checkPermission(currentRole, ["correspondent", "teacher"]);
+        checkPermission(currentRole, ["correspondent", "teacher", "administrator"]);
 
         const { data } = await Api.post<ApiResponse>('/api/attendance/mark', payload);
 

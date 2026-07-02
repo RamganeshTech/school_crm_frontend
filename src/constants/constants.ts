@@ -89,7 +89,25 @@ export interface MenuItem {
 const baseManagementMenu: MenuItem[] = [
     { name: 'Dashboard', path: "/dashboard/dashboard-main", icon: 'fas fa-chart-pie' },
     { name: 'Profile', path: "/dashboard/profile", icon: 'fas fa-user' },
-    { name: 'Staffs', path: "/dashboard/user-list", icon: 'fas fa-users-gear' },
+    // { name: 'Staffs', path: "/dashboard/user-list", icon: 'fas fa-users-gear' },
+
+    {
+        name: "Users",
+        path: "#",
+        icon: "fas fa-users",
+        subMenu: [
+            {
+                name: "Staffs",
+                path: "/dashboard/user-list",
+                icon: "fas fa-users-gear"
+            },
+            {
+                name: "Parents",
+                path: "/dashboard/parent-list",
+                icon: "fas fa-users"
+            },
+        ]
+    },
     // { name: 'Class', path: "/dashboard/class", icon: 'fas fa-chalkboard' },
     // { name: 'Section', path: "/dashboard/section", icon: 'fas fa-box' },
 

@@ -136,7 +136,7 @@ export const useCreateEmployeeProfile = () => {
         mutationFn: async (payload: IEmployeeProfilePayload | FormData) => {
             try {
                 // Admins/Correspondents only
-                checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher", "principal", "viceprincipal", "accountant",]);
 
                 const { data } = await Api.post('/api/employee-profile/create', payload);
 
@@ -162,7 +162,7 @@ export const useUpdateEmployeeProfile = () => {
     return useMutation({
         mutationFn: async ({ userId, updateData }: { userId: string; updateData: Partial<IEmployeeProfilePayload> }) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher", "principal", "viceprincipal", "accountant",]);
 
                 const { data } = await Api.put(`/api/employee-profile/update/${userId}`, updateData);
 
@@ -215,7 +215,7 @@ export const useAddEmployeeDocuments = () => {
     return useMutation({
         mutationFn: async ({ userId, files }: { userId: string; files: File[] }) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher", "principal", "viceprincipal", "accountant",]);
 
                 const formData = new FormData();
                 files.forEach((file) => formData.append("files", file));
@@ -245,7 +245,7 @@ export const useDeleteEmployeeDocument = () => {
     return useMutation({
         mutationFn: async ({ userId, documentId }: { userId: string; documentId: string }) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher", "principal", "viceprincipal", "accountant",]);
 
                 const { data } = await Api.delete(`/api/employee-profile/${userId}/documents/${documentId}`);
 
@@ -270,7 +270,7 @@ export const useAddSalarySlip = () => {
     return useMutation({
         mutationFn: async ({ userId, amount, salaryDate, file }: { userId: string; amount: number; salaryDate: string; file: File | null }) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher", "principal", "viceprincipal", "accountant",]);
 
                 const formData = new FormData();
                 // formData.append("amount", String(amount));
@@ -313,7 +313,7 @@ export const useDeleteSalarySlip = () => {
     return useMutation({
         mutationFn: async ({ userId, slipId }: { userId: string; slipId: string }) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher", "principal", "viceprincipal", "accountant",]);
                 const { data } = await Api.delete(`/api/employee-profile/${userId}/salary-slips/${slipId}`);
                 if (!data.ok) throw new Error(data.message || 'Failed to delete salary slip');
                 return data;
@@ -350,7 +350,7 @@ export const useUpsertEmployeeProfile = () => {
             salarySlipFile?: File;
         }) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher", "principal", "viceprincipal", "accountant",]);
 
                 const formData = new FormData();
                 formData.append("schoolId", schoolId);
