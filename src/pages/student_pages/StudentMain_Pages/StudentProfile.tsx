@@ -232,6 +232,8 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
     const { isParent, isAdmin, isCorrespondent, isPrincipal, isAccountant } = useRoleCheck()
     const canEdit = isAdmin || isCorrespondent || isParent || isAccountant
     const canDeleteDocument = isAdmin || isCorrespondent || isAccountant
+    const canEditPendingRequest = isParent || isAdmin || isCorrespondent || isPrincipal
+    const canShowOtherDetails = isParent
 
 
     // --- Queries & Mutations ---
@@ -244,9 +246,7 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
     const [activeTab, setActiveTab] = useState<'mandatory' | 'nonMandatory' | "documents" | "feeInfo" | "admissionForm" | "attendance">('mandatory');
     const [isEditing, setIsEditing] = useState<boolean>(false);
 
-    const canEditPendingRequest = isParent || isAdmin || isCorrespondent || isPrincipal
 
-    const canShowOtherDetails = isParent
 
     // Form State
     const [editForm, setEditForm] = useState<any>({});

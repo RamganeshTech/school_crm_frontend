@@ -588,7 +588,7 @@ export const useAssignStudentToClassV1 = () => {
   return useMutation({
     mutationFn: async (payload: AssignStudentParams) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator"]);
+        checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
 
         const { data } = await Api.put<ApiResponse>('/api/studentrecord/v1/assign', payload);
 

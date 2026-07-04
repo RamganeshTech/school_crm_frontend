@@ -20,7 +20,7 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, ADMIN_CORREPONDENT, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
-const ParentListMain = lazy(() => import( './pages/parent/ParentListMain'));
+const ParentListMain = lazy(() => import('./pages/parent/ParentListMain'));
 const AcademicCalendar = lazy(() => import('./pages/academic_calendar/AcademicCalendar'));
 const UserSingle = lazy(() => import('./pages/userList/UserSingle'));
 const AdmissionFormMain = lazy(() => import('./pages/school/Admission_Pages/AdmissionFormMain'));
@@ -258,7 +258,7 @@ function App() {
                   </Route>
 
                   <Route path="parent-list" element={<ParentListMain />} />
-                    {/* <Route path="single/:userId" element={<UserSingle />} /> */}
+                  {/* <Route path="single/:userId" element={<UserSingle />} /> */}
                   {/* </Route> */}
                 </Route>
 
@@ -270,16 +270,6 @@ function App() {
                 {/* STAFF: FINANCE & MANAGEMENT                */}
                 {/* ========================================== */}
                 <Route element={<ProtectedRoute allowedRoles={FINANCE_ACCESS} />}>
-                  <Route path="class" element={<ClassConfiguration />} />
-                  <Route path="section" element={<SectionConfiguration />} />
-                  <Route path="school" element={<SchoolConfiguration />} />
-
-
-                  <Route path="student" element={<StudentMain />} >
-                    <Route path="profile/:id" element={<StudentSingle />} >
-                      <Route path="pending-update" element={<StudentProfileUpdateMain />} />
-                    </Route>
-                  </Route>
 
 
                   <Route path="expense" element={<ExpenseMain />}>
@@ -299,6 +289,22 @@ function App() {
                   </Route>
 
                 </Route>
+
+
+                <Route element={<ProtectedRoute allowedRoles={[...FINANCE_ACCESS, "teacher"]} />} >
+                  <Route path="class" element={<ClassConfiguration />} />
+                  <Route path="section" element={<SectionConfiguration />} />
+                  <Route path="school" element={<SchoolConfiguration />} />
+
+
+                  <Route path="student" element={<StudentMain />} >
+                    <Route path="profile/:id" element={<StudentSingle />} >
+                      <Route path="pending-update" element={<StudentProfileUpdateMain />} />
+                    </Route>
+                  </Route>
+
+                </Route>
+
 
                 <Route element={<ProtectedRoute allowedRoles={HIGHER_OFFICIALS} />}>
                   <Route path="subscription" element={<SubscriptionMain />} />

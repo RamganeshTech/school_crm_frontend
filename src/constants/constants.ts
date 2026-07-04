@@ -86,7 +86,7 @@ export interface MenuItem {
     subMenu?: SubMenuItem[];
 }
 
-const baseManagementMenu: MenuItem[] = [
+export const baseManagementMenu: MenuItem[] = [
     { name: 'Dashboard', path: "/dashboard/dashboard-main", icon: 'fas fa-chart-pie' },
     { name: 'Profile', path: "/dashboard/profile", icon: 'fas fa-user' },
     // { name: 'Staffs', path: "/dashboard/user-list", icon: 'fas fa-users-gear' },
@@ -420,7 +420,48 @@ export const accountantMenu: MenuItem[] = [
 export const teacherMenu: MenuItem[] = [
     { name: 'Dashboard', path: "/dashboard/attendance-report", icon: 'fas fa-chart-pie' }, // Usually needed for home route
     { name: 'Profile', path: "/dashboard/profile", icon: 'fas fa-user' },
-    { name: 'Records', path: "/dashboard/student-record", icon: 'fas fa-user-group' },
+
+
+    {
+        name: "Academic Management",
+        path: "#",
+        icon: "fas fa-school",
+        subMenu: [
+            {
+                name: "Class",
+                path: "/dashboard/class",
+                icon: "fas fa-chalkboard"
+            },
+            {
+                name: "Section",
+                path: "/dashboard/section",
+                icon: "fas fa-box"
+            },
+        ]
+    },
+
+    {
+        name: "Student Management",
+        path: "#",
+        icon: "fas fa-user-group",
+        subMenu: [
+
+            {
+                name: "Students",
+                path: "/dashboard/student",
+                icon: "fas fa-user-group"
+            },
+            {
+                name: "Records",
+                path: "/dashboard/student-record",
+                icon: "fas fa-folder-open"
+            },
+
+        ]
+    },
+
+
+    // { name: 'Records', path: "/dashboard/student-record", icon: 'fas fa-user-group' },
     // { name: 'Attendance', path: "/dashboard/attendance", icon: 'fas fa-clipboard' },
     // { name: 'Teacher Assignments', path: "/dashboard/teacher-assignment", icon: 'fas fa-chalkboard-user' },
     // { name: 'Homework', path: "/dashboard/homework", icon: 'fas fa-calendar-check' },
@@ -429,6 +470,8 @@ export const teacherMenu: MenuItem[] = [
         path: "/dashboard/academic-calendar",
         icon: 'fas fa-calendar-check'
     },
+
+
 
     {
         name: "Classroom Management",

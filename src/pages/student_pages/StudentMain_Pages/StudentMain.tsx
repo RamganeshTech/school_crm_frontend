@@ -80,10 +80,10 @@ export default function StudentMain() {
         classId: filters.classId
     });
 
-    const { isTeacher, isParent, isPrincipal, isVicePrincipal, isCorrespondent, isAdmin } = useRoleCheck()
-    const canCreate = !isTeacher && !isParent && !isPrincipal && !isVicePrincipal
+    const { isParent, isPrincipal, isVicePrincipal, isCorrespondent, isAdmin } = useRoleCheck()
+    const canCreate =  !isParent && !isPrincipal && !isVicePrincipal
     const canDelete = isCorrespondent || isAdmin
-    const canEdit = !isTeacher && !isPrincipal && !isVicePrincipal
+    const canEdit = !isPrincipal && !isVicePrincipal
 
     // const { data, isLoading, isError, refetch } = useGetAllStudents({
     //     schoolId: schoolId!,

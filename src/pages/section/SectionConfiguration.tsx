@@ -26,7 +26,7 @@ import { useRoleCheck } from '../../hooks/useRoleCheck';
 export default function SectionConfiguration() {
     // --- Global State ---
     const { schoolId } = useSelector((state: RootState) => state.auth);
-    const { isAccountant, isTeacher, isParent, isPrincipal, isVicePrincipal } = useRoleCheck()
+    const { isAccountant, isParent, isPrincipal, isVicePrincipal } = useRoleCheck()
 
 
     // --- Local State ---
@@ -47,7 +47,7 @@ export default function SectionConfiguration() {
 
     const activeClassId = selectedClassId || classes?.[0]?._id;
 
-    const canModify = !isAccountant && !isTeacher && !isParent && !isPrincipal && !isVicePrincipal
+    const canModify = !isAccountant && !isParent && !isPrincipal && !isVicePrincipal
 
 
     const {
