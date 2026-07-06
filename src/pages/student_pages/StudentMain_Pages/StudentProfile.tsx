@@ -231,7 +231,7 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
 
     const { isParent, isAdmin, isCorrespondent, isPrincipal, isAccountant , isTeacher} = useRoleCheck()
     const canEdit = isAdmin || isCorrespondent || isParent || isAccountant || isTeacher
-    const canDeleteDocument = isAdmin || isCorrespondent || isAccountant
+    const canDeleteDocument = isAdmin || isCorrespondent || isAccountant || isTeacher
     const canEditPendingRequest = isParent || isAdmin || isCorrespondent || isPrincipal
     const canShowOtherDetails = isParent
 

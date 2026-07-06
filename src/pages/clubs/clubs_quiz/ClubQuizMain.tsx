@@ -43,7 +43,7 @@ const ClubQuizMain: React.FC = () => {
     const [quizToUpdate, setQuizToUpdate] = useState<any>(null);
 
     // Fetch Quizzes using our React Query Hook
-    const { data: response, isLoading, isError } = useGetAllClubQuizzes({ clubId: id });
+    const { data: response, isLoading, isError } = useGetAllClubQuizzes({ clubId: id , clubVideoId: videoId});
     const quizzes = response?.data || [];
     const deleteQuizMutation = useDeleteClubQuiz(); // 🌟 Initialize the delete hook
 
@@ -237,7 +237,7 @@ const ClubQuizMain: React.FC = () => {
             </div>
 
             {/* Modals will go here when you build them */}
-            {isCreateModalOpen && <CreateQuizModal onClose={() => setIsCreateModalOpen(false)} clubId={id} />}
+            {isCreateModalOpen && <CreateQuizModal onClose={() => setIsCreateModalOpen(false)} clubId={id} videoId={videoId} />}
             {quizToUpdate && (
                 <UpdateQuizModal
                     quiz={quizToUpdate}

@@ -11,9 +11,10 @@ import { Button } from '../../../shared/ui/Button';
 interface Props {
     onClose: () => void;
     clubId: string;
+    videoId: string;
 }
 
-const CreateQuizModal: React.FC<Props> = ({ onClose, clubId }) => {
+const CreateQuizModal: React.FC<Props> = ({ onClose, clubId, videoId }) => {
     const createQuizMutation = useCreateClubQuiz();
 
     // Form State
@@ -83,6 +84,7 @@ const CreateQuizModal: React.FC<Props> = ({ onClose, clubId }) => {
         try {
             await createQuizMutation.mutateAsync({
                 clubId,
+                clubVideoId: videoId,
                 title,
                 description,
                 questions

@@ -44,6 +44,7 @@ export interface CreateAIQuizPayload {
 
 export interface QuizQueryParams {
     clubId?: string;
+    clubVideoId? :string
     classId?: string;
     sectionId?: string;
     page?: number;
