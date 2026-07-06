@@ -497,6 +497,8 @@ export const teacherMenu: MenuItem[] = [
     },
     // { name: 'Mark report', path: "/dashboard/markreport", icon: 'fas fa-file-invoice' },
     // { name: 'Mark report Configuration', path: "/dashboard/markreport-config", icon: 'fas fa-file-invoice' },
+    { name: 'Clubs', path: "/dashboard/club", icon: 'fas fa-layer-group' },
+
 
     {
         name: "Examination",

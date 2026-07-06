@@ -296,6 +296,13 @@ function App() {
                   <Route path="section" element={<SectionConfiguration />} />
                   <Route path="school" element={<SchoolConfiguration />} />
 
+                  <Route path="club" element={<ClubMain />}>
+                    <Route path="single/:id" element={<ClubSingle />} >
+                      <Route path="quiz/:videoId" element={<ClubQuizMain />} >
+                        <Route path="attempt/:quizId" element={<ClubQuizAttempt />} />
+                      </Route>
+                    </Route>
+                  </Route>
 
                   <Route path="student" element={<StudentMain />} >
                     <Route path="profile/:id" element={<StudentSingle />} >
@@ -352,13 +359,7 @@ function App() {
                   <Route path="audit" element={<AuditMain />} />
                   <Route path="delete-archive" element={<DeleteArchiveMain />} />
 
-                  <Route path="club" element={<ClubMain />}>
-                    <Route path="single/:id" element={<ClubSingle />} >
-                      <Route path="quiz/:videoId" element={<ClubQuizMain />} >
-                        <Route path="attempt/:quizId" element={<ClubQuizAttempt />} />
-                      </Route>
-                    </Route>
-                  </Route>
+
                   <Route path="announcement" element={<AnnouncementMain />}>
                     <Route path="single/:id" element={<AnnouncementConfig />} />
                     <Route path="create" element={<AnnouncementConfig />} />

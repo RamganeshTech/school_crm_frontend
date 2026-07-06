@@ -3,7 +3,7 @@ import { Api } from '../../lib/api'; // Adjust path
 import { useAuthData } from '../../hooks/useAuthData'; // Adjust path
 import { checkPermission } from '../../utils/utils'; // Adjust path
 import { queryClient } from '../../lib/queryClient'; // Adjust path
-import { ADMIN_ROLES, VIEW_ROLES, type BaseResponse, type GetAllClubVideosParams, type IClubVideo, type UpdateVideoDetailsPayload } from "./clubApi";
+import { ADMIN_ROLES, ADMIN_ROLES_WITH_TEACHER, VIEW_ROLES, type BaseResponse, type GetAllClubVideosParams, type IClubVideo, type UpdateVideoDetailsPayload } from "./clubApi";
 
 
 // ==========================================
@@ -72,7 +72,7 @@ export const useCreateClubVideo = () => {
         mutationFn: async (formData: FormData) => {
             try {
 
-                checkPermission(currentRole, ADMIN_ROLES);
+                checkPermission(currentRole, ADMIN_ROLES_WITH_TEACHER);
                 const { data } = await Api.post<BaseResponse<IClubVideo>>('/api/club/video/upload', formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
@@ -98,7 +98,7 @@ export const useUpdateClubVideoDetails = () => {
         mutationFn: async ({ id, payload }: { id: string; payload: UpdateVideoDetailsPayload }) => {
             try {
 
-                checkPermission(currentRole, ADMIN_ROLES);
+                checkPermission(currentRole, ADMIN_ROLES_WITH_TEACHER);
                 const { data } = await Api.put<BaseResponse<IClubVideo>>(`/api/club/video/updatedetails/${id}`, payload);
                 if (!data.ok) throw new Error(data.message || 'Failed to update video details');
                 return data;
@@ -123,7 +123,7 @@ export const useUpdateClubVideoFile = () => {
         mutationFn: async ({ id, formData }: { id: string; formData: FormData }) => {
             try {
 
-                checkPermission(currentRole, ADMIN_ROLES);
+                checkPermission(currentRole, ADMIN_ROLES_WITH_TEACHER);
                 const { data } = await Api.put<BaseResponse<IClubVideo>>(`/api/club/video/updatefile/${id}`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
@@ -172,7 +172,7 @@ export const useDeleteClubVideoFile = () => {
         mutationFn: async ({ id, fileId }: { id: string; fileId: string }) => {
             try {
 
-                checkPermission(currentRole, ADMIN_ROLES);
+                checkPermission(currentRole, ADMIN_ROLES_WITH_TEACHER);
                 const { data } = await Api.delete<BaseResponse>(`/api/club/video/deletefile/${id}/${fileId}`);
                 if (!data.ok) throw new Error(data.message || 'Failed to delete file');
                 return data;

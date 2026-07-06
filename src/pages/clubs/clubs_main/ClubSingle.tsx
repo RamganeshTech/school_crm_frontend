@@ -44,8 +44,10 @@ export default function ClubSingle() {
 
     const { isCorrespondent, isAdmin, isTeacher } = useRoleCheck()
 
-    const canModify = isAdmin || isCorrespondent
+    const canModify = isAdmin || isCorrespondent || isTeacher
     const canUploadPdf = isAdmin || isCorrespondent || isTeacher
+    // const canDelete = isAdmin || isCorrespondent
+    const canShowManageMembers = isAdmin || isCorrespondent
 
     const isChild = location.pathname.includes('/quiz');
 
@@ -208,6 +210,8 @@ export default function ClubSingle() {
                 await uploadPdfMutation.mutateAsync({ id: editingVideo._id, formData: pData });
             }
             setEditingVideo(null);
+            toast.success("operation completed successfully")
+
         } catch (error: any) {
             toast.error(error.message || "Operation Failed");
         }
@@ -222,6 +226,8 @@ export default function ClubSingle() {
             } else {
                 await addStudentMutation.mutateAsync(payload);
             }
+            toast.success("operation completed successfully")
+
         } catch (error: any) {
             toast.error(error.message || "Operation Failed");
         }
@@ -231,6 +237,7 @@ export default function ClubSingle() {
         if (!clubId || !selectedClassId) return;
         try {
             await toggleClassMutation.mutateAsync({ clubId, classId: selectedClassId });
+            toast.success("operation completed successfully")
         } catch (error: any) {
             toast.error(error.message || "Operation Failed");
         }
@@ -241,9 +248,24 @@ export default function ClubSingle() {
         try {
             if (window.confirm("Permanently delete this video?")) {
                 await deleteVideoMutation.mutateAsync(videoId);
+                toast.success("Deleted successfully")
             }
+
         } catch (error: any) {
             toast.error(error.message || "Operation Failed");
+        }
+    }
+
+
+    const handleDeletePdf = async ({ videoId, pdfId }: { videoId: string, pdfId: string }) => {
+        try {
+            if (window.confirm("Permanently delete this PDF?")) {
+                await deletePdfMutation.mutateAsync({ id: videoId, fileId: pdfId });
+                toast.success("deleted successfully")
+            }
+        }
+        catch (err: any) {
+            toast.error(err.message || "Operation Failed");
         }
     }
 
@@ -256,7 +278,7 @@ export default function ClubSingle() {
         <div className="w-full h-full flex flex-col bg-background overflow-hidden">
 
             {/* Header */}
-            <header className="shrink-0 px-6 py-5 border-b border-gray-200 flex items-center justify-between bg-white z-10 shadow-sm">
+            <header className="shrink-0 px-6 py-3 border-b border-gray-200 flex items-center justify-between bg-white z-10 shadow-sm">
                 <div className="flex items-center gap-4">
                     <button onClick={() => navigate(-1)} className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors cursor-pointer">
                         <i className="fas fa-arrow-left text-sm"></i>
@@ -276,7 +298,7 @@ export default function ClubSingle() {
                     </Button> */}
 
                     <div className="flex items-center gap-3">
-                        {canModify && <Button variant="outline" leftIcon="fas fa-users-cog" onClick={() => setIsStudentModalOpen(true)} className="cursor-pointer">
+                        {canShowManageMembers && <Button variant="outline" leftIcon="fas fa-users-cog" onClick={() => setIsStudentModalOpen(true)} className="cursor-pointer">
                             Manage Members
                         </Button>}
                         {canUploadPdf && <Button variant="primary" leftIcon="fas fa-cloud-upload-alt" onClick={() => setIsUploadModalOpen(true)} className="cursor-pointer">
@@ -288,7 +310,7 @@ export default function ClubSingle() {
             </header>
 
             {/* Video Library */}
-            <main className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+            <main className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                 <div className="max-w-7xl mx-auto space-y-8">
                     <div>
                         <h2 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">Video Library & Resources</h2>
@@ -355,11 +377,7 @@ export default function ClubSingle() {
                                                                     </a>
                                                                     {canModify && (
                                                                         <button
-                                                                            onClick={() => {
-                                                                                if (window.confirm("Permanently delete this PDF?")) {
-                                                                                    deletePdfMutation.mutateAsync({ id: vid._id, fileId: pdf._id });
-                                                                                }
-                                                                            }}
+                                                                            onClick={() => handleDeletePdf({videoId:vid._id, pdfId: pdf._id})}
                                                                             disabled={deletePdfMutation.isPending}
                                                                             className="w-6 h-6 flex items-center justify-center text-rose-500 hover:bg-rose-100 rounded transition-colors cursor-pointer"
                                                                             title="Delete File"
@@ -381,7 +399,7 @@ export default function ClubSingle() {
 
 
                                         {/* Admin Action Bar */}
-                                        <div className="bg-sub-header border-t border-gray-100 flex items-center justify-between p-1.5 px-3">
+                                        <div className="bg-sub-header border-t border-border-default flex items-center justify-between p-1.5 px-3">
 
                                             <Button
                                                 onClick={() => navigate(`quiz/${vid._id}`)}

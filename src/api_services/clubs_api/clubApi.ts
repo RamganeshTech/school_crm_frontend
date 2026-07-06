@@ -96,6 +96,7 @@ export interface UpdateVideoDetailsPayload {
 // Roles Arrays for Permission Checks
 export const VIEW_ROLES: UserRole[] = ["correspondent", "principal", "teacher", "parent", "administrator", "accountant", "viceprincipal"];
 export const ADMIN_ROLES: UserRole[] = ["correspondent", "administrator"];
+export const ADMIN_ROLES_WITH_TEACHER: UserRole[] = ["correspondent", "administrator", "teacher"];
 
 // ==========================================
 // 2. CLUB QUERIES & MUTATIONS
