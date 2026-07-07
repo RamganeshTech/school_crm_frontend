@@ -311,7 +311,7 @@ export default function FeeCollectionMain() {
                                                         variant="primary"
                                                         size="sm"
                                                         // Route to the payment collection screen
-                                                        onClick={() => navigate(`single/${record?._id}`)}
+                                                        onClick={() => navigate(`single/${record?._id}?academicYear=${filters.academicYear}`)}
                                                     >
                                                         Collect Fee <i className="fas fa-arrow-right ml-1.5 text-xs"></i>
                                                     </Button>

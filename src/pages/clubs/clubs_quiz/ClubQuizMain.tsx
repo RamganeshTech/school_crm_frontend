@@ -197,7 +197,7 @@ const ClubQuizMain: React.FC = () => {
                                         </span>
                                     </div>
 
-                                    {/* <Button
+                                    <Button
                                         variant="primary"
                                         size="sm"
                                         className="rounded-lg text-xs"
@@ -205,7 +205,7 @@ const ClubQuizMain: React.FC = () => {
                                         rightIcon="fas fa-arrow-right"
                                     >
                                         {isStaff ? "View Details" : "Attempt Quiz"}
-                                    </Button> */}
+                                    </Button>
 
                                     {isStaff ? (
 
