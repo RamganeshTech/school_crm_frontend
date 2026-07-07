@@ -107,7 +107,7 @@ export default function FeeCollectionSingle() {
     const isManualValid = feeData.manualDueAllocation ? calculatedManualTotal === Number(feeData.amount) : true;
     const calculatedCashTotal = (denominations.notes500 * 500) + (denominations.notes200 * 200) + (denominations.notes100 * 100) + (denominations.notes50 * 50) + (denominations.notes20 * 20) + (denominations.notes10 * 10);
     const isCashValid = feeData.paymentMode === 'cash' ? calculatedCashTotal === Number(feeData.amount) : true;
-    const canSubmit = Number(feeData.amount) > 0 && isManualValid && isCashValid && totalDues > 0;
+    // const canSubmit = Number(feeData.amount) > 0 && isManualValid && isCashValid && totalDues > 0;
 
     const handleDenominationChange = (key: string, value: number) => {
         const updated = { ...denominations, [key]: value };
