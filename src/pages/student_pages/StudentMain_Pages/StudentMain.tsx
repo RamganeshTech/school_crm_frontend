@@ -44,7 +44,7 @@ export default function StudentMain() {
         page: 1,
         limit: 10,
 
-        isActive: 'true', // Defaults to active students
+        // isActive: 'true', // Defaults to active students
         newOld: '',
         gender: '',
         bloodGroup: '',
@@ -170,7 +170,7 @@ export default function StudentMain() {
             sectionId: '',
             page: 1,
             limit: 30,
-            isActive: 'true',
+            // isActive: 'true',
             newOld: '',
             gender: '',
             bloodGroup: '',
@@ -554,13 +554,13 @@ export default function StudentMain() {
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
-                            <SearchSelect
+                            {/* <SearchSelect
                                 label="Status"
                                 options={[{ label: 'Active', value: 'true' }, { label: 'Inactive', value: 'false' }]}
                                 value={filters.isActive}
                                 onChange={(opt) => handleFilterChange('isActive', String(opt.value))}
                                 placeholder="Status"
-                            />
+                            /> */}
                             <SearchSelect
                                 label="Type"
                                 options={[{ label: 'New', value: 'new' }, { label: 'Old', value: 'old' }]}

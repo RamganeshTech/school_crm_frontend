@@ -54,15 +54,6 @@ export const GlobalSearch = () => {
         return flattened;
     }, [availableModules]);
 
-    // // 2. Filter modules based on search query
-    // const filteredModules = useMemo(() => {
-    //     if (!query.trim()) return availableModules;
-
-    //     return availableModules.filter((module) =>
-    //         module.name.toLowerCase().includes(query.toLowerCase())
-    //     );
-    // }, [query, availableModules]);
-
     // 2. Filter modules based on search query (Now using the 'searchableModules' list!)
     const filteredModules = useMemo(() => {
         if (!query.trim()) return searchableModules;
