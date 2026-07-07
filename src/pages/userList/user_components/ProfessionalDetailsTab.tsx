@@ -41,7 +41,7 @@ export function ProfessionalDetailsTab({ userId, schoolId, validProfile, hasProf
                 nationalId: validProfile.nationalId || '',
                 pfNumber: validProfile.pfNumber || '',
                 yearsOfExperience: validProfile.yearsOfExperience || 0,
-                previousWorkplace: validProfile.previousWorkplace || '',
+                previousWorkplace: validProfile?.previousWorkplace || '',
                 aadharNumber: validProfile?.aadharNumber || ''
             });
             setIsEditing(false);
@@ -141,7 +141,7 @@ export function ProfessionalDetailsTab({ userId, schoolId, validProfile, hasProf
                         <Input label="National ID (Aadhaar/PAN)" value={formData.nationalId} onChange={(e) => setFormData({ ...formData, nationalId: e.target.value })} />
                         <Input label="PF Number" value={formData.pfNumber} onChange={(e) => setFormData({ ...formData, pfNumber: e.target.value })} />
                         <Input label="Years of Experience" type="number" min="0" value={formData.yearsOfExperience || ""} onChange={(e) => setFormData({ ...formData, yearsOfExperience: Math.max(0, Number(e.target.value)) })} />
-                        <Input label="Previous Workplace" value={formData.previousWorkplace} onChange={(e) => setFormData({ ...formData, previousWorkplace: e.target.value })} />
+                        {/* <Input label="Previous Workplace" value={formData.previousWorkplace} onChange={(e) => setFormData({ ...formData, previousWorkplace: e.target.value })} /> */}
                         <Input label="Aadhar Number" value={formData.aadharNumber} onChange={(e) => setFormData({ ...formData, aadharNumber: e.target.value })} />
                     </div>
 
@@ -164,7 +164,7 @@ export function ProfessionalDetailsTab({ userId, schoolId, validProfile, hasProf
                     {/* <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Experience</p><p className="font-medium text-foreground">{validProfile?.yearsOfExperience || 0} Years</p></div> */}
                     <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Experience</p><p className="font-medium text-foreground">{validProfile?.yearsOfExperience ? `${validProfile?.yearsOfExperience} years` : "-"}</p></div>
 
-                    <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Previous Workplace</p><p className="font-medium text-foreground">{validProfile?.previousWorkplace || '-'}</p></div>
+                    {/* <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Previous Workplace</p><p className="font-medium text-foreground">{validProfile?.previousWorkplace || '-'}</p></div> */}
                 </div>
             )}
         </div>
