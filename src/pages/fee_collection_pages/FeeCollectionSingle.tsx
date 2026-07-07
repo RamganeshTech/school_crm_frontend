@@ -482,7 +482,7 @@ export default function FeeCollectionSingle() {
                                 {/* Sticky Footer */}
                                 <div className="sticky bottom-0 z-10 px-5 py-3 border-t border-border bg-surface flex justify-end gap-3 mt-auto shrink-0 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
                                     <Button type="button" size="sm" variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
-                                    <Button type="submit" size="sm" variant="primary" isLoading={collectFeeMutation.isPending} disabled={!canSubmit}>
+                                    <Button type="submit" size="sm" variant="primary" isLoading={collectFeeMutation.isPending}>
                                         Process Payment
                                     </Button>
                                 </div>
