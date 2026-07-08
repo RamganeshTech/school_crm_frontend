@@ -56,6 +56,9 @@ export function UserProfileComponents({
                 <DocumentsTab
                     userId={userId} hasProfile={hasProfile}
                     documents={validProfile?.documents || []} refetch={refetch}
+                    panDocument={validProfile?.panDocument}
+                    aadhaarDocument={validProfile?.aadhaarDocument}
+                    appointmentLetter={validProfile?.appointmentLetter}
                 />
             );
         default:

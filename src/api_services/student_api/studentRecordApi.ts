@@ -16,6 +16,7 @@ export interface GetAllStudentRecordsParams {
   academicYear?: string;
   classId?: string;
   sectionId?: string;
+  feeStatus?: string;
   newOld?: string;
   phone?:string;
   isActive?: boolean;

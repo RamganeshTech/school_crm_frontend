@@ -163,6 +163,7 @@ export function ProfessionalDetailsTab({ userId, schoolId, validProfile, hasProf
                     <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">PF Number</p><p className="font-medium text-foreground">{validProfile?.pfNumber || '-'}</p></div>
                     {/* <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Experience</p><p className="font-medium text-foreground">{validProfile?.yearsOfExperience || 0} Years</p></div> */}
                     <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Experience</p><p className="font-medium text-foreground">{validProfile?.yearsOfExperience ? `${validProfile?.yearsOfExperience} years` : "-"}</p></div>
+                    <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Aadhar Number</p><p className="font-medium text-foreground">{validProfile?.aadharNumber || "-"}</p></div>
 
                     {/* <div><p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Previous Workplace</p><p className="font-medium text-foreground">{validProfile?.previousWorkplace || '-'}</p></div> */}
                 </div>

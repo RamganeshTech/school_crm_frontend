@@ -10,7 +10,7 @@ import { SearchSelect } from '../../shared/ui/SearchSelect';
 
 // Hooks & APIs (Adjust imports to match your project)
 import { useAuthData } from '../../hooks/useAuthData';
-import useDebounce  from '../../hooks/useDebounce';
+import useDebounce from '../../hooks/useDebounce';
 import { useGetClasses } from '../../api_services/schoolConfig_api/classApi';
 import { useGetSections } from '../../api_services/schoolConfig_api/sectionApi';
 import { getAcademicYears } from '../../utils/utils';
@@ -24,10 +24,17 @@ interface SelectOption {
 export default function FeeCollectionMain() {
     const navigate = useNavigate();
     const { schoolId } = useAuthData();
-    
+
     // 🌟 Get school data from Redux to set the default Academic Year
     const schoolData = useSelector((state: any) => state.auth?.schoolData);
     const location = useLocation()
+
+
+    const feeStatusOptions: SelectOption[] = [
+        { label: 'All Status', value: '' },
+        { label: 'Paid', value: 'paid' },
+        { label: 'Not Paid', value: 'unpaid' },
+    ];
 
 
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -36,6 +43,7 @@ export default function FeeCollectionMain() {
     const [filters, setFilters] = useState({
         academicYear: schoolData?.currentAcademicYear || '2026-2027',
         classId: '',
+        feeStatus: "",
         sectionId: '',
     });
 
@@ -68,6 +76,7 @@ export default function FeeCollectionMain() {
         sectionId: filters.sectionId,
         search: debouncedSearch,
         phone: debouncedPhone, // Make sure your backend accepts this query parameter
+        feeStatus: filters.feeStatus,
         // isActive: 'true',      // Cashier should only see active students by default
         limit: 40,
     });
@@ -81,6 +90,7 @@ export default function FeeCollectionMain() {
         setFilters({
             academicYear: schoolData?.currentAcademicYear || '2026-2027',
             classId: '',
+            feeStatus: "",
             sectionId: '',
         });
         setSearchInput('');
@@ -101,7 +111,7 @@ export default function FeeCollectionMain() {
 
     const records = data?.pages?.flatMap((page: any) => page.data || []) || [];
 
-     const isChild = location.pathname.includes("single")
+    const isChild = location.pathname.includes("single")
     if (isChild) {
         return <Outlet />
     }
@@ -163,53 +173,85 @@ export default function FeeCollectionMain() {
                     </div>
 
                     <div className="space-y-4">
-                        <SearchSelect 
-                            label="Academic Year" 
-                            options={academicYearOptions} 
-                            value={filters.academicYear} 
-                            onChange={(opt: any) => handleFilterChange('academicYear', String(opt?.value || ''))} 
-                            placeholder="Select Year..." 
+                        <SearchSelect
+                            label="Academic Year"
+                            options={academicYearOptions}
+                            value={filters.academicYear}
+                            onChange={(opt: any) => handleFilterChange('academicYear', String(opt?.value || ''))}
+                            placeholder="Select Year..."
                         />
-                        
-                        <Input 
-                            id="searchName" 
-                            label="Student Name or Roll" 
-                            placeholder="e.g., John Doe" 
-                            leftIcon="fas fa-user" 
-                            value={searchInput} 
-                            onChange={(e) => setSearchInput(e.target.value)} 
+
+                        <Input
+                            id="searchName"
+                            label="Student Name or Roll"
+                            placeholder="e.g., John Doe"
+                            leftIcon="fas fa-user"
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
                         />
 
                         {/* 🌟 NEW: Phone Number Filter */}
-                        <Input 
-                            id="searchPhone" 
-                            label="Parent Phone Number" 
-                            placeholder="e.g., 9876543210" 
-                            leftIcon="fas fa-phone" 
-                            value={phoneInput} 
-                            onChange={(e) => setPhoneInput(e.target.value)} 
+                        <Input
+                            id="searchPhone"
+                            label="Parent Phone Number"
+                            placeholder="e.g., 9876543210"
+                            leftIcon="fas fa-phone"
+                            value={phoneInput}
+                            onChange={(e) => setPhoneInput(e.target.value)}
                         />
 
                         <div className="grid grid-cols-2 gap-3 pt-2">
-                            <SearchSelect 
-                                label="Class" 
-                                options={classOptions} 
-                                value={filters.classId} 
-                                onChange={(opt: any) => { 
-                                    handleFilterChange('classId', String(opt?.value || '')); 
-                                    handleFilterChange('sectionId', ''); 
-                                }} 
-                                placeholder="Class..." 
+                            <SearchSelect
+                                label="Class"
+                                options={classOptions}
+                                value={filters.classId}
+                                onChange={(opt: any) => {
+                                    handleFilterChange('classId', String(opt?.value || ''));
+                                    handleFilterChange('sectionId', '');
+                                }}
+                                placeholder="Class..."
                             />
                             <div className="relative">
-                                <SearchSelect 
-                                    label="Section" 
-                                    options={sectionOptions} 
-                                    value={filters.sectionId} 
-                                    onChange={(opt: any) => handleFilterChange('sectionId', String(opt?.value || ''))} 
-                                    placeholder="Section..." 
+                                <SearchSelect
+                                    label="Section"
+                                    options={sectionOptions}
+                                    value={filters.sectionId}
+                                    onChange={(opt: any) => handleFilterChange('sectionId', String(opt?.value || ''))}
+                                    placeholder="Section..."
                                 />
                                 {isSectionsLoading && <i className="fas fa-spinner fa-spin absolute right-3 top-[38px] text-muted text-xs"></i>}
+                            </div>
+                        </div>
+
+
+                        <div className="flex flex-col gap-1.5">
+                            {/* <SearchSelect label="Record Status" options={statusOptions} value={filters.isActive}
+                             onChange={(opt) => handleFilterChange('isActive', String(opt.value))} placeholder="Select Status..." /> */}
+
+                            {/* <SearchSelect label="Fee Status" options={feeStatusOptions} value={filters.isActive}
+                             onChange={(opt) => handleFilterChange('feeStatus', String(opt.value))} placeholder="Select Status..." /> */}
+
+                            <label className="text-sm font-medium text-gray-700">Fee Status</label>
+                            <div className="flex flex-wrap gap-2">
+                                {feeStatusOptions.map((option) => {
+                                    // Check if the current chip matches the selected filter state
+                                    // If filters.feeStatus is undefined, it defaults to the empty/All option
+                                    const isSelected = (filters.feeStatus || '') === String(option.value);
+
+                                    return (
+                                        <button
+                                            key={String(option.value)}
+                                            type="button"
+                                            onClick={() => handleFilterChange('feeStatus', String(option.value))}
+                                            className={`cursor-pointer px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 border ${isSelected
+                                                ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm' // Active State
+                                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' // Inactive State
+                                                }`}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
@@ -224,113 +266,127 @@ export default function FeeCollectionMain() {
                 <div className="flex-1 bg-surface border border-border rounded-xl shadow-sm flex flex-col overflow-hidden">
                     <TableContainer className="h-full overflow-y-auto custom-scrollbar" onScroll={handleScroll}>
                         {/* <table className="w-full text-left text-sm whitespace-nowrap border-collapse"> */}
-                            <THead className="sticky top-0 z-10 bg-background shadow-sm border-b border-border">
+                        <THead className="sticky top-0 z-10 bg-background shadow-sm border-b border-border">
+                            <tr>
+                                <Th className="w-12 text-center">No.</Th>
+                                <Th>Student Name</Th>
+                                <Th>Parent Details</Th>
+                                <Th>Class/Sec</Th>
+                                <Th>Fee Status</Th>
+                                <Th className="text-right">Action</Th>
+                            </tr>
+                        </THead>
+                        <TBody>
+                            {isLoading ? (
                                 <tr>
-                                    <Th className="w-12 text-center">No.</Th>
-                                    <Th>Student Name</Th>
-                                    <Th>Parent Details</Th>
-                                    <Th>Class/Sec</Th>
-                                    <Th>Fee Status</Th>
-                                    <Th className="text-right">Action</Th>
+                                    <td colSpan={6} className="py-20">
+                                        <div className="flex flex-col items-center justify-center w-full">
+                                            <i className="fas fa-circle-notch fa-spin text-primary text-2xl mb-3"></i>
+                                            <p className="text-sm text-muted font-medium">Searching students...</p>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </THead>
-                            <TBody>
-                                {isLoading ? (
-                                    <tr>
-                                        <td colSpan={6} className="py-20">
-                                            <div className="flex flex-col items-center justify-center w-full">
-                                                <i className="fas fa-circle-notch fa-spin text-primary text-2xl mb-3"></i>
-                                                <p className="text-sm text-muted font-medium">Searching students...</p>
+                            ) : isError ? (
+                                <tr>
+                                    <td colSpan={6} className="py-20 bg-danger/5">
+                                        <div className="flex flex-col items-center justify-center w-full text-danger">
+                                            <i className="fas fa-exclamation-circle text-2xl mb-3 opacity-80"></i>
+                                            <p className="font-medium">Failed to load records. Please try again.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : records.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="py-24">
+                                        <div className="flex flex-col items-center justify-center text-center text-muted w-full mx-auto">
+                                            <div className="w-16 h-16 rounded-full bg-background border border-border flex items-center justify-center mb-4 shadow-sm">
+                                                <i className="fas fa-search text-2xl text-muted/50"></i>
                                             </div>
-                                        </td>
-                                    </tr>
-                                ) : isError ? (
-                                    <tr>
-                                        <td colSpan={6} className="py-20 bg-danger/5">
-                                            <div className="flex flex-col items-center justify-center w-full text-danger">
-                                                <i className="fas fa-exclamation-circle text-2xl mb-3 opacity-80"></i>
-                                                <p className="font-medium">Failed to load records. Please try again.</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : records.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={6} className="py-24">
-                                            <div className="flex flex-col items-center justify-center text-center text-muted w-full mx-auto">
-                                                <div className="w-16 h-16 rounded-full bg-background border border-border flex items-center justify-center mb-4 shadow-sm">
-                                                    <i className="fas fa-search text-2xl text-muted/50"></i>
-                                                </div>
-                                                <p className="font-medium text-foreground">No students found</p>
-                                                <p className="text-xs mt-1">Try adjusting the name or phone number filter.</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    <>
-                                        {records.map((record: any, index: number) => (
-                                            <Tr key={record._id} className="hover:bg-background/80 transition-colors group">
-                                                <Td className="text-center text-muted text-xs">{index + 1}</Td>
+                                            <p className="font-medium text-foreground">No students found</p>
+                                            <p className="text-xs mt-1">Try adjusting the name or phone number filter.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : (
+                                <>
+                                    {records.map((record: any, index: number) => (
+                                        <Tr key={record._id} className="hover:bg-background/80 transition-colors group">
+                                            <Td className="text-center text-muted text-xs">{index + 1}</Td>
 
-                                                {/* Student Info */}
-                                                <Td>
-                                                    <p className="font-semibold text-foreground">{record.studentName}</p>
-                                                    <p className="text-[10px] text-muted font-medium">Roll: {record.rollNumber || 'N/A'}</p>
-                                                </Td>
+                                            {/* Student Info */}
+                                            <Td>
+                                                <p className="font-semibold text-foreground">{record.studentName}</p>
+                                                <p className="text-xs text-muted">Roll: {record.rollNumber || 'N/A'}</p>
+                                                <p className="text-xs text-muted">{record.srId || 'N/A'}</p>
 
-                                                {/* Parent Details (Assuming populated from studentId) */}
-                                                <Td>
-                                                    <p className="text-sm text-foreground">{record.studentId?.fatherName || record.studentId?.motherName || 'N/A'}</p>
-                                                    <p className="text-xs text-muted flex items-center gap-1 mt-0.5">
-                                                        <i className="fas fa-phone-alt text-[10px]"></i> 
-                                                        {record.studentId?.mobileNumber || record.studentId?.fatherPhone || 'No Phone'}
-                                                    </p>
-                                                </Td>
+                                            </Td>
 
-                                                {/* Class/Section Details */}
-                                                <Td>
-                                                    <p className="text-sm font-medium text-foreground">{record.className || '-'}</p>
-                                                    <p className="text-xs text-muted">{record.sectionName || '-'}</p>
-                                                </Td>
+                                            {/* Parent Details (Assuming populated from studentId) */}
+                                            <Td>
+                                                <p className="text-sm text-foreground">{record.studentId?.fatherName || record.studentId?.motherName || 'N/A'}</p>
+                                                <p className="text-xs text-muted flex items-center gap-1 mt-0.5">
+                                                    <i className="fas fa-phone-alt text-[10px]"></i>
+                                                    {record.studentId?.mobileNumber || record.studentId?.fatherPhone || 'No Phone'}
+                                                </p>
+                                            </Td>
 
-                                                {/* Fee Status (Simple Badge) */}
-                                                <Td>
-                                                    {record.isFullyPaid ? (
-                                                        <span className="px-2 py-1 bg-success/10 text-success border border-success/20 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm">
-                                                            Fully Paid
-                                                        </span>
-                                                    ) : (
-                                                        <span className="px-2 py-1 bg-warning/10 text-warning-800 border border-warning/30 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm">
-                                                            Dues Pending
-                                                        </span>
-                                                    )}
-                                                </Td>
+                                            {/* Class/Section Details */}
+                                            <Td>
+                                                <p className="text-sm font-medium text-foreground">{record.className || '-'}</p>
+                                                <p className="text-xs text-muted">{record.sectionName || '-'}</p>
+                                            </Td>
 
-                                                {/* Action - Collection Routing */}
-                                                <Td className="text-right">
-                                                    <Button 
-                                                        variant="primary"
-                                                        size="sm"
-                                                        // Route to the payment collection screen
-                                                        onClick={() => navigate(`single/${record?._id}?academicYear=${filters.academicYear}`)}
-                                                    >
-                                                        Collect Fee <i className="fas fa-arrow-right ml-1.5 text-xs"></i>
-                                                    </Button>
-                                                </Td>
-                                            </Tr>
-                                        ))}
+                                            {/* Fee Status (Simple Badge) */}
+                                            <Td>
+                                                {/* {record.isFullyPaid ? (
+                                                    <span className="px-2 py-1 bg-success/10 text-success border border-success/20 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                                                        Fully Paid
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2 py-1 bg-warning/10 text-warning-800 border border-warning/30 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                                                        Dues Pending
+                                                    </span>
+                                                )} */}
 
-                                        {/* Infinite Scroll Loader */}
-                                        {isFetchingNextPage && (
-                                            <tr>
-                                                <td colSpan={6} className="py-6 text-center">
-                                                    <i className="fas fa-circle-notch fa-spin text-primary text-xl"></i>
-                                                    <p className="text-xs text-muted mt-2">Loading more students...</p>
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </>
-                                )}
-                            </TBody>
+
+                                                {record?.feeStatus === "paid" ? (
+                                                    <span className="px-2 py-1 bg-success/10 text-success border border-success/20 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                                                        {record?.feeStatus || "paid"}
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2 py-1 bg-warning/10 text-warning-800 border border-warning/30 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                                                        {record?.feeStatus || "unpaid"}
+                                                    </span>
+                                                )}
+
+                                            </Td>
+
+                                            {/* Action - Collection Routing */}
+                                            <Td className="text-right">
+                                                <Button
+                                                    variant="primary"
+                                                    size="sm"
+                                                    // Route to the payment collection screen
+                                                    onClick={() => navigate(`single/${record?._id}?academicYear=${filters.academicYear}`)}
+                                                >
+                                                    Collect Fee <i className="fas fa-arrow-right ml-1.5 text-xs"></i>
+                                                </Button>
+                                            </Td>
+                                        </Tr>
+                                    ))}
+
+                                    {/* Infinite Scroll Loader */}
+                                    {isFetchingNextPage && (
+                                        <tr>
+                                            <td colSpan={6} className="py-6 text-center">
+                                                <i className="fas fa-circle-notch fa-spin text-primary text-xl"></i>
+                                                <p className="text-xs text-muted mt-2">Loading more students...</p>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </>
+                            )}
+                        </TBody>
                         {/* </table> */}
                     </TableContainer>
                 </div>

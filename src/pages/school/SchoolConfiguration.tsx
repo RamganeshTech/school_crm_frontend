@@ -20,6 +20,7 @@ import BillBookConfig from './billBook_pages/BillBookConfig';
 import AdmissionBookConfig from './AdmissionBookConfig';
 import SystemReadinessCard from './SystemReadinessCard';
 import AcademicTimelineConfig from './AcademicTimelineConfig';
+import { useSearchParams } from 'react-router-dom';
 
 // type TabOptions = 'details' | 'socials';
 
@@ -46,10 +47,15 @@ export default function SchoolConfiguration() {
     // --- Local State ---
     const [activeTab, setActiveTab] = useState<TabOptions>('details');
 
-    // Details Form State
-    // const [detailsForm, setDetailsForm] = useState({
-    //     name: '', email: '', phoneNo: '', address: '', currentAcademicYear: ''
-    // });
+    const [searchParams] = useSearchParams();
+
+    // 🌟 NEW: Listen for 'type' query param to auto-switch tabs
+    useEffect(() => {
+        const type = searchParams.get('type');
+        if (type === 'billrecord' && canManageBillBook) {
+            setActiveTab('billbook');
+        }
+    }, [searchParams, canManageBillBook]);
 
     const [detailsForm, setDetailsForm] = useState({
         name: schoolData?.name || '',

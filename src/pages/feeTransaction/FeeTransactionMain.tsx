@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 
 // UI Components
 import { useGetAllFeeTransactions, useGetFeeTransactionById, useUpdateFeeReceiptStatus } from '../../api_services/feeTransaction_api/feeTransactionApi';
@@ -14,9 +14,10 @@ import { toast } from '../../shared/ui/ToastContext';
 import { useAuthData } from '../../hooks/useAuthData';
 
 export default function FeeTransactionMain() {
-    const { studentId , id} = useParams<{ studentrecordId: string; studentId: string; id:string }>();
+    const { studentId, id } = useParams<{ studentrecordId: string; studentId: string; id: string }>();
+    const [searchParams, setSearchParams] = useSearchParams(); // 🌟 ADD THIS
 
-    const {schoolId} = useAuthData()
+    const { schoolId } = useAuthData()
 
     // console.log("studentId", studentId)
     // 1. Table State (Backend Data)
@@ -24,10 +25,10 @@ export default function FeeTransactionMain() {
         data: transactions,
         isLoading,
         isError
-    } = useGetAllFeeTransactions({studentId: studentId || id, schoolId:schoolId!});
+    } = useGetAllFeeTransactions({ studentId: studentId || id, schoolId: schoolId! });
 
     const updateStatusMutation = useUpdateFeeReceiptStatus();
-   const [statusUpdateMode, setStatusUpdateMode] = useState<boolean>(false);
+    const [statusUpdateMode, setStatusUpdateMode] = useState<boolean>(false);
     const [updateRemarks, setUpdateRemarks] = useState<string>('');
     const [selectedStatus, setSelectedStatus] = useState<string>(''); // NEW STATE
 
@@ -68,6 +69,14 @@ export default function FeeTransactionMain() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTxnId, setSelectedTxnId] = useState<string | null>(null);
 
+    useEffect(() => {
+        const receiptId = searchParams.get('receiptId');
+        if (receiptId) {
+            setSelectedTxnId(receiptId);
+            setIsModalOpen(true);
+        }
+    }, [searchParams]);
+
     const {
         data: singleTxn,
         isFetching: isSingleLoading
@@ -84,13 +93,19 @@ export default function FeeTransactionMain() {
         setStatusUpdateMode(false); // 🌟 Reset mode
         setUpdateRemarks('');
         setTimeout(() => setSelectedTxnId(null), 300);
+
+        // 🌟 NEW: Remove the receiptId from the URL without reloading the page
+        if (searchParams.get('receiptId')) {
+            searchParams.delete('receiptId');
+            setSearchParams(searchParams, { replace: true });
+        }
     };
 
     const handleFilterChange = (key: string, value: string) => {
         setFilters(prev => ({ ...prev, [key]: value }));
     };
 
-   // 🌟 Dedicated Handler for Status Update
+    // 🌟 Dedicated Handler for Status Update
     const handleStatusUpdate = async () => {
         if (!selectedStatus) {
             return toast.error("Please select a status to update.");
@@ -106,19 +121,19 @@ export default function FeeTransactionMain() {
 
         try {
             // Using mutateAsync to properly catch errors in the block
-            await updateStatusMutation.mutateAsync({ 
-                id: singleTxn?._id!, 
-                status: selectedStatus, 
-                remarks: updateRemarks 
+            await updateStatusMutation.mutateAsync({
+                id: singleTxn?._id!,
+                status: selectedStatus,
+                remarks: updateRemarks
             });
-            
+
             toast.success(`Transaction successfully marked as ${selectedStatus}.`);
-            
+
             // Clean up and close panel on success
             setStatusUpdateMode(false);
             setSelectedStatus('');
             setUpdateRemarks('');
-            
+
         } catch (error: any) {
             toast.error(error.message || "Failed to update transaction status.");
         }
@@ -411,11 +426,11 @@ export default function FeeTransactionMain() {
                                         <i className="fas fa-tasks"></i> Pending Verification
                                     </h4>
                                     <p className="text-xs text-muted mb-4">Update the status once the {singleTxn.paymentMode.replace('_', ' ')} has cleared or bounced.</p>
-                                    
+
                                     {!statusUpdateMode ? (
-                                        <Button 
-                                            variant="outline" 
-                                            size="sm" 
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
                                             className="w-full text-warning-800 border-warning-800 hover:bg-warning hover:text-white"
                                             onClick={() => setStatusUpdateMode(true)}
                                         >
@@ -423,7 +438,7 @@ export default function FeeTransactionMain() {
                                         </Button>
                                     ) : (
                                         <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                                            
+
                                             {/* Container to make inputs look neat together */}
                                             <div className="bg-surface rounded-lg border border-border p-3 space-y-3">
                                                 <SearchSelect
@@ -445,9 +460,9 @@ export default function FeeTransactionMain() {
 
                                             {/* Action Buttons */}
                                             <div className="flex gap-2">
-                                                <Button 
-                                                    variant="primary" 
-                                                    size="sm" 
+                                                <Button
+                                                    variant="primary"
+                                                    size="sm"
                                                     className="flex-1"
                                                     isLoading={updateStatusMutation.isPending}
                                                     disabled={!selectedStatus}
@@ -455,9 +470,9 @@ export default function FeeTransactionMain() {
                                                 >
                                                     <i className="fas fa-save mr-2"></i> Save Update
                                                 </Button>
-                                                <Button 
-                                                    variant="outline" 
-                                                    size="sm" 
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
                                                     className="flex-1"
                                                     onClick={() => {
                                                         setStatusUpdateMode(false);

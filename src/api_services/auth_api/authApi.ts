@@ -194,6 +194,38 @@ export const useUpdateUser = () => {
 };
 
 
+export const useUpdateProfileImage = () => {
+
+  return useMutation({
+    mutationFn: async ({ userId, file }: { userId: string; file: File }) => {
+      try {
+        // 1. We MUST use FormData to send files to the backend via Multer
+        const formData = new FormData();
+        
+        // "file" MUST match the field name expected by your backend Multer middleware (e.g., upload.single('file'))
+        formData.append("file", file); 
+
+        // 2. Make the PUT request with the correct headers
+        const { data } = await Api.put(`/api/user/update-profile-img/${userId}`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        if (data.ok) return data;
+        throw new Error(data.message || 'Image upload failed');
+        
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage, { cause: error });
+      }
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate the user query so the new image fetches immediately
+      queryClient.invalidateQueries({ queryKey: ['user', variables.userId] });
+    },
+  });
+};
 
 // --- Hook 2: Get Single User (Query) ---
 export const useGetSingleUser = (userId: string | undefined) => {

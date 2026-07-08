@@ -339,12 +339,18 @@ export const useUpsertEmployeeProfile = () => {
 
     return useMutation({
         mutationFn: async ({
-            userId, schoolId, fields, documents, salaryAmount, salaryDate, salarySlipFile
+            userId, schoolId, fields, documents, salaryAmount, salaryDate, salarySlipFile,
+            panDocument,
+            aadhaarDocument,
+            appointmentLetter
         }: {
             userId: string;
             schoolId: string;
             fields?: Record<string, any>;
             documents?: File[];
+            panDocument?: File;
+            aadhaarDocument?: File;
+            appointmentLetter?: File;
             salaryAmount?: number;
             salaryDate?: string;
             salarySlipFile?: File;
@@ -366,6 +372,10 @@ export const useUpsertEmployeeProfile = () => {
                     documents.forEach((file) => formData.append("documents", file));
                 }
 
+                if (panDocument) formData.append("panDocument", panDocument);
+                if (aadhaarDocument) formData.append("aadhaarDocument", aadhaarDocument);
+                if (appointmentLetter) formData.append("appointmentLetter", appointmentLetter);
+
                 if (salaryAmount !== undefined) formData.append("salaryAmount", String(salaryAmount));
                 if (salaryDate !== undefined) formData.append("salaryDate", salaryDate);
                 if (salarySlipFile) formData.append("salarySlipFile", salarySlipFile);
@@ -379,6 +389,33 @@ export const useUpsertEmployeeProfile = () => {
                 );
 
                 if (!data.ok) throw new Error(data.message || 'Failed to save profile');
+                return data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employee-profiles-infinite'] });
+        },
+    });
+};
+
+
+
+export const useDeleteSpecificDocument = () => {
+    const { currentRole } = useAuthData();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ userId, field }: { userId: string; field: string }) => {
+            try {
+                // Ensure proper permissions
+                checkPermission(currentRole, ["correspondent", "administrator", "principal", "teacher"]);
+
+                const { data } = await Api.delete(`/api/employee-profile/${userId}/delete-specific-document?field=${field}`);
+
+                if (!data.ok) throw new Error(data.message || 'Failed to delete document');
                 return data;
             } catch (error: any) {
                 const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';

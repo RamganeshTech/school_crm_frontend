@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Card, CardHeader, CardContent } from '../../../shared/ui/Card';
 import { Button } from '../../../shared/ui/Button';
@@ -16,6 +16,7 @@ import {
 import { Toggle } from '../../../shared/ui/Toggle';
 import { SideModal } from '../../../shared/ui/SideModal';
 import BillRecordsMain from './BillRecordsMain';
+import { useSearchParams } from 'react-router-dom';
 
 export default function BillBookConfig() {
     const { schoolId } = useSelector((state: RootState) => state.auth);
@@ -35,6 +36,22 @@ export default function BillBookConfig() {
 
 
     const [selectedBookForRecords, setSelectedBookForRecords] = useState<any>(null);
+
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // 🌟 NEW: Listen for billBookId and open the records view once data is loaded
+    useEffect(() => {
+        const billBookId = searchParams.get('billBookId');
+
+        // Wait until billBooks are loaded from the API
+        if (billBookId && billBooks && billBooks.length > 0) {
+            const foundBook = billBooks.find((b: any) => b._id === billBookId);
+
+            if (foundBook && !selectedBookForRecords) {
+                setSelectedBookForRecords(foundBook);
+            }
+        }
+    }, [searchParams, billBooks]);
 
     // --- Edit Modal State ---
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -134,7 +151,17 @@ export default function BillBookConfig() {
             <div className="h-full">
                 <BillRecordsMain
                     billBook={selectedBookForRecords}
-                    onBack={() => setSelectedBookForRecords(null)}
+                    // onBack={() => setSelectedBookForRecords(null)}
+                    onBack={() => {
+                        setSelectedBookForRecords(null);
+                        
+                        // 🌟 Clear the URL params so it doesn't get stuck
+                        if (searchParams.get('billBookId')) {
+                            searchParams.delete('billBookId');
+                            searchParams.delete('type');
+                            setSearchParams(searchParams, { replace: true });
+                        }
+                    }}
                 />
             </div>
         );

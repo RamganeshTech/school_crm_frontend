@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useGetSingleUser, useUpdateUser } from '../../api_services/auth_api/authApi';
+import { useGetSingleUser, useUpdateProfileImage, useUpdateUser } from '../../api_services/auth_api/authApi';
 import { useSelector } from 'react-redux';
 import { Input } from '../../shared/ui/Input';
 import { Button } from '../../shared/ui/Button';
@@ -68,7 +68,14 @@ export default function UserProfile() {
     const { _id, role, schoolId } = useSelector((state: RootState) => state.auth);
 
     const { data: user, isLoading, isError } = useGetSingleUser(_id!);
+
+    // --- Refs and Hooks ---
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    // Add this near your other states (like isEditing, activeTab, etc.)
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
     const updateUserMutation = useUpdateUser();
+    const updateImageMutation = useUpdateProfileImage();
 
     const [showAssignments, setShowAssignments] = useState(true);
 
@@ -165,6 +172,36 @@ export default function UserProfile() {
         }
     };
 
+
+    // 🌟 NEW: Handler for the file input
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Basic validation before hitting the server
+        if (!file.type.startsWith('image/')) {
+            toast.error("Please select a valid image file (JPG, PNG, etc.)");
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            toast.error("Image size should be less than 5MB");
+            return;
+        }
+
+        try {
+            await updateImageMutation.mutateAsync({ userId: _id!, file });
+            toast.success("Profile picture updated successfully!");
+        } catch (error: any) {
+            toast.error(error.message || "Failed to update profile picture");
+        } finally {
+            // Reset the input so the user can select the same file again if needed
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
+
     return (
         <div className="w-full max-w-full mx-auto !h-full max-h-full overflow-y-auto space-y-6 p-2">
 
@@ -192,13 +229,6 @@ export default function UserProfile() {
                     <button onClick={() => setActiveTab('profile')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
                         <i className="far fa-id-card mr-2"></i> Profile
                     </button>
-                    {/* <button onClick={() => setActiveTab('details')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
-                        <i className="fas fa-briefcase mr-2"></i> HR & Employment Details
-                    </button>
-                    <button onClick={() => setActiveTab('documents')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'documents' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
-                        <i className="fas fa-folder-open mr-2"></i> Documents
-                    </button> */}
-
                     {EMPLOYEE_PROFILE_TABS.map((tab) => (
                         <button
                             key={tab.key}
@@ -214,7 +244,6 @@ export default function UserProfile() {
 
 
             {activeTab === 'profile' && (
-
                 <>
                     {/* --- Main Profile & School Grid --- */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -233,17 +262,79 @@ export default function UserProfile() {
                                 </button>
                             )}
 
-                            <div className="w-24 h-24 rounded-full bg-primary-soft text-primary flex items-center justify-center text-3xl mb-4 shadow-sm">
+                            {/* <div className="w-24 h-24 rounded-full bg-primary-soft text-primary flex items-center justify-center text-3xl mb-4 shadow-sm">
                                 <i className="fas fa-user"></i>
+                            </div> */}
+
+
+                            {/* 🌟 UPDATED: Avatar Area with Image Rendering */}
+                            <div className="flex items-start !justify-between gap-4 sm:gap-10 mb-5">
+                                <div className="flex flex-col items-center shrink-0">
+                                    <div
+                                        className="w-24 h-24 rounded-full bg-primary-soft text-primary flex items-center justify-center text-3xl shadow-sm overflow-hidden border border-border relative"
+                                        onClick={() => {
+                                            if (user?.profileImage?.url) setIsImageModalOpen(true);
+                                        }}
+                                        title={user?.profileImage?.url ? "Click to view full image" : ""}
+                                    >
+
+                                        {/* Render the image if it exists, otherwise fallback to the icon */}
+                                        {user?.profileImage?.url ? (
+                                            <img
+                                                src={user.profileImage?.url}
+                                                alt="Profile"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <i className="fas fa-user"></i>
+                                        )}
+
+                                        {/* Optional loading overlay inside the avatar */}
+                                        {updateImageMutation.isPending && (
+                                            <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px] flex items-center justify-center">
+                                                <i className="fas fa-circle-notch fa-spin text-primary text-xl"></i>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* 🌟 NEW: Mobile-Friendly "Change Picture" Button */}
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={updateImageMutation.isPending}
+                                        className="mt-4 text-[11px] font-bold text-foreground hover:text-primary transition-colors flex items-center gap-1.5 bg-background px-3 py-1.5 rounded-full border border-border shadow-sm disabled:opacity-50"
+                                    >
+                                        <i className="fas fa-camera text-muted"></i>
+                                        {updateImageMutation.isPending ? 'Uploading...' : 'Change Picture'}
+                                    </button>
+
+                                    {/* 🌟 NEW: Hidden File Input */}
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        accept="image/jpeg, image/png, image/webp"
+                                        onChange={handleImageUpload}
+                                    />
+                                </div>
+
+                                {/* RIGHT: Static Name & Role */}
+                                <div className="flex flex-col pt-1 sm:pt-3 h-full justify-center">
+                                    <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-1.5 leading-tight">
+                                        {user?.userName || 'User'}
+                                    </h2>
+                                    <span className="w-fit px-2.5 py-1 bg-primary-soft text-primary text-[10px] sm:text-xs font-bold rounded-md uppercase tracking-wide">
+                                        {user?.role || 'Role'}
+                                    </span>
+                                </div>
                             </div>
 
                             {!isEditing ? (
                                 // --- VIEW MODE ---
                                 <>
-                                    <h2 className="text-xl font-semibold text-foreground mb-1">{user?.userName}</h2>
+                                    {/* <h2 className="text-xl font-semibold text-foreground mb-1">{user?.userName}</h2>
                                     <span className="px-3 py-1 bg-primary-soft text-primary text-sm font-medium rounded-full uppercase tracking-wide mb-4">
                                         {user?.role}
-                                    </span>
+                                    </span> */}
 
                                     <div className="w-full space-y-3 mt-2 text-left border-t border-border pt-4">
                                         <div className="flex items-center gap-3 text-muted text-sm">
@@ -259,9 +350,9 @@ export default function UserProfile() {
                             ) : (
                                 // --- EDIT MODE ---
                                 <div className="w-full flex flex-col gap-4 mt-2">
-                                    <span className="px-3 py-1 bg-primary-soft text-primary text-sm font-medium rounded-full uppercase tracking-wide mx-auto mb-2">
+                                    {/* <span className="px-3 py-1 bg-primary-soft text-primary text-sm font-medium rounded-full uppercase tracking-wide mx-auto mb-2">
                                         {user?.role}
-                                    </span>
+                                    </span> */}
 
                                     <Input
                                         id="userName"
@@ -483,6 +574,36 @@ export default function UserProfile() {
                 refetch={refetchProfile}
             />
 
+
+            {/* 🌟 NEW: Full Screen Image Popup */}
+            {isImageModalOpen && user?.profileImage?.url && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+
+                    {/* Clickable backdrop to close */}
+                    <div
+                        className="absolute inset-0 cursor-zoom-out"
+                        onClick={() => setIsImageModalOpen(false)}
+                    ></div>
+
+                    {/* Close Button */}
+                    <button
+                        onClick={() => setIsImageModalOpen(false)}
+                        className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors"
+                        title="Close"
+                    >
+                        <i className="fas fa-times text-xl"></i>
+                    </button>
+
+                    {/* The Full Size Image */}
+                    <div className="relative z-10 max-w-full max-h-full">
+                        <img
+                            src={user.profileImage.url}
+                            alt="Profile Full Size"
+                            className="max-w-full max-h-[90vh] rounded-xl shadow-2xl object-contain border-2 border-white/10"
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

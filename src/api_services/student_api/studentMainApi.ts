@@ -287,7 +287,7 @@ export const useDeleteStudent = () => {
   return useMutation<ApiResponse, Error, string>({
     mutationFn: async (id: string) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator"]);
+        checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
 
         const { data } = await Api.delete<ApiResponse>(`/api/student/delete/${id}`);
 
@@ -323,7 +323,7 @@ export const useDeleteStudentDocument = () => {
   return useMutation({
     mutationFn: async ({ studentId, documentId }: DeleteDocumentPayload) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator", "accountant"]);
+        checkPermission(currentRole, ["correspondent", "administrator", "accountant", "teacher"]);
 
         const { data } = await Api.delete<ApiResponse>(
             `/api/student/v1/delete-document/${studentId}/${documentId}`

@@ -7,11 +7,21 @@ import { useNavigate } from 'react-router-dom';
 // import type { RootState } from '../../features/store/store';
 // import { getParentMenu, principalMenu } from '../../constants/constants';
 import { useAuthorizedMenu } from '../../hooks/useAuthorizedMenu';
+import { useAuthData } from '../../hooks/useAuthData';
+import { useGlobalSearch } from '../../api_services/globalSearch_api/globalSearchApi';
 
 export const GlobalSearch = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(0);
+
+    const { schoolId } = useAuthData(); // adjust to however you store it
+
+    // 🌟 NEW: entity search (students, receipts, bills, etc.)
+    const { entityResults, isSearching } = useGlobalSearch(schoolId!, query);
+
+
+
 
     const navigate = useNavigate();
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -42,7 +52,7 @@ export const GlobalSearch = () => {
         const flattened: any[] = [];
 
         availableModules.forEach((module: any) => {
-            if (module.subMenu && module.subMenu.length > 0) {
+            if (module.subMenu && module?.subMenu.length > 0) {
                 // If it has a submenu, add all the sub-items but completely ignore the parent
                 flattened.push(...module.subMenu);
             } else {
@@ -64,8 +74,37 @@ export const GlobalSearch = () => {
     }, [query, searchableModules]);
 
 
+    // 🌟 NEW: combined list drives keyboard nav — modules first, then live entity results
+    const combinedList = useMemo(
+        () => [...filteredModules, ...entityResults],
+        [filteredModules, entityResults]
+    );
+
+
+
     // 3. Handle Keyboard Navigation (Up, Down, Enter, Escape)
     const handleKeyDown = (e: React.KeyboardEvent) => {
+        // if (!isOpen) {
+        //     if (e.key === 'Enter' || e.key === 'ArrowDown') setIsOpen(true);
+        //     return;
+        // }
+
+        // if (e.key === 'ArrowDown') {
+        //     e.preventDefault();
+        //     setSelectedIndex(prev => (prev < filteredModules.length - 1 ? prev + 1 : prev));
+        // } else if (e.key === 'ArrowUp') {
+        //     e.preventDefault();
+        //     setSelectedIndex(prev => (prev > 0 ? prev - 1 : 0));
+        // } else if (e.key === 'Enter') {
+        //     e.preventDefault();
+        //     if (filteredModules[selectedIndex]) {
+        //         handleSelect(filteredModules[selectedIndex].path);
+        //     }
+        // } else if (e.key === 'Escape') {
+        //     setIsOpen(false);
+        //     setQuery('');
+        // }
+
         if (!isOpen) {
             if (e.key === 'Enter' || e.key === 'ArrowDown') setIsOpen(true);
             return;
@@ -73,14 +112,14 @@ export const GlobalSearch = () => {
 
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            setSelectedIndex(prev => (prev < filteredModules.length - 1 ? prev + 1 : prev));
+            setSelectedIndex(prev => (prev < combinedList?.length - 1 ? prev + 1 : prev));
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
             setSelectedIndex(prev => (prev > 0 ? prev - 1 : 0));
         } else if (e.key === 'Enter') {
             e.preventDefault();
-            if (filteredModules[selectedIndex]) {
-                handleSelect(filteredModules[selectedIndex].path);
+            if (combinedList[selectedIndex]) {
+                handleSelect(combinedList[selectedIndex].path);
             }
         } else if (e.key === 'Escape') {
             setIsOpen(false);
@@ -183,7 +222,9 @@ export const GlobalSearch = () => {
                 {/* DROPDOWN RESULTS */}
                 {isOpen && (
                     <div className="absolute top-full left-0 right-0 mt-3 bg-surface border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                        {filteredModules.length > 0 ? (
+                        {/* {filteredModules.length > 0 ? ( */}
+                        {filteredModules.length > 0 || entityResults.length > 0 || isSearching ? (
+
                             <div className="max-h-80 overflow-y-auto p-2">
                                 <div className="px-3 py-2 text-xs font-bold text-muted uppercase tracking-wider">
                                     Suggested Modules
@@ -210,6 +251,50 @@ export const GlobalSearch = () => {
                                         )}
                                     </div>
                                 ))}
+
+
+                                {isSearching && (
+                                    <div className="px-3 py-2 text-xs text-muted flex items-center gap-2">
+                                        <i className="fa-solid fa-circle-notch fa-spin"></i>
+                                        Searching records…
+                                    </div>
+                                )}
+                                {entityResults?.length > 0 && (
+                                    <>
+                                        <div className="px-3 py-2 text-xs font-bold text-muted uppercase tracking-wider">
+                                            Results
+                                        </div>
+                                        {entityResults?.map((item, i) => {
+                                            const index = filteredModules.length + i;
+                                            return (
+                                                <div
+                                                    key={item._id}
+                                                    onClick={() => handleSelect(item.path)}
+                                                    onMouseEnter={() => setSelectedIndex(index)}
+                                                    className={`flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer transition-colors duration-150
+                                                        ${index === selectedIndex ? 'bg-primary-soft text-primary' : 'text-foreground hover:bg-mainBg'}
+                                                    `}
+                                                >
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center 
+                                                        ${index === selectedIndex ? 'bg-primary text-white shadow-md' : 'bg-mainBg text-muted border border-border'}
+                                                    `}>
+                                                        <i className={item.icon}></i>
+                                                    </div>
+                                                    <div className="flex flex-col min-w-0">
+                                                        <span className="text-sm font-semibold truncate">{item.title}</span>
+                                                        {item.subtitle && (
+                                                            <span className="text-xs text-muted truncate">{item.subtitle}</span>
+                                                        )}
+                                                    </div>
+
+                                                    {index === selectedIndex && (
+                                                        <i className="fa-solid fa-arrow-right ml-auto text-primary opacity-50 text-xs shrink-0"></i>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </>
+                                )}
                             </div>
                         ) : (
                             <div className="p-8 text-center flex flex-col items-center justify-center">

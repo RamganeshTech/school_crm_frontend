@@ -52,6 +52,7 @@ export default function StudentRecordMain() {
         sectionId: '',
         newOld: '',
         isActive: '',
+        feeStatus: "",
         // isBusApplicable: '',
         isFullyPaid: '',
         hasConcession: '',
@@ -153,8 +154,9 @@ export default function StudentRecordMain() {
         setFilters({
             academicYear: '2026-2027',
             classId: '', sectionId: '', newOld: '', isActive: '',
+            feeStatus: "",
             // isBusApplicable: '',
-             isFullyPaid: '', hasConcession: '', limit: 40
+            isFullyPaid: '', hasConcession: '', limit: 40
         });
     };
 
@@ -175,10 +177,16 @@ export default function StudentRecordMain() {
     const sectionOptions: SelectOption[] = sectionsData?.map((sec: any) => ({ label: sec.name, value: sec._id })) || [];
 
     // ADD THESE NEW ARRAYS:
-    const statusOptions: SelectOption[] = [
-        { label: 'All Statuses', value: '' },
-        { label: 'Active Only', value: 'true' },
-        { label: 'Inactive Only', value: 'false' },
+    // const statusOptions: SelectOption[] = [
+    //     { label: 'All Statuses', value: '' },
+    //     { label: 'Active Only', value: 'true' },
+    //     { label: 'Inactive Only', value: 'false' },
+    // ];
+
+    const feeStatusOptions: SelectOption[] = [
+        { label: 'All Status', value: '' },
+        { label: 'Paid', value: 'paid' },
+        { label: 'Not Paid', value: 'unpaid' },
     ];
 
     // const busOptions: SelectOption[] = [
@@ -234,7 +242,7 @@ export default function StudentRecordMain() {
                 </div>
             </div>
 
-            
+
 
             {/* --- Main Layout --- */}
             <div className="flex flex-col lg:flex-row gap-2 h-[calc(100%-80px)] relative">
@@ -279,7 +287,34 @@ export default function StudentRecordMain() {
                         </div>
 
                         <div className="flex flex-col gap-1.5">
-                            <SearchSelect label="Record Status" options={statusOptions} value={filters.isActive} onChange={(opt) => handleFilterChange('isActive', String(opt.value))} placeholder="Select Status..." />
+                            {/* <SearchSelect label="Record Status" options={statusOptions} value={filters.isActive}
+                             onChange={(opt) => handleFilterChange('isActive', String(opt.value))} placeholder="Select Status..." /> */}
+
+                            {/* <SearchSelect label="Fee Status" options={feeStatusOptions} value={filters.isActive}
+                             onChange={(opt) => handleFilterChange('feeStatus', String(opt.value))} placeholder="Select Status..." /> */}
+
+                            <label className="text-sm font-medium text-gray-700">Fee Status</label>
+                            <div className="flex flex-wrap gap-2">
+                                {feeStatusOptions.map((option) => {
+                                    // Check if the current chip matches the selected filter state
+                                    // If filters.feeStatus is undefined, it defaults to the empty/All option
+                                    const isSelected = (filters.feeStatus || '') === String(option.value);
+
+                                    return (
+                                        <button
+                                            key={String(option.value)}
+                                            type="button"
+                                            onClick={() => handleFilterChange('feeStatus', String(option.value))}
+                                            className={`cursor-pointer px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 border ${isSelected
+                                                    ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm' // Active State
+                                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' // Inactive State
+                                                }`}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
 
                         <div className="flex flex-col gap-1.5">
@@ -309,8 +344,8 @@ export default function StudentRecordMain() {
                                 <Th className="w-12 text-center">No.</Th>
                                 <Th>Student Info</Th>
                                 <Th>Class/Section</Th>
-                                <Th>Financial Features</Th>
-                                <Th>Status</Th>
+                                <Th>Financial Status</Th>
+                                <Th>Active Status</Th>
                                 <Th className="text-right">Actions</Th>
                             </tr>
                         </THead>
@@ -340,6 +375,7 @@ export default function StudentRecordMain() {
                                             <Td>
                                                 <p className="font-semibold text-foreground">{record.studentName}</p>
                                                 <p className="text-xs text-muted">Roll: {record.rollNumber || 'N/A'}</p>
+                                                <p className="text-xs text-muted">{record.srId || 'N/A'}</p>
                                             </Td>
 
                                             {/* Class/Section Details */}
@@ -356,20 +392,37 @@ export default function StudentRecordMain() {
                                                     {record.isFullyPaid && <span className="px-2 py-0.5 rounded text-[10px] bg-success/10 text-success border border-success/20">Fully Paid</span>}
                                                 </div> */}
 
-                                                <div className="flex flex-wrap gap-1.5">
+                                                <div className="flex flex-col gap-1.5">
                                                     {/* Check if any flag is active */}
-                                                    {record.hasConcession || record.isFullyPaid ? (
+                                                    {/* {record.hasConcession || record.isFullyPaid ? (
                                                         <>
-                                                            {/* {record.isBusApplicable && <span className="px-2 py-0.5 rounded text-[10px] bg-warning/10 text-warning border border-warning/20">Bus</span>} */}
                                                             {record.hasConcession && <span className="px-2 py-1 rounded text-[10px] bg-primary/10 text-primary border border-primary/20">Concession</span>}
                                                             {record.isFullyPaid && <span className="px-2 py-0.5 rounded text-[10px] bg-success/10 text-success border border-success/20">Fully Paid</span>}
                                                         </>
                                                     ) : (
-                                                        /* Fallback when none are active */
                                                         <span className="px-2 py-0.5 rounded text-[10px] bg-surface text-muted border border-border">
                                                             Not Mentioned
                                                         </span>
+                                                    )} */}
+
+
+                                                    {record?.feeStatus === "paid" ? (
+                                                        <>
+                                                            {/* {record.feestatus && <span className="px-2 py-1 rounded text-[10px] bg-primary/10 text-primary border border-primary/20">{record.feeStatus}</span>} */}
+                                                            <span className="w-fit px-2 py-1 bg-success/10 text-success border border-success/20 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                                                                {record?.feeStatus || "paid"}
+                                                            </span>
+                                                            {/* {record.isFullyPaid && <span className="px-2 py-0.5 rounded text-[10px] bg-success/10 text-success border border-success/20">Fully Paid</span>} */}
+                                                        </>
+                                                    ) : (
+                                                        <span className="w-fit px-2 py-1 bg-warning/10 text-warning-800 border border-warning/30 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                                                            {record?.feeStatus || "unpaid"}
+                                                        </span>
                                                     )}
+
+
+                                                    {record.hasConcession && <span className="w-fit  px-2 py-1 rounded text-[10px] bg-primary/10 text-primary border border-primary/20">Concession Applied</span>}
+
                                                 </div>
                                             </Td>
 
@@ -382,7 +435,10 @@ export default function StudentRecordMain() {
                                                 >
                                                     <i className={`fas fa-circle text-[8px] ${record.isActive ? 'text-success' : 'text-muted'}`}></i>
                                                 </button> */}
-                                                {record.isActive ? 'Active' : 'Inactive'}
+                                                <span className={`w-fit px-2 py-1 border ${record.isActive ? "bg-success/10 text-success border-success/20" : "bg-warning/10 text-warning-800 border-warning/30"}   rounded text-[10px] font-bold uppercase tracking-wider shadow-sm`}>
+                                                    {/* {record?.feeStatus || "paid"} */}
+                                                    {record?.isActive ? 'Active' : 'Inactive'}
+                                                </span>
                                             </Td>
 
                                             {/* Actions */}
@@ -405,7 +461,7 @@ export default function StudentRecordMain() {
                                                     {canDeleteStudentRecord && <Button
                                                         variant="ghost" size="icon"
                                                         className="hover:text-danger hover:bg-danger/10 text-danger"
-                                                        onClick={() => handleDelete(record._id, record.studentName)}
+                                                        onClick={() => handleDelete(record?.recordId, record.studentName)}
                                                         title="Delete Record"
                                                     >
                                                         <i className="fas fa-trash"></i>
