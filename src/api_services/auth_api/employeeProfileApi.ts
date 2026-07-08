@@ -411,7 +411,7 @@ export const useDeleteSpecificDocument = () => {
         mutationFn: async ({ userId, field }: { userId: string; field: string }) => {
             try {
                 // Ensure proper permissions
-                checkPermission(currentRole, ["correspondent", "administrator", "principal", "teacher"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "teacher", "principal", "viceprincipal", "accountant"]);
 
                 const { data } = await Api.delete(`/api/employee-profile/${userId}/delete-specific-document?field=${field}`);
 
