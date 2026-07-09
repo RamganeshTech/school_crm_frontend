@@ -13,14 +13,14 @@ import { TableContainer, THead, Th, TBody, Tr, Td } from '../../../shared/ui/Tab
 import { SearchSelect, type SelectOption } from '../../../shared/ui/SearchSelect';
 import {
     // useGetAllStudentRecords,
-    useDeleteStudentRecord,
+    // useDeleteStudentRecord,
     useGetAllStudentRecordsV1
 } from '../../../api_services/student_api/studentRecordApi';
 import { useGetSchoolById } from '../../../api_services/schoolConfig_api/schoolapi';
 import { getAcademicYears } from '../../../utils/utils';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthData } from '../../../hooks/useAuthData';
-import { useRoleCheck } from '../../../hooks/useRoleCheck';
+// import { useRoleCheck } from '../../../hooks/useRoleCheck';
 // import { toast } from '../../../shared/ui/ToastContext';
 // import { useGetAllStudents } from '../../../api_services/student_api/studentMainApi';
 //import { toast } from '../../../shared/ui/ToastContext';
