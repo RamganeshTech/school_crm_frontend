@@ -374,8 +374,8 @@ export default function ExpenseMain() {
                                                 </span>
                                             </Td>
                                             <Td>
-                                                <span className={`px-2 py-1 text-[10px] rounded uppercase font-bold tracking-wider ${expense.status === 'verified' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
-                                                    {expense.status || 'Pending'}
+                                                <span className={`px-2 py-1 text-[10px] rounded uppercase font-bold tracking-wider ${expense.verificationStatus === 'verified' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                                                    {expense.verificationStatus || 'Pending'}
                                                 </span>
                                             </Td>
                                             <Td>

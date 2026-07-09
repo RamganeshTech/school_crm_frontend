@@ -670,6 +670,38 @@ export const useToggleStudentRecordStatus = () => {
   });
 };
 
+
+// ==========================================
+// 10. TOGGLE STUDENT RECORD STATUS
+// ==========================================
+export const useUpdateStudentRecordNewOldType = () => {
+  const queryClient = useQueryClient();
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async ({ studentId, newOld, academicYear, schoolId }: {studentId:string, newOld:string, academicYear:string, schoolId:string}) => {
+      try {
+        // Note: backend lists "administrator" twice in multiRoleAuth.
+        checkPermission(currentRole, ["administrator", "correspondent", "accountant"]);
+
+        const { data } = await Api.patch<ApiResponse>(`/api/studentrecord/v1/update-student-type/${studentId}/${schoolId}`, { newOld, academicYear });
+
+        if (data.ok) {
+          return data;
+        } else {
+          throw new Error(data.message || 'Failed to update student record');
+        }
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+        throw new Error(errorMessage);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['studentRecords'] });
+    },
+  });
+};
+
 // ==========================================
 // 11. DELETE STUDENT RECORD
 // ==========================================
@@ -699,3 +731,5 @@ export const useDeleteStudentRecord = () => {
     },
   });
 };
+
+

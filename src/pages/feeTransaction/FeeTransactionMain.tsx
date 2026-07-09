@@ -501,6 +501,10 @@ export default function FeeTransactionMain() {
                                         <span className="font-bold text-primary bg-primary/5 px-2 py-1 rounded border border-primary/10">{singleTxn.receiptNo}</span>
                                     </div>
                                     <div className="flex justify-between items-center border-b border-border/50 pb-3">
+                                        <span className="text-muted text-xs">Bill No.</span>
+                                        <span className="font-bold text-primary bg-primary/5 px-2 py-1 rounded border border-primary/10">{singleTxn.billNo || "N/A"}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-b border-border/50 pb-3">
                                         <span className="text-muted text-xs">Date & Time</span>
                                         <span className="font-medium text-foreground">
                                             {new Date(singleTxn.paymentDate || singleTxn.createdAt).toLocaleString('en-IN', {

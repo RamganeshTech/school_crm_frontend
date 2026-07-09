@@ -5,12 +5,13 @@ import { useAuthData } from '../../hooks/useAuthData';
 import { Button } from '../../shared/ui/Button';
 import { Input, Label } from '../../shared/ui/Input';
 import { SearchSelect, type SelectOption } from '../../shared/ui/SearchSelect';
-import { useDeleteExpenseProof, useGetExpenseById, useUpdateExpense } from '../../api_services/expense_api/expenseApi';
+import { useDeleteExpenseProof, useGetExpenseById, useUpdateExpense, useUpdateExpenseStatus } from '../../api_services/expense_api/expenseApi';
 import { toast } from '../../shared/ui/ToastContext';
 import { ImageGallery } from '../../shared/components/ImageGallery';
 import { downloadImageUtil } from '../../api_services/download_api/downloadApi';
 import { EXPENSE_CATEGORY_OPTIONS, PAYMENT_MODE_OPTIONS } from './ExpenseMain';
 import { useRoleCheck } from '../../hooks/useRoleCheck';
+import { Toggle } from '../../shared/ui/Toggle';
 
 export default function ExpenseSingle() {
     const { id } = useParams<{ id: string }>();
@@ -26,6 +27,9 @@ export default function ExpenseSingle() {
     // --- State ---
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState<any>({});
+
+    // Add this near your other mutations
+    const updateStatusMutation = useUpdateExpenseStatus();
 
     // File upload states
     const [newBillProof, setNewBillProof] = useState<File[]>([]);
@@ -97,12 +101,23 @@ export default function ExpenseSingle() {
             await updateExpenseMutation.mutateAsync({ id, formData });
             setIsEditing(false); // Switch back to view mode on success
             toast.success("Updated Successfully")
-
-
         } catch (error: any) {
-            toast.error(error.message || "failed to create expense")
+            toast.error(error?.message || "failed to create expense")
+        }
+    };
 
 
+    const handleToggleVerification = async (checked: boolean) => {
+        const newStatus = checked ? 'verified' : 'pending';
+        try {
+            await updateStatusMutation.mutateAsync({
+                id: expense._id, // Assuming your expense object has _id
+                status: newStatus
+            });
+            // refetch()
+            toast.success(`Expense successfully marked as ${newStatus}`);
+        } catch (error: any) {
+            toast.error(error?.message || "Failed to update verification status.");
         }
     };
 
@@ -244,31 +259,56 @@ export default function ExpenseSingle() {
                                 Expense Details
                             </h1>
                             {!isEditing && (
-                                <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded ${expense.status === 'verified' ? 'bg-success/10 text-success border border-success/20' : 'bg-warning/10 text-warning border border-warning/20'}`}>
-                                    {expense.status || 'Pending'}
+                                <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded ${expense.verificationStatus === 'verified' ? 'bg-success/10 text-success border border-success/20' : 'bg-warning/10 text-warning border border-warning/20'}`}>
+                                    Verification: {expense.verificationStatus || 'Pending'}
                                 </span>
                             )}
                         </div>
                         <p className="text-xs font-medium text-muted mt-1 uppercase tracking-wider">
-                            Ref: {expense._id?.slice(-8)} • {new Date(expense.createdAt).toLocaleDateString()}
+                            Ref: {expense?.expenseNo} • {new Date(expense.createdAt).toLocaleDateString()}
                         </p>
                     </div>
                 </div>
 
-                {canEdit && <div className="flex items-center gap-3">
-                    {isEditing ? (
-                        <>
-                            <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
-                            <Button variant="primary" onClick={handleSave} isLoading={updateExpenseMutation.isPending} leftIcon="fas fa-save">
-                                Save Changes
-                            </Button>
-                        </>
-                    ) : (
-                        <Button variant="outline" onClick={() => setIsEditing(true)} leftIcon="fas fa-pen">
-                            Edit Expense
-                        </Button>
-                    )}
-                </div>}
+                {canEdit &&
+                    <div className="flex items-center gap-4">
+
+                        {/* 🌟 NEW: Verification Toggle */}
+                        {!isEditing && (
+                            <div className="flex items-center gap-3 pr-4 border-r border-border">
+                                <span className={`text-[10px] font-bold uppercase tracking-wider ${expense.verificationStatus === 'verified' ? 'text-success' : 'text-warning'}`}>
+                                    {expense.verificationStatus === 'verified' ? 'Verified' : 'Pending'}
+                                </span>
+                                <Toggle
+                                    checked={expense.verificationStatus === 'verified'}
+                                    onChange={handleToggleVerification}
+                                    disabled={updateStatusMutation.isPending}
+                                />
+                            </div>
+                        )}
+
+
+                        <div className="flex items-center gap-3">
+                            {isEditing ? (
+                                <>
+                                    <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
+                                    <Button variant="primary" onClick={handleSave} isLoading={updateExpenseMutation.isPending} leftIcon="fas fa-save">
+                                        Save Changes
+                                    </Button>
+                                </>
+                            ) : (
+                                <Button variant="outline" onClick={() => setIsEditing(true)} leftIcon="fas fa-pen">
+                                    Edit Expense
+                                </Button>
+                            )}
+                        </div>
+
+
+                    </div>
+                }
+
+
+
             </header>
 
             {/* 2. MAIN CONTENT (Two Column Split) */}

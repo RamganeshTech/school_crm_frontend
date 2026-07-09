@@ -17,7 +17,7 @@ import { SearchSelect } from '../../shared/ui/SearchSelect';
 import { getAcademicYears } from '../../utils/utils';
 import { useRoleCheck } from '../../hooks/useRoleCheck';
 import BillBookConfig from './billBook_pages/BillBookConfig';
-import AdmissionBookConfig from './AdmissionBookConfig';
+import AdmissionBookConfig from './Admission_Pages/admissionRecords_pages/AdmissionBookConfig';
 import SystemReadinessCard from './SystemReadinessCard';
 import AcademicTimelineConfig from './AcademicTimelineConfig';
 import { useSearchParams } from 'react-router-dom';
@@ -54,6 +54,9 @@ export default function SchoolConfiguration() {
         const type = searchParams.get('type');
         if (type === 'billrecord' && canManageBillBook) {
             setActiveTab('billbook');
+        }
+        if (type === "admissionbook") {
+            setActiveTab('admissionbook');
         }
     }, [searchParams, canManageBillBook]);
 

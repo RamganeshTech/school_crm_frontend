@@ -9,6 +9,8 @@ import { Input } from '../../../shared/ui/Input';
 import { TableContainer, TBody, Td, Th, THead, Tr } from '../../../shared/ui/TableLayout';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { SideModal } from '../../../shared/ui/SideModal';
+import { SearchSelect } from '../../../shared/ui/SearchSelect';
+import { getAcademicYears } from '../../../utils/utils';
 
 
 
@@ -25,11 +27,15 @@ export default function AdmissionFormMain() {
 
     const currentAcademicYear = schoolData?.currentAcademicYear || "";
 
+    const academicYearOptions = getAcademicYears();
+
+
     // --- State ---
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [filters, setFilters] = useState({
         status: 'All',
         search: '',
+        academicYear: currentAcademicYear,
         startDate: '',
         endDate: ''
     });
@@ -54,7 +60,7 @@ export default function AdmissionFormMain() {
         fetchNextPage
     } = useGetInfiniteAdmissionForms({
         schoolId: schoolId!,
-        academicYear: currentAcademicYear!,
+        academicYear: filters.academicYear!,
         status: filters.status,
         search: debouncedSearch,
         startDate: filters.startDate,
@@ -69,14 +75,14 @@ export default function AdmissionFormMain() {
     const allForms = data?.pages.flatMap(page => page.forms) || [];
 
     // --- Handlers ---
-   const handleGenerateLink = async () => {
+    const handleGenerateLink = async () => {
         try {
             const res = await generateLinkMutation.mutateAsync({ schoolId: schoolId! });
-            
+
             // 🌟 Build the public link using the environment variable or fallback to window origin
             const baseUrl = import.meta.env.VITE_APP_FRONTEND_URL || window.location.origin;
             const publicUrl = `${baseUrl}/public/apply/admission-form/single/${res.data.id}`;
-            
+
             // Open the modal instead of just silently copying to clipboard
             setNewLinkData({
                 url: publicUrl,
@@ -202,6 +208,9 @@ export default function AdmissionFormMain() {
                             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                         />
 
+                        <SearchSelect label="Academic Year" options={academicYearOptions} value={filters.academicYear} onChange={(opt) => setFilters({ ...filters, academicYear: String(opt.value) })} placeholder="Select Year..." />
+
+
                         <div className="flex flex-col gap-1.5">
                             <label className="text-xs font-semibold text-muted">Application Status</label>
                             <select
@@ -311,8 +320,8 @@ export default function AdmissionFormMain() {
 
                                             <Td>
                                                 <span className={`px-2.5 py-1 text-[10px] rounded uppercase font-bold tracking-wider ${form.status === 'Approved' ? 'bg-success/10 text-success' :
-                                                        form.status === 'Rejected' ? 'bg-danger/10 text-danger' :
-                                                            'bg-warning/10 text-warning'
+                                                    form.status === 'Rejected' ? 'bg-danger/10 text-danger' :
+                                                        'bg-warning/10 text-warning'
                                                     }`}>
                                                     {form.status}
                                                 </span>
@@ -360,9 +369,9 @@ export default function AdmissionFormMain() {
 
 
             {/* 🌟 NEW: Link Generation SideModal */}
-            <SideModal 
-                isOpen={isLinkModalOpen} 
-                onClose={() => setIsLinkModalOpen(false)} 
+            <SideModal
+                isOpen={isLinkModalOpen}
+                onClose={() => setIsLinkModalOpen(false)}
                 title="Admission Link Generated"
             >
                 <div className="flex flex-col h-full space-y-6">
@@ -379,17 +388,17 @@ export default function AdmissionFormMain() {
                     <div className="space-y-3">
                         <label className="text-sm font-semibold text-foreground">Public Application Link:</label>
                         <div className="flex items-center gap-2">
-                            <Input 
-                                id="generatedUrl" 
-                                value={newLinkData.url} 
-                                readOnly 
+                            <Input
+                                id="generatedUrl"
+                                value={newLinkData.url}
+                                readOnly
                                 className="flex-1 bg-surface font-mono text-sm"
                             />
                         </div>
-                        <Button 
-                            variant="primary" 
-                            fullWidth 
-                            leftIcon="fas fa-copy" 
+                        <Button
+                            variant="primary"
+                            fullWidth
+                            leftIcon="fas fa-copy"
                             onClick={copyToClipboard}
                         >
                             Copy Link
@@ -397,9 +406,9 @@ export default function AdmissionFormMain() {
                     </div>
 
                     <div className="mt-auto pt-6 border-t border-border flex flex-col gap-3">
-                        <Button 
-                            variant="outline" 
-                            fullWidth 
+                        <Button
+                            variant="outline"
+                            fullWidth
                             leftIcon="fas fa-external-link-alt"
                             onClick={() => {
                                 setIsLinkModalOpen(false);
@@ -408,9 +417,9 @@ export default function AdmissionFormMain() {
                         >
                             Open Form Dashboard Status
                         </Button>
-                        <Button 
-                            variant="ghost" 
-                            fullWidth 
+                        <Button
+                            variant="ghost"
+                            fullWidth
                             onClick={() => setIsLinkModalOpen(false)}
                         >
                             Close

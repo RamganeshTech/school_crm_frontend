@@ -49,6 +49,7 @@ export interface DeleteAdmissionFormParams {
 export interface AdmissionFilterParams {
     schoolId: string;
     academicYear: string;
+    admissionBookId?:string
     status?: string;
     search?: string;
     startDate?: string;

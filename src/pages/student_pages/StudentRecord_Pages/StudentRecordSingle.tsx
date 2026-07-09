@@ -12,6 +12,7 @@ import {
     useVerifyConcession,
     useRevertFeeTransactionv1,
     useApplyConcessionv1,
+    useUpdateStudentRecordNewOldType,
 } from '../../../api_services/student_api/studentRecordApi';
 
 import { useGetClasses } from '../../../api_services/schoolConfig_api/classApi';
@@ -39,7 +40,7 @@ export default function StudentRecordSingle() {
     const navigate = useNavigate();
     const location = useLocation()
 
-    const { isPrincipal, isCorrespondent, isAccountant, isVicePrincipal, isAdmin , isTeacher} = useRoleCheck()
+    const { isPrincipal, isCorrespondent, isAccountant, isVicePrincipal, isAdmin, isTeacher } = useRoleCheck()
 
 
     const canCollectFee = isCorrespondent || isAccountant || isAdmin
@@ -54,7 +55,7 @@ export default function StudentRecordSingle() {
 
     // --- Data Fetching ---
     // const { data: record, isLoading, isError, refetch } = useGetStudentRecordById(schoolId!, studentId);
-    const { data: record, isLoading, isError, refetch } = useGetStudentRecordByIdV1(schoolId!, studentId, selectedAcademicYear);
+    const { data: record, isLoading, isError, refetch, isFetching } = useGetStudentRecordByIdV1(schoolId!, studentId, selectedAcademicYear);
     const { data: feeConfig } = useGetFeeConfig(schoolId!);
 
     const { data: schoolData } = useGetSchoolById(schoolId!)
@@ -63,6 +64,7 @@ export default function StudentRecordSingle() {
 
     // Mutations
     const toggleStatusMutation = useToggleStudentRecordStatus();
+    const updateStudentNewOldMutation = useUpdateStudentRecordNewOldType();
 
     // const applyConcessionMutation = useApplyConcession();
     const applyConcessionMutation = useApplyConcessionv1();
@@ -87,6 +89,10 @@ export default function StudentRecordSingle() {
         // isBusApplicable: record?.isBusApplicable || false,
         busPoint: ''
     });
+
+    const [isEditingType, setIsEditingType] = useState(false);
+    const [pendingNewOld, setPendingNewOld] = useState<'new' | 'old'>(record?.newOld ?? 'new');
+
 
     const academicYearOptions = getAcademicYears();
 
@@ -229,8 +235,32 @@ export default function StudentRecordSingle() {
         } catch (error: any) {
 
             // toast.error("Status not updated!");
-            toast.error(error.message || "Status not updated!", 5000);
+            toast.error(error.message || "Status not updated!");
 
+        }
+    };
+
+    const handleSaveNewOld = async () => {
+        // if (!record) return;
+
+        if (!record || pendingNewOld === record.newOld) {
+            setIsEditingType(false);
+            return;
+        }
+
+        try {
+            // await toggleStatusMutation.mutateAsync({ id: record._id, isActive: newStatus });
+            await updateStudentNewOldMutation.mutateAsync({
+                studentId: studentId, // Can also be record.studentId depending on context source
+                newOld: pendingNewOld,
+                academicYear: selectedAcademicYear, // 🌟 Injects your local active selection state bound dynamically
+                schoolId:schoolId!
+            });
+            await refetch();
+            toast.success("Student Record Updated!");
+            setIsEditingType(false);
+        } catch (error: any) {
+            toast.error(error.message || "failed to update!");
         }
     };
 
@@ -319,42 +349,6 @@ export default function StudentRecordSingle() {
                     </div>
                 </div>
 
-                {/* <div className="flex flex-wrap items-center gap-4">
-
-                    <div className='inline-block'>
-
-                        <SearchSelect
-                            label="Academic Year"
-                            options={academicYearOptions}
-                            value={selectedAcademicYear}
-                            onChange={(opt) => setSelectedAcademicYear(String(opt.value))}
-                            placeholder="Select Year..."
-                        />
-
-                    </div>
-
-                    {!isParent && <>
-                        <div className="bg-sub-header/50 px-4 py-2 rounded-lg border border-border">
-                            <Toggle
-                                checked={record?.isActive || false}
-                                onChange={handleToggleStatus}
-                                label="Active Status"
-                                disabled={toggleStatusMutation.isPending}
-                                isLoading={toggleStatusMutation.isPending}
-                                className="border border-border bg-sub-header peer-checked:bg-primary"
-
-                                // 2. Thumb: Add a border to make the circle pop against the background
-                                thumbClassName="border border-border"
-                            />
-                        </div>
-
-                        <Button variant="outline" onClick={() => setIsAssignModalOpen(true)} leftIcon="fas fa-chalkboard-user">Manage Class</Button>
-                        <Button variant="outline" onClick={() => setIsConcessionModalOpen(true)} leftIcon="fas fa-tags">Concession</Button>
-                        <Button variant="primary" onClick={() => setIsFeeModalOpen(true)} leftIcon="fas fa-rupee-sign">
-                            Collect Fee
-                        </Button>
-                    </>}
-                </div> */}
 
                 {/* RIGHT SIDE: Perfectly aligned action cluster */}
                 <div className="flex flex-wrap items-center justify-start lg:justify-end gap-3 w-full lg:w-auto">
@@ -418,43 +412,6 @@ export default function StudentRecordSingle() {
 
             {/* Top Info Grids (Academic & Concession) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {/* Academic & Class Details */}
-                {/* <section className="bg-surface p-6 rounded-xl border border-border shadow-sm space-y-4">
-                    <div className="flex items-center gap-2 border-b border-border pb-3 mb-2">
-                        <i className="fas fa-chalkboard-user text-primary"></i>
-                        <h3 className="font-semibold text-foreground">Academic Information</h3>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-y-4 gap-x-6">
-                        <div>
-                            <p className="text-muted text-xs font-semibold">Class & Section</p>
-                            <p className="font-medium text-foreground text-sm mt-0.5">
-                                {displayClassName} - {displaySectionName}
-                            </p>
-                        </div>
-
-                        <div>
-                            <p className="text-muted text-xs font-semibold">Roll Number & Type</p>
-                            <p className="font-medium text-foreground text-sm mt-0.5">{actualRollNumber}</p>
-                            <p className="text-xs text-muted mt-1 capitalize">Admission: <span className='font-bold'>{record?.newOld || 'N/A'}</span></p>
-                        </div>
-
-
-                        <div className="col-span-2 flex flex-wrap gap-3 pt-2 border-t border-border/50">
-                            <span className={`px-2.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 ${record?.feeStatus === "paid" ? 'bg-success/10 text-success border-success/20' : 'bg-surface text-muted border-border'}`}>
-                                <i className={`fas fa-check-double ${record?.feeStatus === "paid" ? 'text-success' : 'text-muted/50'}`}></i>
-                                Fee Status: {record?.feeStatus}
-                            </span>
-                            <span className={`px-2.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-1.5 ${record?.isFullyPaid ? 'bg-success/10 text-success border-success/20' : 'bg-surface text-muted border-border'}`}>
-                                <i className={`fas fa-check-double ${record?.isFullyPaid ? 'text-success' : 'text-muted/50'}`}></i>
-                                Fully Paid: {record?.isFullyPaid ? 'Yes' : 'No'}
-                            </span>
-                        </div>
-                    </div>
-                </section> */}
-
-
                 {/* Academic & Class Details */}
                 <section className="bg-surface p-6 rounded-xl border border-border shadow-sm space-y-4">
 
@@ -486,7 +443,58 @@ export default function StudentRecordSingle() {
                         <div>
                             <p className="text-muted text-xs font-semibold">Roll Number & Type</p>
                             <p className="font-medium text-foreground text-sm mt-0.5">{actualRollNumber}</p>
-                            <p className="text-xs text-muted mt-1 capitalize">Admission: <span className='font-bold'>{record?.newOld || 'N/A'}</span></p>
+                            {/* <p className="text-xs text-muted mt-1 capitalize">Admission: <span className='font-bold'>{record?.newOld || 'N/A'}</span></p> */}
+
+                            <div className="flex items-center gap-2 mt-1">
+                                {!isEditingType ? (
+                                    <>
+                                        <p className="text-xs text-muted capitalize">
+                                            Admission: <span className="font-bold">{record?.newOld || 'N/A'}</span>
+                                        </p>
+                                        <button
+                                            onClick={() => {
+                                                setPendingNewOld(record?.newOld ?? 'new');
+                                                setIsEditingType(true);
+                                            }}
+                                            className="cursor-pointer text-muted hover:text-primary transition-colors"
+                                        >
+                                            <i className="fa-solid fa-pen text-[10px]"></i>
+                                        </button>
+                                    </>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        <select
+                                            value={pendingNewOld}
+                                            onChange={(e) => setPendingNewOld(e.target.value as 'new' | 'old')}
+                                            disabled={updateStudentNewOldMutation.isPending}
+                                            className="text-xs font-medium border border-border rounded-md px-2 py-1 bg-surface text-foreground outline-none focus:border-primary disabled:opacity-50"
+                                        >
+                                            <option value="new">New</option>
+                                            <option value="old">Old</option>
+                                        </select>
+
+                                        <button
+                                            onClick={handleSaveNewOld}
+                                            disabled={updateStudentNewOldMutation.isPending}
+                                            className="text-success  hover:text-success/80 disabled:opacity-50"
+                                        >
+                                            {(updateStudentNewOldMutation.isPending ||  isFetching) ? (
+                                                <i className="fa-solid fa-circle-notch fa-spin text-xs"></i>
+                                            ) : (
+                                                <i className="fa-solid fa-check text-xs"></i>
+                                            )}
+                                        </button>
+
+                                        <button
+                                            onClick={() => setIsEditingType(false)}
+                                            disabled={updateStudentNewOldMutation.isPending}
+                                            className="text-danger hover:text-danger/80 disabled:opacity-50"
+                                        >
+                                            <i className="fa-solid fa-xmark text-xs"></i>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* BOTTOM TAGS: Yearly Clearance & Subscriptions */}
@@ -599,50 +607,7 @@ export default function StudentRecordSingle() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
-                            {/* <tr className="hover:bg-background/50 transition-colors">
-                                <td className="px-4 py-3 font-medium text-foreground">Admission Fee</td>
-                                <td className="px-4 py-3 text-right">₹{fStruct?.admissionFee || 0}</td>
-                                <td className="px-4 py-3 text-right text-success font-medium">₹{fPaid?.admissionFee || 0}</td>
-                                <td className="px-4 py-3 text-right text-danger font-medium">₹{fDues?.admissionDues || 0}</td>
-                            </tr>
-                            <tr className="hover:bg-background/50 transition-colors">
-                                <td className="px-4 py-3 font-medium text-foreground">First Term</td>
-                                <td className="px-4 py-3 text-right">₹{fStruct?.firstTermAmt || 0}</td>
-                                <td className="px-4 py-3 text-right text-success font-medium">₹{fPaid?.firstTermAmt || 0}</td>
-                                <td className="px-4 py-3 text-right text-danger font-medium">₹{fDues?.firstTermDues || 0}</td>
-                            </tr>
-                            <tr className="hover:bg-background/50 transition-colors">
-                                <td className="px-4 py-3 font-medium text-foreground">Second Term</td>
-                                <td className="px-4 py-3 text-right">₹{fStruct?.secondTermAmt || 0}</td>
-                                <td className="px-4 py-3 text-right text-success font-medium">₹{fPaid?.secondTermAmt || 0}</td>
-                                <td className="px-4 py-3 text-right text-danger font-medium">₹{fDues?.secondTermDues || 0}</td>
-                            </tr>
-                            {record?.isBusApplicable && (
-                                <>
-                                    <tr className="hover:bg-background/50 transition-colors">
-                                        <td className="px-4 py-3 font-medium text-foreground">Bus - First Term</td>
-                                        <td className="px-4 py-3 text-right">₹{fStruct?.busFirstTermAmt || 0}</td>
-                                        <td className="px-4 py-3 text-right text-success font-medium">₹{fPaid?.busFirstTermAmt || 0}</td>
-                                        <td className="px-4 py-3 text-right text-danger font-medium">₹{fDues?.busfirstTermDues || 0}</td>
-                                    </tr>
-                                    <tr className="hover:bg-background/50 transition-colors">
-                                        <td className="px-4 py-3 font-medium text-foreground">Bus - Second Term</td>
-                                        <td className="px-4 py-3 text-right">₹{fStruct?.busSecondTermAmt || 0}</td>
-                                        <td className="px-4 py-3 text-right text-success font-medium">₹{fPaid?.busSecondTermAmt || 0}</td>
-                                        <td className="px-4 py-3 text-right text-danger font-medium">₹{fDues?.busSecondTermDues || 0}</td>
-                                    </tr>
-                                </>
-                            )} */}
 
-
-                            {/* {orderedHeads.map((head) => (
-                                <tr key={head} className="hover:bg-background/50 transition-colors">
-                                    <td className="px-4 py-3 font-medium text-foreground">{head}</td>
-                                    <td className="px-4 py-3 text-right">₹{fStruct?.[head] ?? 0}</td>
-                                    <td className="px-4 py-3 text-right text-success font-medium">₹{fPaid?.[head] ?? 0}</td>
-                                    <td className="px-4 py-3 text-right text-danger font-medium">₹{fDues?.[head] ?? 0}</td>
-                                </tr>
-                            ))} */}
 
 
                             {orderedHeads.map((headObj, index) => {
@@ -658,32 +623,7 @@ export default function StudentRecordSingle() {
                                 );
                             })}
 
-                            {/* <tr className="bg-primary-soft/30 border-t-2 border-border">
-                                <td className="px-4 py-4 font-bold text-foreground">Grand Total</td>
-                                <td className="px-4 py-4 text-right font-bold">
-                                    ₹{(fStruct?.admissionFee || 0) + (fStruct?.firstTermAmt || 0) + (fStruct?.secondTermAmt || 0) + (record?.isBusApplicable ? (fStruct?.busFirstTermAmt || 0) + (fStruct?.busSecondTermAmt || 0) : 0)}
-                                </td>
-                                <td className="px-4 py-4 text-right text-success font-bold">
-                                    ₹{(fPaid?.admissionFee || 0) + (fPaid?.firstTermAmt || 0) + (fPaid?.secondTermAmt || 0) + (record?.isBusApplicable ? (fPaid?.busFirstTermAmt || 0) + (fPaid?.busSecondTermAmt || 0) : 0)}
-                                </td>
-                                <td className="px-4 py-4 text-right text-danger font-bold">
-                                    ₹{(fDues?.admissionDues || 0) + (fDues?.firstTermDues || 0) + (fDues?.secondTermDues || 0) + (record?.isBusApplicable ? (fDues?.busfirstTermDues || 0) + (fDues?.busSecondTermDues || 0) : 0)}
-                                </td>
-                            </tr> */}
 
-                            {/* Grand Total row — replace all the hardcoded additions: */}
-                            {/* <tr className="bg-primary-soft/30 border-t-2 border-border">
-                                <td className="px-4 py-4 font-bold text-foreground">Grand Total</td>
-                                <td className="px-4 py-4 text-right font-bold">
-                                    ₹{orderedHeads.reduce((sum, h) => sum + Number(fStruct?.[h] ?? 0), 0)}
-                                </td>
-                                <td className="px-4 py-4 text-right text-success font-bold">
-                                    ₹{orderedHeads.reduce((sum, h) => sum + Number(fPaid?.[h] ?? 0), 0)}
-                                </td>
-                                <td className="px-4 py-4 text-right text-danger font-bold">
-                                    ₹{orderedHeads.reduce((sum, h) => sum + Number(fDues?.[h] ?? 0), 0)}
-                                </td>
-                            </tr> */}
 
                             <tr className="bg-primary-soft/30 border-t-2 border-border">
                                 <td className="px-4 py-4 font-bold text-foreground">Grand Total</td>

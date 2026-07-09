@@ -36,6 +36,7 @@ export interface FeeTransaction {
     schoolId: string;
     studentId: string;
     recordId: string;
+    billNo:string | null;
     academicYear: string | null;
     receiptNo: string;
     paymentDate: string;
