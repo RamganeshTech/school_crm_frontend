@@ -13,6 +13,7 @@ import {
     useRevertFeeTransactionv1,
     useApplyConcessionv1,
     useUpdateStudentRecordNewOldType,
+    useDeleteStudentRecord,
 } from '../../../api_services/student_api/studentRecordApi';
 
 import { useGetClasses } from '../../../api_services/schoolConfig_api/classApi';
@@ -30,6 +31,7 @@ import { getAcademicYears } from '../../../utils/utils';
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
 import { useGetFeeConfig, type FeeHeadItem } from './../../../api_services/feeStructure_api/feeStructureConfigApi';
 import { useGetSchoolById } from '../../../api_services/schoolConfig_api/schoolapi';
+import InfoTooltip from '../../../shared/ui/InfoToolTip';
 
 export default function StudentRecordSingle() {
     const { studentId } = useParams() as { studentId: string }
@@ -48,6 +50,8 @@ export default function StudentRecordSingle() {
     const canRevertFee = isCorrespondent || isAccountant || isPrincipal || isAdmin
     const canVerifyConcession = isCorrespondent || isAdmin || isPrincipal || isVicePrincipal
     const canConcession = isCorrespondent || isAdmin || isPrincipal || isAccountant
+    const canDeleteStudentRecord = isCorrespondent;
+
 
 
     const { schoolId } = useSelector((state: RootState) => state.auth);
@@ -63,6 +67,8 @@ export default function StudentRecordSingle() {
 
 
     // Mutations
+    const deleteRecordMutation = useDeleteStudentRecord();
+
     const toggleStatusMutation = useToggleStudentRecordStatus();
     const updateStudentNewOldMutation = useUpdateStudentRecordNewOldType();
 
@@ -254,7 +260,7 @@ export default function StudentRecordSingle() {
                 studentId: studentId, // Can also be record.studentId depending on context source
                 newOld: pendingNewOld,
                 academicYear: selectedAcademicYear, // 🌟 Injects your local active selection state bound dynamically
-                schoolId:schoolId!
+                schoolId: schoolId!
             });
             await refetch();
             toast.success("Student Record Updated!");
@@ -294,6 +300,18 @@ export default function StudentRecordSingle() {
             refetch();
         } catch (error: any) {
             toast.error(error?.message || "Failed to Verify.");
+        }
+    };
+
+    const handleDelete = async (id: string, name: string) => {
+        if (window.confirm(`Are you sure you want to permanently delete records for ${name} for this academic year ${selectedAcademicYear}?, This action cannot be undone.`)) {
+            try {
+                await deleteRecordMutation.mutateAsync(id);
+                refetch();
+                toast.success(`student data for ${name} has been reset for this academic year ${selectedAcademicYear}`)
+            } catch (error: any) {
+                toast.error(error.message || "Operation failed");
+            }
         }
     };
 
@@ -381,7 +399,7 @@ export default function StudentRecordSingle() {
                     {/* Standard Action Options */}
                     {canAssignClass && <Button
                         variant="outline"
-                        className="h-10 px-4 text-sm font-medium transition-all"
+                        className="h-10 !px-2 text-sm font-medium transition-all"
                         onClick={() => setIsAssignModalOpen(true)}
                         leftIcon="fas fa-chalkboard-user"
                     >
@@ -390,7 +408,7 @@ export default function StudentRecordSingle() {
 
                     {canConcession && <Button
                         variant="outline"
-                        className="h-10 px-4 text-sm font-medium transition-all"
+                        className="h-10 !px-2 text-sm font-medium transition-all"
                         onClick={() => setIsConcessionModalOpen(true)}
                         leftIcon="fas fa-tags"
                     >
@@ -400,12 +418,29 @@ export default function StudentRecordSingle() {
                     {/* Main Dynamic CTA Action */}
                     {canCollectFee && <Button
                         variant="primary"
-                        className="h-10 px-5 text-sm font-bold shadow-sm transition-all"
+                        className="h-10 !px-3 text-sm font-bold shadow-sm transition-all"
                         onClick={() => setIsFeeModalOpen(true)}
                         leftIcon="fas fa-rupee-sign"
                     >
                         Collect Fee
                     </Button>}
+
+                    {(canDeleteStudentRecord && record?._id) &&
+                        <div className='flex gap-2 items-center'>
+                            <Button
+                                variant="danger"
+                                // size="icon"
+                                className="h-10 !px-3 text-sm font-bold shadow-sm transition-all"
+                                leftIcon='fas fa-trash'
+                                onClick={() => handleDelete(record?._id, record?.studentId?.studentName)}
+                                title="Delete Record"
+                            >
+                                Reset Data
+                            </Button>
+
+                            <InfoTooltip description={`it will reset all the data (along with fee receipts) for the ${selectedAcademicYear} which cant be retained`} />
+                        </div>
+                    }
 
                 </div>
             </div>
@@ -478,7 +513,7 @@ export default function StudentRecordSingle() {
                                             disabled={updateStudentNewOldMutation.isPending}
                                             className="text-success  hover:text-success/80 disabled:opacity-50"
                                         >
-                                            {(updateStudentNewOldMutation.isPending ||  isFetching) ? (
+                                            {(updateStudentNewOldMutation.isPending || isFetching) ? (
                                                 <i className="fa-solid fa-circle-notch fa-spin text-xs"></i>
                                             ) : (
                                                 <i className="fa-solid fa-check text-xs"></i>

@@ -21,7 +21,7 @@ import { getAcademicYears } from '../../../utils/utils';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthData } from '../../../hooks/useAuthData';
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
-import { toast } from '../../../shared/ui/ToastContext';
+// import { toast } from '../../../shared/ui/ToastContext';
 // import { useGetAllStudents } from '../../../api_services/student_api/studentMainApi';
 //import { toast } from '../../../shared/ui/ToastContext';
 
@@ -29,7 +29,7 @@ import { toast } from '../../../shared/ui/ToastContext';
 export default function StudentRecordMain() {
     // const { schoolId } = useSelector((state: RootState) => state.auth);
     const { schoolId } = useAuthData()
-    const { isCorrespondent } = useRoleCheck();
+    // const { isCorrespondent } = useRoleCheck();
 
 
 
@@ -43,7 +43,7 @@ export default function StudentRecordMain() {
     const [searchInput, setSearchInput] = useState('');
     const debouncedSearch = useDebounce(searchInput, 500);
 
-    const canDeleteStudentRecord = isCorrespondent;
+    // const canDeleteStudentRecord = isCorrespondent;
 
 
     const [filters, setFilters] = useState({
@@ -96,7 +96,7 @@ export default function StudentRecordMain() {
         data,
         isLoading,
         isError,
-        refetch,
+        // refetch,
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage
@@ -118,7 +118,7 @@ export default function StudentRecordMain() {
     //     search: debouncedSearch,
     // });
 
-    const deleteRecordMutation = useDeleteStudentRecord();
+    // const deleteRecordMutation = useDeleteStudentRecord();
     // const applyConcessionMutation = useApplyConcession();
     // const updateConcessionMutation = useUpdateConcessionDetails();
 
@@ -160,16 +160,16 @@ export default function StudentRecordMain() {
         });
     };
 
-    const handleDelete = async (id: string, name: string) => {
-        if (window.confirm(`Are you sure you want to permanently delete records for ${name}?`)) {
-            try {
-                await deleteRecordMutation.mutateAsync(id);
-                refetch();
-            } catch (error: any) {
-                toast.error(error.message || "Operation failed");
-            }
-        }
-    };
+    // const handleDelete = async (id: string, name: string) => {
+    //     if (window.confirm(`Are you sure you want to permanently delete records for ${name}?`)) {
+    //         try {
+    //             await deleteRecordMutation.mutateAsync(id);
+    //             refetch();
+    //         } catch (error: any) {
+    //             toast.error(error.message || "Operation failed");
+    //         }
+    //     }
+    // };
 
 
     // --- Options Mapping ---
@@ -458,14 +458,14 @@ export default function StudentRecordMain() {
                                                         {/* Manage */}
                                                         View
                                                     </Button>
-                                                    {canDeleteStudentRecord && <Button
+                                                    {/* {canDeleteStudentRecord && <Button
                                                         variant="ghost" size="icon"
                                                         className="hover:text-danger hover:bg-danger/10 text-danger"
                                                         onClick={() => handleDelete(record?.recordId, record.studentName)}
                                                         title="Delete Record"
                                                     >
                                                         <i className="fas fa-trash"></i>
-                                                    </Button>}
+                                                    </Button>} */}
                                                 </div>
                                             </Td>
                                         </Tr>
