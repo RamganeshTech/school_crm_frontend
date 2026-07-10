@@ -176,7 +176,7 @@ export default function InfoTooltip({
           setPinned((prev) => !prev);
         }}
         style={{ width: iconSize, height: iconSize, fontSize: iconSize * 0.65 }}
-        className="inline-flex items-center justify-center rounded-full p-2
+        className="cursor-pointer inline-flex items-center justify-center rounded-full p-2
          bg-slate-200 text-slate-600 font-semibold leading-none hover:bg-slate-300 focus:outline-none focus:ring-2
           focus:ring-slate-400 focus:ring-offset-1 transition-colors shrink-0"
       >

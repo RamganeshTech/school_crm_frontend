@@ -51,6 +51,7 @@ export interface UpdateConcessionParams {
   studentRecordId: string;
   concessionType: string;
   concessionValue: number | string;
+  academicYear: string
 }
 
 export interface VerifyConcessionParams {

@@ -14,10 +14,12 @@ import {
     useApplyConcessionv1,
     useUpdateStudentRecordNewOldType,
     useDeleteStudentRecord,
+    // useUpdateConcessionDetails,
+    useUpdateConcessionDetailsv1,
 } from '../../../api_services/student_api/studentRecordApi';
 
-import { useGetClasses } from '../../../api_services/schoolConfig_api/classApi';
-import { useGetSections } from '../../../api_services/schoolConfig_api/sectionApi';
+// import { useGetClasses } from '../../../api_services/schoolConfig_api/classApi';
+// import { useGetSections } from '../../../api_services/schoolConfig_api/sectionApi';
 
 import { Button } from '../../../shared/ui/Button';
 import { Input, Label } from '../../../shared/ui/Input';
@@ -50,6 +52,7 @@ export default function StudentRecordSingle() {
     const canRevertFee = isCorrespondent || isAccountant || isPrincipal || isAdmin
     const canVerifyConcession = isCorrespondent || isAdmin || isPrincipal || isVicePrincipal
     const canConcession = isCorrespondent || isAdmin || isPrincipal || isAccountant
+    const canUpdateConcession = isCorrespondent || isAdmin || isPrincipal || isAccountant
     const canDeleteStudentRecord = isCorrespondent;
 
 
@@ -74,6 +77,7 @@ export default function StudentRecordSingle() {
 
     // const applyConcessionMutation = useApplyConcession();
     const applyConcessionMutation = useApplyConcessionv1();
+    const updateConcessionMutation = useUpdateConcessionDetailsv1();
     // const revertFeeMutation = useRevertFeeTransaction();
     const revertFeeMutation = useRevertFeeTransactionv1();
     const verifyMutation = useVerifyConcession();
@@ -82,6 +86,8 @@ export default function StudentRecordSingle() {
     const [isFeeModalOpen, setIsFeeModalOpen] = useState(false);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [isConcessionModalOpen, setIsConcessionModalOpen] = useState(false);
+    const [concessionModalMode, setConcessionModalMode] = useState<'apply' | 'update'>('apply');
+
 
     const [concessionData, setConcessionData] = useState({
         type: record?.concession?.type || 'amount',     // 'amount' or 'percentage'
@@ -134,17 +140,17 @@ export default function StudentRecordSingle() {
     const displayClassName = record?.className || record?.classId?.name || 'Unassigned';
     const displaySectionName = record?.sectionName || record?.sectionId?.name || 'Unassigned';
 
-    const { data: classesData } = useGetClasses(schoolId!);
-    const { data: sectionsData, } = useGetSections({ schoolId: schoolId!, classId: concessionData.classId });
+    // const { data: classesData } = useGetClasses(schoolId!);
+    // const { data: sectionsData, } = useGetSections({ schoolId: schoolId!, classId: concessionData.classId });
 
 
-    const classOptions = classesData?.map((cls: any) => ({ label: cls.name, value: cls._id })) || [];
-    const sectionOptions = sectionsData?.map((sec: any) => ({ label: sec.name, value: sec._id })) || [];
+    // const classOptions = classesData?.map((cls: any) => ({ label: cls.name, value: cls._id })) || [];
+    // const sectionOptions = sectionsData?.map((sec: any) => ({ label: sec.name, value: sec._id })) || [];
 
     // --- Check if the selected class has sections ---
-    const selectedClassObj = classesData?.find((c: any) => c?._id === concessionData?.classId);
+    // const selectedClassObj = classesData?.find((c: any) => c?._id === concessionData?.classId);
     // Assuming your class object has a 'hasSections' boolean, or check if sections array exists
-    const hasSections = selectedClassObj?.hasSections === true;
+    // const hasSections = selectedClassObj?.hasSections === true;
 
 
     const getActiveTermLabel = () => {
@@ -176,12 +182,65 @@ export default function StudentRecordSingle() {
 
     const termLabel = getActiveTermLabel();
 
+    // const openApplyConcessionModal = () => {
+    //     setConcessionModalMode('apply');
+    //     setConcessionData({
+    //         type: record?.concession?.type || 'amount',
+    //         value: record?.concession?.value || '',
+    //         remark: record?.concession?.remark || '',
+    //         // academicYear: record?.academicYear || '',
+    //         classId: record?.classId || '',
+    //         sectionId: record?.sectionId || '',
+    //         newOld: record?.newOld || 'new',
+    //         busPoint: '',
+    //     });
+    //     setIsConcessionModalOpen(true);
+    // };
+
+    const openUpdateConcessionModal = () => {
+        setConcessionModalMode('update');
+        setConcessionData((prev) => ({
+            ...prev,
+            type: concession?.type || 'amount',
+            value: concession?.value ?? '',
+            // academicYear: concession?.academicYear || record?.academicYear || '',
+        }));
+        setIsConcessionModalOpen(true);
+    };
+
     const handleConcessionSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!record || !schoolId) return;
 
         if (!selectedAcademicYear) {
             toast.error("Select the Academic Year")
+            return;
+        }
+
+
+        if (!record || !schoolId) return;
+
+        if (!selectedAcademicYear) {
+            toast.error("Select the Academic Year")
+            return;
+        }
+
+
+        if (concessionModalMode === 'update') {
+
+
+            try {
+                await updateConcessionMutation.mutateAsync({
+                    schoolId, studentRecordId: record._id, concessionType: concessionData.type,
+                    concessionValue: concessionData.value,
+                    academicYear: selectedAcademicYear
+                });
+                setIsConcessionModalOpen(false);
+                toast.success("Concession updated!");
+                refetch(); // Refetches the Ghost record, which will now be a REAL record
+            } catch (err: any) {
+                toast.error(err?.message || "Failed to update concession.");
+            }
             return;
         }
 
@@ -225,6 +284,9 @@ export default function StudentRecordSingle() {
             toast.error(err?.message || "Failed to apply concession.");
         }
     };
+
+
+
 
     // --- Status Toggle Handler using Custom Toggle ---
     const handleToggleStatus = async (newStatus: boolean) => {
@@ -409,7 +471,10 @@ export default function StudentRecordSingle() {
                     {canConcession && <Button
                         variant="outline"
                         className="h-10 !px-2 text-sm font-medium transition-all"
-                        onClick={() => setIsConcessionModalOpen(true)}
+                        onClick={() => {
+                            setConcessionModalMode('apply');
+                            setIsConcessionModalOpen(true)
+                        }}
                         leftIcon="fas fa-tags"
                     >
                         Concession
@@ -557,32 +622,39 @@ export default function StudentRecordSingle() {
                         </div>
 
                         {/* 🌟 ONLY SHOW VERIFICATION IF CONCESSION IS APPLIED */}
-                        {canVerifyConcession &&
 
-                            <>
-                                {concession?.isApplied && (
-                                    <div className="flex items-center">
-                                        {concession?.approvedBy ? (
-                                            <div className="flex items-center gap-2 text-success bg-success/10 px-3 py-1 rounded-md text-xs font-bold">
-                                                <i className="fas fa-check-circle"></i>
-                                                <span>Verified</span>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <Button
-                                                    variant="primary"
-                                                    size="sm"
-                                                    onClick={handleVerify}
-                                                    isLoading={verifyMutation.isPending}
-                                                >
-                                                    <i className="fas fa-check mr-2"></i> Approve
-                                                </Button>
-                                            </>
-                                        )}
-                                    </div>
+
+
+                        {concession?.isApplied && (
+                            <div className="flex items-center gap-2">
+                                {canUpdateConcession && (
+                                    <Button variant="outline" size="sm" onClick={openUpdateConcessionModal}>
+                                        <i className="fas fa-pen mr-2"></i> Update
+                                    </Button>
                                 )}
-                            </>
-                        }
+
+                                {concession?.approvedBy ? (
+                                    <div className="flex items-center gap-2 text-success bg-success/10 px-3 py-1 rounded-md text-xs font-bold">
+                                        <i className="fas fa-check-circle"></i>
+                                        <span>Verified</span>
+                                    </div>
+                                ) : (canVerifyConcession ?
+                                    <>
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
+                                            onClick={handleVerify}
+                                            isLoading={verifyMutation.isPending}
+                                        >
+                                            <i className="fas fa-check mr-2"></i> Approve
+                                        </Button>
+                                    </>
+                                    : <></>
+                                )}
+                            </div>
+                        )}
+
+
                     </div>
 
 
@@ -842,7 +914,7 @@ export default function StudentRecordSingle() {
                 <form onSubmit={handleConcessionSubmit} className="flex flex-col h-full space-y-6 pr-2">
 
                     {/* --- DYNAMIC INITIALIZATION WIDGET (Only shows for Ghost Records) --- */}
-                    {!isRecordCreated && (
+                    {/* {(concessionModalMode === 'apply' && !isRecordCreated) && (
                         <div className="bg-warning/10 border border-warning/20 p-4 rounded-xl space-y-4 mb-2 animate-in fade-in">
                             <p className="text-xs font-bold text-warning-700 flex items-center gap-2">
                                 <i className="fas fa-info-circle"></i>
@@ -882,84 +954,142 @@ export default function StudentRecordSingle() {
 
 
                         </div>
-                    )}
+                    )} */}
 
-                    {/* --- CORE CONCESSION FIELDS --- */}
-                    <div className="space-y-5">
-                        {/* Amount vs Percentage Toggle */}
-                        <div className="flex flex-col gap-1.5">
-                            <Label>Concession Calculation Type</Label>
-                            <div className="flex gap-2">
-                                <label className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all ${concessionData.type === 'amount' ? 'border-primary bg-primary-soft text-primary' : 'border-border bg-surface text-muted hover:border-primary/30'}`}>
-                                    <input type="radio" className="hidden" checked={concessionData.type === 'amount'} onChange={() => setConcessionData({ ...concessionData, type: 'amount' })} />
-                                    <i className="fas fa-rupee-sign text-lg mb-1"></i>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider">Flat Amount</span>
-                                </label>
-                                <label className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all ${concessionData.type === 'percentage' ? 'border-primary bg-primary-soft text-primary' : 'border-border bg-surface text-muted hover:border-primary/30'}`}>
-                                    <input type="radio" className="hidden" checked={concessionData.type === 'percentage'} onChange={() => setConcessionData({ ...concessionData, type: 'percentage' })} />
-                                    <i className="fas fa-percent text-lg mb-1"></i>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider">Percentage</span>
-                                </label>
-                            </div>
-                        </div>
 
-                        <div className="flex items-start gap-2.5 bg-primary-soft/30 border border-primary/20 rounded-xl p-3.5 mt-1 animate-in fade-in duration-200">
-                            <i className="fas fa-info-circle text-primary text-sm mt-0.5 shrink-0"></i>
-                            <div className="flex flex-col gap-0.5">
-                                <p className="text-xs font-bold text-foreground">Deferred Allocation Rule</p>
-                                <p className="text-[10px] text-muted leading-relaxed">
-                                    {/* This concession will not change the master ledger balance immediately. The discount waterfall will apply dynamically during the student's first fee collection transaction. */}
-                                    This concession will not be applied to the student's balance right away. The amount will automatically adjust when you collect their first fee payment.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <Input
-                                id="value"
-                                type="number"
-                                label={concessionData.type === 'amount' ? "Discount Amount (₹)" : "Discount Percentage (%)"}
-                                placeholder="e.g., 5000"
-                                value={concessionData.value}
-                                onChange={(e) => setConcessionData({ ...concessionData, value: e.target.value })}
-                                required
-                                min="0"
-                                max={concessionData.type === 'percentage' ? "100" : undefined}
-                            />
-                            <Input
-                                id="remark"
-                                label="Reason / Category"
-                                placeholder="e.g., Sibling, Staff"
-                                value={concessionData.remark}
-                                onChange={(e) => setConcessionData({ ...concessionData, remark: e.target.value })}
-                                required
-                            />
-                        </div>
-
-                        <div className="flex flex-col gap-1.5 p-4 border border-border bg-surface rounded-xl">
-                            <Label>Upload Proof Document</Label>
-                            <input
-                                type="file"
-                                onChange={(e) => setConcessionFile(e.target.files ? e.target.files[0] : null)}
-                                className="w-full text-xs text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-soft file:text-primary file:font-bold file:cursor-pointer cursor-pointer"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 pt-1">
-                        <div className="flex flex-col gap-1.5">
-                            <Label>Student Type</Label>
-                            <div className="flex bg-white rounded-lg border border-warning/30 p-1">
-                                {['new', 'old'].map(type => (
-                                    <label key={type} className={`flex-1 text-center py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-colors ${concessionData.newOld === type ? 'bg-warning text-white' : 'text-warning-700 hover:bg-warning/10'}`}>
-                                        <input type="radio" className="hidden" checked={concessionData.newOld === type} onChange={() => setConcessionData({ ...concessionData, newOld: type })} />
-                                        {type}
+                    {concessionModalMode === 'update' ? (
+                        /* --- MINIMAL UPDATE FORM: type, value, academic year only --- */
+                        <div className="space-y-5">
+                            <div className="flex flex-col gap-1.5">
+                                <Label>Concession Calculation Type</Label>
+                                <div className="flex gap-2">
+                                    <label className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all ${concessionData.type === 'amount' ? 'border-primary bg-primary-soft text-primary' : 'border-border bg-surface text-muted hover:border-primary/30'}`}>
+                                        <input type="radio" className="hidden" checked={concessionData.type === 'amount'} onChange={() => setConcessionData({ ...concessionData, type: 'amount' })} />
+                                        <i className="fas fa-rupee-sign text-lg mb-1"></i>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">Flat Amount</span>
                                     </label>
-                                ))}
+                                    <label className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all ${concessionData.type === 'percentage' ? 'border-primary bg-primary-soft text-primary' : 'border-border bg-surface text-muted hover:border-primary/30'}`}>
+                                        <input type="radio" className="hidden" checked={concessionData.type === 'percentage'} onChange={() => setConcessionData({ ...concessionData, type: 'percentage' })} />
+                                        <i className="fas fa-percent text-lg mb-1"></i>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">Percentage</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <Input
+                                    id="value"
+                                    type="number"
+                                    label={concessionData.type === 'amount' ? "Discount Amount (₹)" : "Discount Percentage (%)"}
+                                    placeholder="e.g., 5000"
+                                    value={concessionData.value}
+                                    onChange={(e) => setConcessionData({ ...concessionData, value: e.target.value })}
+                                    required
+                                    min="0"
+                                    max={concessionData.type === 'percentage' ? "100" : undefined}
+                                />
+
+                                {/* <SearchSelect
+                                    label="Academic Year *"
+                                    options={academicYearOptions}
+                                    value={selectedAcademicYear}
+                                    onChange={(opt) => setConcessionData({ ...concessionData, academicYear: String(opt?.value || '') })}
+                                /> */}
                             </div>
                         </div>
+                    ) : (
+                        <>
+                            {!record.classId && <div className="flex items-start gap-2.5 bg-warning/10 border border-warning/20 rounded-xl p-3.5">
+                                <i className="fas fa-info-circle text-primary text-sm mt-0.5 shrink-0"></i>
+                                <div className="flex flex-col gap-0.5">
+                                    <p className="text-xs font-bold text-foreground">Student Not Assigned to any class</p>
+                                    <p className="text-[10px] text-muted leading-relaxed">
+                                        {/* This concession will not change the master ledger balance immediately. The discount waterfall will apply dynamically during the student's first fee collection transaction. */}
+                                        Please assign the student to a class by clicking on the <strong>Manage Class</strong> option.
+                                    </p>
+                                </div>
+                            </div>}
 
-                        {/* <div className="flex flex-col gap-1.5">
+                           
+                            <div className="flex items-start gap-2.5 bg-primary-soft/30 border border-primary/20 rounded-xl p-3.5">
+                                <i className="fas fa-info-circle text-primary text-sm mt-0.5 shrink-0"></i>
+                                <div className="flex flex-col gap-0.5">
+                                    <p className="text-xs font-bold text-foreground">Deferred Allocation Rule</p>
+                                    <p className="text-[10px] text-muted leading-relaxed">
+                                        {/* This concession will not change the master ledger balance immediately. The discount waterfall will apply dynamically during the student's first fee collection transaction. */}
+                                        This concession will not be applied to the student's balance right away. The amount will automatically adjust when you collect their first fee payment.
+                                    </p>
+                                </div>
+                            </div>
+
+
+                            {/* --- CORE CONCESSION FIELDS --- */}
+                            < div className="space-y-5">
+                                {/* Amount vs Percentage Toggle */}
+                                <div className="flex flex-col gap-1.5">
+                                    <Label>Concession Calculation Type</Label>
+                                    <div className="flex gap-2">
+                                        <label className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all ${concessionData.type === 'amount' ? 'border-primary bg-primary-soft text-primary' : 'border-border bg-surface text-muted hover:border-primary/30'}`}>
+                                            <input type="radio" className="hidden" checked={concessionData.type === 'amount'} onChange={() => setConcessionData({ ...concessionData, type: 'amount' })} />
+                                            <i className="fas fa-rupee-sign text-lg mb-1"></i>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">Flat Amount</span>
+                                        </label>
+                                        <label className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all ${concessionData.type === 'percentage' ? 'border-primary bg-primary-soft text-primary' : 'border-border bg-surface text-muted hover:border-primary/30'}`}>
+                                            <input type="radio" className="hidden" checked={concessionData.type === 'percentage'} onChange={() => setConcessionData({ ...concessionData, type: 'percentage' })} />
+                                            <i className="fas fa-percent text-lg mb-1"></i>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">Percentage</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Input
+                                        id="value"
+                                        type="number"
+                                        label={concessionData.type === 'amount' ? "Discount Amount (₹)" : "Discount Percentage (%)"}
+                                        placeholder="e.g., 5000"
+                                        value={concessionData.value}
+                                        onChange={(e) => setConcessionData({ ...concessionData, value: e.target.value })}
+                                        required
+                                        min="0"
+                                        max={concessionData.type === 'percentage' ? "100" : undefined}
+                                    />
+                                    <Input
+                                        id="remark"
+                                        label="Reason / Category"
+                                        placeholder="e.g., Sibling, Staff"
+                                        value={concessionData.remark}
+                                        onChange={(e) => setConcessionData({ ...concessionData, remark: e.target.value })}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="flex flex-col gap-1.5 p-4 border border-border bg-surface rounded-xl">
+                                    <Label>Upload Proof Document</Label>
+                                    <input
+                                        type="file"
+                                        onChange={(e) => setConcessionFile(e.target.files ? e.target.files[0] : null)}
+                                        className="w-full text-xs text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-soft file:text-primary file:font-bold file:cursor-pointer cursor-pointer"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 pt-1">
+                                {/* <div className="flex flex-col gap-1.5">
+                                    <Label>Student Type</Label>
+                                    <div className="flex bg-white rounded-lg border border-warning/30 p-1">
+                                        {['new', 'old'].map(type => (
+                                            <label key={type} className={`flex-1 text-center py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-colors ${concessionData.newOld === type ? 'bg-warning text-white' : 'text-warning-700 hover:bg-warning/10'}`}>
+                                                <input type="radio" className="hidden" checked={concessionData.newOld === type} onChange={() => setConcessionData({ ...concessionData, newOld: type })} />
+                                                {type}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div> */}
+
+                                {/* <div className="flex flex-col gap-1.5">
                             <Label>Bus Facility</Label>
                             <div className="flex bg-white rounded-lg border border-warning/30 p-1">
                                 <label className={`flex-1 text-center py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-colors ${concessionData.isBusApplicable ? 'bg-warning text-white' : 'text-warning-700 hover:bg-warning/10'}`}>
@@ -972,22 +1102,31 @@ export default function StudentRecordSingle() {
                                 </label>
                             </div>
                         </div> */}
-                    </div>
+                            </div>
 
-                    {/* {concessionData.isBusApplicable && (
 
-                    )} */}
 
-                    <Input id="busPoint" label="Bus Point Location" placeholder="e.g., Main Street" value={concessionData.busPoint} onChange={(e) => setConcessionData({ ...concessionData, busPoint: e.target.value })} />
+                            <Input id="busPoint" label="Bus Point Location" placeholder="e.g., Main Street" value={concessionData.busPoint} onChange={(e) => setConcessionData({ ...concessionData, busPoint: e.target.value })} />
+                        </>
+
+                    )}
+
 
                     <div className="mt-auto pt-6 flex justify-end gap-3 border-t border-border">
                         <Button type="button" variant="outline" onClick={() => setIsConcessionModalOpen(false)} className="cursor-pointer">Cancel</Button>
-                        <Button type="submit" variant="primary" isLoading={applyConcessionMutation.isPending} className="cursor-pointer">
+                        {/* <Button type="submit" variant="primary" isLoading={applyConcessionMutation.isPending} className="cursor-pointer">
                             {isRecordCreated ? 'Apply Concession' : 'Initialize & Apply'}
+                        </Button> */}
+
+                        <Button type="submit" variant="primary"
+                        disabled={!record.classId}
+                        title={`${!record.classId ? "disabled because student not assigned to any class" : ""}`}
+                         isLoading={applyConcessionMutation.isPending || updateConcessionMutation.isPending} className="cursor-pointer">
+                            {concessionModalMode === 'update' ? 'Update Concession' : (isRecordCreated ? 'Apply Concession' : 'Initialize & Apply')}
                         </Button>
                     </div>
                 </form>
             </SideModal>
-        </div>
+        </div >
     );
 }
