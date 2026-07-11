@@ -590,7 +590,7 @@ export const useAssignStudentToClassV1 = () => {
   return useMutation({
     mutationFn: async (payload: AssignStudentParams) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
+        checkPermission(currentRole, ["correspondent", "administrator", "teacher", "accountant"]);
 
         const { data } = await Api.put<ApiResponse>('/api/studentrecord/v1/assign', payload);
 
@@ -620,7 +620,7 @@ export const useRemoveStudentFromClassV1 = () => {
   return useMutation({
     mutationFn: async (payload: RemoveStudentParams) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator"]);
+        checkPermission(currentRole, ["correspondent", "administrator", "accountant"]);
 
         const { data } = await Api.put<ApiResponse>('/api/studentrecord/v1/remove', payload);
 
