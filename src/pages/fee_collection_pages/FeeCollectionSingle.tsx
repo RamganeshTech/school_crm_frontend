@@ -199,7 +199,7 @@ export default function FeeCollectionSingle() {
 
     return (
         // OVERALL CONTAINER: Fixed height, background canvas color
-        <div className="w-full h-full flex flex-col bg-background overflow-hidden animate-in fade-in">
+        <main className="w-full h-full flex flex-col bg-background animate-in fade-in">
 
             {/* --- 1. SLIM HEADER --- */}
             <header className="shrink-0 px-4 py-2 border-b border-border flex items-center justify-between  bg-surface z-10 shadow-sm">
@@ -224,7 +224,7 @@ export default function FeeCollectionSingle() {
             </header>
 
             {/* --- MAIN WORKSPACE --- */}
-            <div className="flex-1 flex flex-col p-3 lg:p-4 gap-4 overflow-hidden">
+            <div className="flex-1 flex flex-col p-3 lg:p-4 gap-4">
 
                 {/* --- 2. TOP STATIC BANNER (Elevated Card) --- */}
                 <div className="shrink-0 px-5 py-3 bg-surface border border-border rounded-xl shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-3">
@@ -491,6 +491,6 @@ export default function FeeCollectionSingle() {
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     );
 }
