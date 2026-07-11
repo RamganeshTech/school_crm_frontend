@@ -33,7 +33,7 @@ export default function SchoolConfiguration() {
     const { isCorrespondent, isAdmin, isAccountant, isPrincipal, isTeacher, isVicePrincipal } = useRoleCheck()
 
     const canModify = isCorrespondent
-    const canManageBillBook = isCorrespondent || isAdmin;
+    const canManageBillBook = isCorrespondent || isAdmin || isAccountant;
     const canShowAcademicDates = isCorrespondent || isAdmin || isAccountant || isPrincipal || isTeacher || isVicePrincipal;
 
     // --- API Hooks ---

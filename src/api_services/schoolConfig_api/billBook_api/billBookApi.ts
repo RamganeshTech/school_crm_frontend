@@ -32,7 +32,7 @@ export const useCreateBillBook = () => {
         mutationFn: async (payload: CreateBillBookParams) => {
             try {
                 // Ensure only allowed roles can trigger this
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "accountant"]);
 
                 const { data } = await Api.post(`/api/school-config/bill-book`, payload);
 
@@ -61,7 +61,7 @@ export const useGetAllBillBooks = (schoolId: string | undefined) => {
         queryKey: ['billBooks', schoolId],
         queryFn: async () => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "accountant"]);
 
                 const { data } = await Api.get(`/api/school-config/bill-book/${schoolId}`);
 
@@ -87,7 +87,7 @@ export const useUpdateBillBook = () => {
     return useMutation({
         mutationFn: async ({ id, bookName, isActive }: UpdateBillBookParams) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "accountant"]);
 
                 const { data } = await Api.patch(`/api/school-config/bill-book/${id}`, { bookName, isActive });
 
@@ -115,7 +115,7 @@ export const useEditBillSequence = () => {
     return useMutation({
         mutationFn: async ({ id, newBillNumber }: EditBillSequenceParams) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "accountant"]);
 
                 const { data } = await Api.patch(`/api/school-config/bill-book/${id}/sequence`, { newBillNumber });
 
@@ -143,7 +143,7 @@ export const useDeleteBillBook = () => {
     return useMutation({
         mutationFn: async ({ id }: { id: string; schoolId: string }) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "accountant"]);
 
                 const { data } = await Api.delete(`/api/school-config/bill-book/${id}`);
 

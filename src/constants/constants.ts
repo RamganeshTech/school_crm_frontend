@@ -325,6 +325,8 @@ export const accountantMenu: MenuItem[] = [
     // { name: 'Class', path: "/dashboard/class", icon: 'fas fa-chalkboard' },
     // { name: 'Section', path: "/dashboard/section", icon: 'fas fa-box' },
 
+    { name: 'School', path: "/dashboard/school", icon: 'fas fa-building' },
+
     {
         name: "Academic Management",
         path: "#",
