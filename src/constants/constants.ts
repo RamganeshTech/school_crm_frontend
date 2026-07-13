@@ -109,7 +109,8 @@ export const baseManagementMenu: MenuItem[] = [
         ]
     },
     // { name: 'Class', path: "/dashboard/class", icon: 'fas fa-chalkboard' },
-    // { name: 'Section', path: "/dashboard/section", icon: 'fas fa-box' },
+
+
 
     {
         name: "Academic Management",
@@ -270,6 +271,22 @@ export const baseManagementMenu: MenuItem[] = [
                 path: "/dashboard/markreport-config",
                 icon: "fas fa-file-circle-check"
             }
+        ]
+    },
+
+    {
+        name: 'Transport Management', path: "#", icon: 'fas fa-id-card',
+        subMenu: [
+            {
+                name: "Driver",
+                path: "/dashboard/driver",
+                icon: "fas fa-id-card"
+            },
+            {
+                name: "Bus",
+                path: "/dashboard/bus",
+                icon: "fas fa-bus"
+            },
         ]
     },
 

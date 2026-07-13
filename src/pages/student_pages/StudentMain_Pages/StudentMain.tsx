@@ -54,10 +54,6 @@ export default function StudentMain() {
         mobileNumber: ''
     });
 
-    // // Reset to page 1 whenever the debounced search changes
-    // useEffect(() => {
-    //     setFilters(prev => ({ ...prev, page: 1 }));
-    // }, [debouncedSearch]);
 
     // --- Modal & Form State ---
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -80,8 +76,8 @@ export default function StudentMain() {
         classId: filters.classId
     });
 
-    const { isParent, isPrincipal, isVicePrincipal, isCorrespondent, isAdmin , isTeacher} = useRoleCheck()
-    const canCreate =  !isParent && !isPrincipal && !isVicePrincipal
+    const { isParent, isPrincipal, isVicePrincipal, isCorrespondent, isAdmin, isTeacher } = useRoleCheck()
+    const canCreate = !isParent && !isPrincipal && !isVicePrincipal
     const canDelete = isCorrespondent || isAdmin || isTeacher
     const canEdit = !isPrincipal && !isVicePrincipal
 
@@ -143,12 +139,7 @@ export default function StudentMain() {
         }
     };
 
-    // --- Handlers ---
-    // const handleFilterTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     const { id, value } = e.target;
-    //     setFilters(prev => ({ ...prev, [id]: value, page: 1 }));
-    // };
-
+    
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchInput(e.target.value);
     };
@@ -304,25 +295,6 @@ export default function StudentMain() {
         }
     };
 
-    // --- Render Guards ---
-    // if (isLoading) {
-    //     return (
-    //         <div className="w-full h-full flex flex-col items-center justify-center bg-background rounded-xl">
-    //             <i className="fas fa-circle-notch fa-spin text-primary text-3xl mb-4"></i>
-    //             <p className="text-muted text-sm font-medium">Loading student directory...</p>
-    //         </div>
-    //     );
-    // }
-
-    // if (isError) {
-    //     return (
-    //         <div className="w-full p-6 text-center bg-danger/10 border border-danger/20 rounded-xl">
-    //             <p className="text-danger font-medium">Failed to load students. Please try again later.</p>
-    //         </div>
-    //     );
-    // }
-
-
 
     const isChild = location.pathname.includes("profile")
     if (isChild) {
@@ -361,23 +333,6 @@ export default function StudentMain() {
 
     return (
         <div className="w-full h-full flex flex-col p-2 space-y-4 overflow-hidden">
-
-            {/* --- Header Section --- */}
-            {/* <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
-            
-                <div>
-                    <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-                        <i className="fas fa-user-graduate text-primary"></i>
-                        Student Directory
-                    </h1>
-                    <p className="text-sm text-muted mt-1">Manage and filter all registered students across the school.</p>
-                </div>
-                <Button onClick={openCreateForm} leftIcon="fas fa-plus" variant="primary">
-                    Register Student
-                </Button>
-            </div> */}
-
-
             {/* --- Header Section --- */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 px-2">
                 <div>
@@ -409,108 +364,10 @@ export default function StudentMain() {
             {/* --- Main Content Layout (Responsive 30% Filters / 70% Table) --- */}
             {/* <div className="flex flex-col lg:flex-row gap-4 h-[calc(100%-80px)]"> */}
             <div className="flex-1 flex flex-col lg:flex-row gap-2 h-[calc(100%-80px)] relative">
-
-
-                {/* LEFT PANEL: Filters (Full width on mobile, 30% on Desktop) */}
-                {/* <div className="w-full lg:w-[20%] bg-surface border border-border rounded-xl p-5 flex flex-col gap-5 overflow-y-auto shrink-0 shadow-sm">
-                    <h3 className="font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
-                        <i className="fas fa-filter text-muted"></i>
-                        Filters
-                    </h3>
-
-                    <div className="space-y-4">
-                        <Input
-                            id="search"
-                            label="Search Name / Roll No"
-                            placeholder="Search students..."
-                            leftIcon="fas fa-search"
-                            value={searchInput}
-                            onChange={handleSearchChange}
-                        />
-
-                        <SearchSelect
-                            label="Class"
-                            options={classOptions}
-                            value={filters.classId}
-                            onChange={handleClassFilterChange}
-                            placeholder="Select Class..."
-                        />
-
-
-                        <div className="relative">
-                            <SearchSelect
-                                label="Section"
-                                options={sectionOptions}
-                                value={filters.sectionId}
-                                onChange={handleSectionFilterChange}
-                                placeholder={isSectionsLoading ? "Loading sections..." : "Select Section..."}
-                            />
-                            {isSectionsLoading && <i className="fas fa-spinner fa-spin absolute right-3 top-[38px] text-muted text-sm"></i>}
-                        </div>
-                    </div>
-
-                    <div className="mt-auto pt-4 border-t border-border">
-                        <Button
-                            variant="outline"
-                            className="w-full"
-                            onClick={clearFilters}
-                        >
-                            Clear Filters
-                        </Button>
-                    </div>
-                </div> */}
-
-
                 {/* MOBILE OVERLAY */}
                 {isMobileFilterOpen && (
                     <div className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity" onClick={() => setIsMobileFilterOpen(false)} />
                 )}
-
-
-                {/* LEFT PANEL: Filters (Drawer on Mobile, Static on Desktop) */}
-                {/* <div className={`
-            fixed inset-y-0 left-0 z-50 w-[280px] bg-surface border border-border rounded-xl p-5 flex flex-col gap-5 shadow-2xl transition-transform duration-300 ease-in-out
-            lg:static lg:w-[25%] lg:min-w-[250px] lg:shrink-0 lg:rounded-xl lg:shadow-sm lg:translate-x-0 lg:border
-            ${isMobileFilterOpen ? 'translate-x-0' : '-translate-x-full'}
-            overflow-y-auto custom-scrollbar
-        `}>
-                    <div className="flex items-center justify-between lg:block border-b border-border pb-2">
-                        <h3 className="font-semibold text-foreground flex items-center gap-2">
-                            <i className="fas fa-filter text-muted"></i> Advanced Filters
-                        </h3>
-                        <button className="lg:hidden text-muted" onClick={() => setIsMobileFilterOpen(false)}><i className="fas fa-xmark"></i></button>
-                    </div>
-
-                    <div className="space-y-4">
-                        <Input id="search" label="Search Records" placeholder="Name or Roll No..." leftIcon="fas fa-search" value={searchInput} onChange={handleSearchChange} />
-
-                        <div className="grid grid-cols-2 gap-3">
-                            <SearchSelect
-                                label="Class"
-                                options={classOptions}
-                                value={filters.classId}
-                                onChange={handleClassFilterChange}
-                                placeholder="Select Class..."
-                            />
-                            <div className="relative">
-                                <SearchSelect
-                                    label="Section"
-                                    options={sectionOptions}
-                                    value={filters.sectionId}
-                                    onChange={handleSectionFilterChange}
-                                    placeholder={isSectionsLoading ? "Loading sections..." : "Select Section..."}
-                                />
-                                {isSectionsLoading && <i className="fas fa-spinner fa-spin absolute right-3 top-[38px] text-muted text-sm"></i>}
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mt-auto pt-4 border-t border-border">
-                        <Button variant="outline" className="w-full" onClick={clearFilters}>Clear Filters</Button>
-                        <Button variant="primary" className="w-full lg:hidden mt-2" onClick={() => setIsMobileFilterOpen(false)}>Apply</Button>
-                    </div>
-                </div> */}
 
 
                 <div className={`
@@ -670,13 +527,6 @@ export default function StudentMain() {
                                                         {student?.mandatory?.motherName || 'N/A'}
                                                     </p>
                                                 </Td>
-
-                                                {/* 3. DOB */}
-                                                {/* <Td>
-                                                    <p className="text-sm text-foreground">
-                                                        {student.mandatory?.dob ? new Date(student.mandatory.dob).toLocaleDateString() : 'N/A'}
-                                                    </p>
-                                                </Td> */}
 
                                                 <Td>
                                                     <p className="text-sm text-foreground">

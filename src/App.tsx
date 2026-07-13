@@ -20,6 +20,10 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, ADMIN_CORREPONDENT, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
+import DriverMain from './pages/transport_pages/driver_pages/DriverMain';
+import DriverSingle from './pages/transport_pages/driver_pages/DriverSingle';
+import BusMain from './pages/transport_pages/bus_pages/BusMain';
+import BusSingle from './pages/transport_pages/bus_pages/BusSingle';
 const ParentListMain = lazy(() => import('./pages/parent/ParentListMain'));
 const AcademicCalendar = lazy(() => import('./pages/academic_calendar/AcademicCalendar'));
 const UserSingle = lazy(() => import('./pages/userList/UserSingle'));
@@ -364,12 +368,18 @@ function App() {
                     <Route path="single/:id" element={<AnnouncementConfig />} />
                     <Route path="create" element={<AnnouncementConfig />} />
                   </Route>
+
+                   <Route path="driver" element={<DriverMain />}>
+                    <Route path="single/:id" element={<DriverSingle />} />
+                  </Route>
+
+                  <Route path="bus" element={<BusMain />}>
+                    <Route path="single/:id" element={<BusSingle />} />
+                  </Route>
                 </Route>
 
 
-                <Route element={<ProtectedRoute allowedRoles={MANAGEMENT_ONLY} />}>
-
-                </Route>
+               
 
                 {/* <Route path="timetable" element={<TimeTableMain />} />
                 <Route path="homework" element={<HomeworkMain />} />

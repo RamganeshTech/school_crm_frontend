@@ -202,13 +202,13 @@ export default function FeeCollectionSingle() {
         <main className="w-full h-full flex flex-col bg-background animate-in fade-in">
 
             {/* --- 1. SLIM HEADER --- */}
-            <header className="shrink-0 px-4 py-2 border-b border-border flex items-center justify-between  bg-surface z-10 shadow-sm">
+            <header className="shrink-0 px-2 sm:px-4 py-2 border-b border-border flex items-center justify-between  bg-surface z-10 shadow-sm">
                 <div className='flex items-center justify-between gap-3'>
 
                     <button onClick={() => navigate(-1)} className="w-8 h-8 flex items-center justify-center rounded border border-border text-muted hover:bg-background transition-colors cursor-pointer shrink-0">
                         <i className="fas fa-arrow-left text-sm"></i>
                     </button>
-                    <h1 className="text-lg font-bold text-foreground">Process Payment</h1>
+                    <h1 className="text-sm sm:text-lg font-bold text-foreground">Process Payment</h1>
                 </div>
 
 
@@ -219,6 +219,7 @@ export default function FeeCollectionSingle() {
                         options={academicYearOptions}
                         value={academicYear}
                         onChange={handleAcademicYearChange}
+                        // className=""
                     />
                 </div>
             </header>
