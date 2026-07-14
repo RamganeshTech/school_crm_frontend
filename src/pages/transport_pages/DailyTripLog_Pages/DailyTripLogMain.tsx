@@ -232,7 +232,7 @@ export default function DailyTripLogMain() {
                                 <>
                                     {tripLogs.map((log: any, index: number) => {
                                         // const runDistance = log.closingOdometer ? (log.closingOdometer - log.openingOdometer) : null;
-                                        const runDistance = log.closingOdometer ? Number((log.closingOdometer - log.openingOdometer).toFixed(2)) : null;
+                                        // const runDistance = log.closingOdometer ? Number((log.closingOdometer - log.openingOdometer).toFixed(2)) : null;
 
                                         return (
                                             <Tr key={log._id} className="group hover:bg-background/50 transition-colors">
