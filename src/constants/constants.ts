@@ -287,6 +287,14 @@ export const baseManagementMenu: MenuItem[] = [
                 path: "/dashboard/bus",
                 icon: "fas fa-bus"
             },
+
+             {
+                name: "Daily Trip Log",
+                path: "/dashboard/dailytriplog",
+                icon: "fas fa-receipt"
+            },
+
+            
         ]
     },
 

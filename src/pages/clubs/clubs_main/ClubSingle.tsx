@@ -165,14 +165,22 @@ export default function ClubSingle() {
             videoFormData.append('level', uploadData.level);
             videoFormData.append('video', videoFile);
 
-            const response = await uploadVideoMutation.mutateAsync(videoFormData);
-            const newVideoId = response?.data?._id;
-
-            if (pdfFiles.length > 0 && newVideoId) {
-                const pdfFormData = new FormData();
-                pdfFiles.forEach(pdf => pdfFormData.append('files', pdf));
-                await uploadPdfMutation.mutateAsync({ id: newVideoId, formData: pdfFormData });
+            // 2. Append all PDFs to the same FormData
+            if (pdfFiles.length > 0) {
+                pdfFiles.forEach(pdf => {
+                    // IMPORTANT: The key must match the backend field name exactly ('pdf')
+                    videoFormData.append('pdf', pdf);
+                });
             }
+
+             await uploadVideoMutation.mutateAsync(videoFormData);
+            // const newVideoId = response?.data?._id;
+
+            // if (pdfFiles.length > 0 && newVideoId) {
+            //     const pdfFormData = new FormData();
+            //     pdfFiles.forEach(pdf => pdfFormData.append('files', pdf));
+            //     await uploadPdfMutation.mutateAsync({ id: newVideoId, formData: pdfFormData });
+            // }
 
             setIsUploadModalOpen(false);
             setUploadData({ title: '', topic: '', level: 'general' });
@@ -377,7 +385,7 @@ export default function ClubSingle() {
                                                                     </a>
                                                                     {canModify && (
                                                                         <button
-                                                                            onClick={() => handleDeletePdf({videoId:vid._id, pdfId: pdf._id})}
+                                                                            onClick={() => handleDeletePdf({ videoId: vid._id, pdfId: pdf._id })}
                                                                             disabled={deletePdfMutation.isPending}
                                                                             className="w-6 h-6 flex items-center justify-center text-rose-500 hover:bg-rose-100 rounded transition-colors cursor-pointer"
                                                                             title="Delete File"

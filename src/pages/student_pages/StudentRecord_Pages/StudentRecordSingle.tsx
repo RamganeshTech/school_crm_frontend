@@ -528,7 +528,7 @@ export default function StudentRecordSingle() {
                             : 'bg-danger/10 text-danger border-danger/20' // Danger styling for unpaid
                             }`}>
                             <i className={`fas ${record?.feeStatus === "paid" ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
-                            {termLabel}: {record?.feeStatus || 'Unknown'}
+                            {termLabel}: {record?.feeStatus || 'not paid'}
                         </div>
                     </div>
 

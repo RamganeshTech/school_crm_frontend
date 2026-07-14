@@ -49,9 +49,9 @@ export default function UserListMain() {
         if (!users) return [];
         return users.filter((u: any) =>
             u.role !== 'parent' && (// 🌟 ADD THIS LINE
-            u?.userName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (u.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (u.phoneNo || '').includes(searchQuery)
+                u?.userName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (u.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (u.phoneNo || '').includes(searchQuery)
             )
         );
     }, [users, searchQuery]);
@@ -218,62 +218,82 @@ export default function UserListMain() {
                         filteredUsers?.map((user: any, index: number) => (
                             <Tr key={user._id}>
                                 <Td>{index + 1}</Td>
-                                <Td className="font-semibold">{user.userName}</Td>
-                                <Td>
-                                    <div>{user.email || 'No email'}</div>
-                                    <div className="text-xs text-muted">{user.phoneNo || 'No phone'}</div>
-                                </Td>
-                                <Td>
-                                    <span className="px-2 py-1 bg-primary-soft text-primary rounded-md  text-[10px] font-bold uppercase tracking-wider">
-                                        {formatRole(user.role)}
-                                    </span>
-                                </Td>
-                                {/* <div className='mx-auto border'> */}
-                                {/* Combined Actions into a Single Column Cell */}
-                                <Td>
-                                    <div className="flex items-center justify-center gap-2 sm:gap-3">
+                                {/* <Td className="font-semibold">{user.userName}</Td> */}
+
+                                <Td className="whitespace-normal">
+
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-primary-soft text-primary flex items-center justify-center font-bold text-sm shrink-0 border border-primary/20 overflow-hidden">
+                                            {user.profileImage?.url ? (
+                                                <img src={user.profileImage?.url} alt="profile" className="w-full h-full object-cover" />
+                                            ) : (
+                                                user?.userName?.charAt(0).toUpperCase() || 'D'
+                                            )}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-foreground break-words leading-tight">
+                                                {user.userName}
+                                            </p>
+
+                                        </div>
+                                    </div>
+                                    </Td>
+
+                                    <Td>
+                                        <div>{user.email || 'No email'}</div>
+                                        <div className="text-xs text-muted">{user.phoneNo || 'No phone'}</div>
+                                    </Td>
+                                    <Td>
+                                        <span className="px-2 py-1 bg-primary-soft text-primary rounded-md  text-[10px] font-bold uppercase tracking-wider">
+                                            {formatRole(user.role)}
+                                        </span>
+                                    </Td>
+                                    {/* <div className='mx-auto border'> */}
+                                    {/* Combined Actions into a Single Column Cell */}
+                                    <Td>
+                                        <div className="flex items-center justify-center gap-2 sm:gap-3">
 
 
 
-                                        <Button
-                                            variant="secondary"
-                                            size="sm"
-                                            onClick={() => navigate(`single/${user?._id}`)}
-                                            title="view in detailed way"
-                                        >
-                                            View
-                                        </Button>
-                                        {/* ADD THIS BUTTON BLOCK */}
-                                        {user.role === 'parent' && (
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                onClick={() => navigate(`single/${user?._id}`)}
+                                                title="view in detailed way"
+                                            >
+                                                View
+                                            </Button>
+                                            {/* ADD THIS BUTTON BLOCK */}
+                                            {user.role === 'parent' && (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setManageStudentsParent(user)}
+                                                    title="Manage Linked Students"
+                                                    className="text-primary hover:bg-primary-soft hover:border-primary"
+                                                >
+                                                    <i className="fas fa-child mr-1.5"></i> Students
+                                                </Button>
+                                            )}
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => setManageStudentsParent(user)}
-                                                title="Manage Linked Students"
-                                                className="text-primary hover:bg-primary-soft hover:border-primary"
+                                                onClick={() => setSelectedUser(user)}
                                             >
-                                                <i className="fas fa-child mr-1.5"></i> Students
+                                                Assign Role
                                             </Button>
-                                        )}
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setSelectedUser(user)}
-                                        >
-                                            Assign Role
-                                        </Button>
 
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            isLoading={isDeleting}
-                                            onClick={() => handleDeleteUser(user._id)}
-                                            title="Delete User"
-                                        >
-                                            <i className="fas fa-trash-alt" />
-                                        </Button>
-                                    </div>
-                                </Td>
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
+                                                isLoading={isDeleting}
+                                                onClick={() => handleDeleteUser(user._id)}
+                                                title="Delete User"
+                                            >
+                                                <i className="fas fa-trash-alt" />
+                                            </Button>
+                                        </div>
+                                    </Td>
                             </Tr>
                         ))
                     )}

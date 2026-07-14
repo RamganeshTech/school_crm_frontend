@@ -24,6 +24,7 @@ import DriverMain from './pages/transport_pages/driver_pages/DriverMain';
 import DriverSingle from './pages/transport_pages/driver_pages/DriverSingle';
 import BusMain from './pages/transport_pages/bus_pages/BusMain';
 import BusSingle from './pages/transport_pages/bus_pages/BusSingle';
+import DailyTripLogMain from './pages/transport_pages/DailyTripLog_Pages/DailyTripLogMain';
 const ParentListMain = lazy(() => import('./pages/parent/ParentListMain'));
 const AcademicCalendar = lazy(() => import('./pages/academic_calendar/AcademicCalendar'));
 const UserSingle = lazy(() => import('./pages/userList/UserSingle'));
@@ -375,6 +376,10 @@ function App() {
 
                   <Route path="bus" element={<BusMain />}>
                     <Route path="single/:id" element={<BusSingle />} />
+                  </Route>
+
+                  <Route path="dailytriplog" element={<DailyTripLogMain />}>
+                    {/* <Route path="single/:id" element={<BusSingle />} /> */}
                   </Route>
                 </Route>
 
