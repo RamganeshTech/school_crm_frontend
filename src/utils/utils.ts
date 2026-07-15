@@ -117,6 +117,16 @@ export const formatDate = (
 };
 
 
+export const formatTime12Hour = (time24: string) => {
+    if (!time24) return '';
+    const [hourString, minute] = time24.split(':');
+    const hour = parseInt(hourString, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    // Optional: add .toString().padStart(2, '0') to hour12 if you want "09:03 PM" instead of "9:03 PM"
+    return `${hour12}:${minute} ${ampm}`;
+};
+
 // 1. Default (Date Only)
 // formatDate("2026-05-16T11:39:55.000Z")
 // Output: "16/05/2026"

@@ -24,11 +24,15 @@ export interface IFuelLog {
     createdAt?: string;
     updatedAt?: string;
 }
-
 export interface FuelLogFilters {
     schoolId: string;
     busId?: string;
     academicYear?: string;
+    search?: string;
+    fromDate?: string;
+    toDate?: string;
+    minAmount?: number;
+    maxAmount?: number;
     limit?: number;
 }
 

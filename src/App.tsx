@@ -25,6 +25,9 @@ import DriverSingle from './pages/transport_pages/driver_pages/DriverSingle';
 import BusMain from './pages/transport_pages/bus_pages/BusMain';
 import BusSingle from './pages/transport_pages/bus_pages/BusSingle';
 import DailyTripLogMain from './pages/transport_pages/DailyTripLog_Pages/DailyTripLogMain';
+import FuelLogMain from './pages/transport_pages/fuelLog_pages/FuelLogMain';
+import BusRouteMain from './pages/transport_pages/BusRoute_Pages/BusrouteMain';
+import BusRouteSingle from './pages/transport_pages/BusRoute_Pages/BusRouteSingle';
 const ParentListMain = lazy(() => import('./pages/parent/ParentListMain'));
 const AcademicCalendar = lazy(() => import('./pages/academic_calendar/AcademicCalendar'));
 const UserSingle = lazy(() => import('./pages/userList/UserSingle'));
@@ -370,7 +373,7 @@ function App() {
                     <Route path="create" element={<AnnouncementConfig />} />
                   </Route>
 
-                   <Route path="driver" element={<DriverMain />}>
+                  <Route path="driver" element={<DriverMain />}>
                     <Route path="single/:id" element={<DriverSingle />} />
                   </Route>
 
@@ -378,13 +381,16 @@ function App() {
                     <Route path="single/:id" element={<BusSingle />} />
                   </Route>
 
-                  <Route path="dailytriplog" element={<DailyTripLogMain />}>
-                    {/* <Route path="single/:id" element={<BusSingle />} /> */}
+                  <Route path="dailytriplog" element={<DailyTripLogMain />} />
+                  <Route path="fuellog" element={<FuelLogMain />} />
+                  <Route path="routes" element={<BusRouteMain />} >
+                    <Route path="single/:routeId" element={<BusRouteSingle />} />
                   </Route>
+
                 </Route>
 
 
-               
+
 
                 {/* <Route path="timetable" element={<TimeTableMain />} />
                 <Route path="homework" element={<HomeworkMain />} />

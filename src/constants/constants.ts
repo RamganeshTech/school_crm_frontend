@@ -288,13 +288,24 @@ export const baseManagementMenu: MenuItem[] = [
                 icon: "fas fa-bus"
             },
 
-             {
+            {
                 name: "Daily Trip Log",
                 path: "/dashboard/dailytriplog",
                 icon: "fas fa-receipt"
             },
+            {
+                name: "Fuel Log",
+                path: "/dashboard/fuellog",
+                icon: "fas fa-gas-pump"
+            },
 
-            
+            {
+                name: "Bus Routes",
+                path: "/dashboard/routes",
+                icon: "fas fa-map-marked-alt"
+            },
+
+
         ]
     },
 

@@ -36,6 +36,15 @@ export interface DailyTripLogFilters {
     schoolId: string;
     busId?: string;
     academicYear?: string;
+    search?: string;
+    fromDate?: string;
+    toDate?: string;
+    minKmRun?: number;
+    maxKmRun?: number;
+    minOpeningOdometer?: number;
+    maxOpeningOdometer?: number;
+    minClosingOdometer?: number;
+    maxClosingOdometer?: number;
     limit?: number;
 }
 

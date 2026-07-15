@@ -122,13 +122,7 @@ export default function DailyTripLogModal({ isOpen, onClose, logData, logId }: D
                 return;
             }
 
-            // Create-Specific Mandatory Validations
-            // if (!logData) {
-            //     if (!formData.openingOdometer || !formData.closingOdometer) {
-            //         toast.error("Opening and Closing odometers are mandatory for a new log.");
-            //         return;
-            //     }
-            // }
+     
 
             // Create-Specific Mandatory Validations
             if (!logId) {
@@ -188,14 +182,6 @@ export default function DailyTripLogModal({ isOpen, onClose, logData, logId }: D
                 {/* Scrollable Content Area */}
                 <div className="space-y-6 overflow-y-auto custom-scrollbar pr-2 flex-1 pb-4 mt-2">
 
-                    {/* Header Actions for Existing Records */}
-                    {/* {logData && !isEditMode && (
-                        <div className="flex justify-end">
-                            <Button type="button" variant="primary" leftIcon="fas fa-edit" onClick={() => setIsEditMode(true)}>
-                                Edit Details
-                            </Button>
-                        </div>
-                    )} */}
 
                     <div className="bg-surface/50 p-5 rounded-xl border border-border/50 space-y-5">
                         <h4 className="text-sm font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
