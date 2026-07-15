@@ -12,7 +12,7 @@ import { toast } from '../../../shared/ui/ToastContext';
 // Hooks & APIs
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
 import {
-    useGetAllBusRoutesInfinite,
+    useGetAllBusRoutesInfinite,    
     useDeleteBusRoute
 } from '../../../api_services/transport_api/busRouteApi';
 import BusRouteCreateModal from './BusRouteCreateModal';

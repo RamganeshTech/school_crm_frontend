@@ -26,7 +26,7 @@ const BusMain  = lazy(() => import( './pages/transport_pages/bus_pages/BusMain')
 const BusSingle  = lazy(() => import( './pages/transport_pages/bus_pages/BusSingle'));
 const DailyTripLogMain  = lazy(() => import( './pages/transport_pages/DailyTripLog_Pages/DailyTripLogMain'));
 const FuelLogMain  = lazy(() => import('./pages/transport_pages/fuelLog_pages/FuelLogMain'));
-const BusRouteMain  = lazy(() => import('./pages/transport_pages/BusRoute_Pages/BusrouteMain'));
+const BusRouteMain  = lazy(() => import('./pages/transport_pages/BusRoute_Pages/BusRouteMain'));
 const BusRouteSingle  = lazy(() => import( './pages/transport_pages/BusRoute_Pages/BusRouteSingle'));  
 
 
