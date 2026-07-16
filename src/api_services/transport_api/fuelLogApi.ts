@@ -195,3 +195,45 @@ export const useDeleteFuelLog = () => {
         },
     });
 };
+
+
+
+export interface FuelAnalyticsParams {
+    schoolId: string;
+    rangeType?: "week" | "month" | "year" | "custom" | "today";
+    startDate?: string;
+    endDate?: string;
+}
+
+
+
+export const useGetFuelLogAnalytics = (params: FuelAnalyticsParams) => {
+    const { currentRole } = useAuthData();
+
+    return useQuery({
+        queryKey: ['fuel-log-analytics', params],
+        queryFn: async () => {
+            try {
+                // Applying exact roles specified in your backend route
+                checkPermission(currentRole, ["administrator", "correspondent"]);
+
+                const { data } = await Api.get(`/api/transport/fuellog/analytics/${params.schoolId}`, {
+                    params: {
+                        rangeType: params.rangeType,
+                        startDate: params.startDate,
+                        endDate: params.endDate
+                    }
+                });
+
+                if (!data.ok) throw new Error(data.message || 'Failed to fetch trip analytics');
+                
+                return data.data; // Assuming backend sends actual payload inside `data`
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+                throw new Error(errorMessage);
+            }
+        },
+        // Only run the query if we have a schoolId
+        enabled: !!params.schoolId,
+    });
+};

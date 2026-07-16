@@ -32,11 +32,11 @@ export default function DailyTripLogMain() {
         fromDate: '',
         toDate: '',
         minKmRun: 0,
-        maxKmRun: 500,          // adjust ceiling to realistic daily km range
+        maxKmRun: 10000,          // adjust ceiling to realistic daily km range
         minOpeningOdometer: 0,
-        maxOpeningOdometer: 200000, // adjust ceiling to realistic vehicle odometer range
+        maxOpeningOdometer: 2000000, // adjust ceiling to realistic vehicle odometer range
         minClosingOdometer: 0,
-        maxClosingOdometer: 200000,
+        maxClosingOdometer: 2000000,
     });
 
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -466,6 +466,7 @@ export default function DailyTripLogMain() {
                 onClose={() => setIsFormOpen(false)}
                 logData={selectedLog}
                 logId={selectedLog?._id}
+                tripLogs={tripLogs} // <-- ADD THIS LINE
             />
 
         </div>

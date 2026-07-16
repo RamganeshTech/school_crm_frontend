@@ -20,6 +20,7 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, ADMIN_CORREPONDENT, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
+const TransportationDashboardMain = lazy(() => import(  './pages/transport_pages/dashboard/TransportationDashboardMain'));
 const DriverMain  = lazy(() => import( './pages/transport_pages/driver_pages/DriverMain'));
 const DriverSingle  = lazy(() => import( './pages/transport_pages/driver_pages/DriverSingle'));
 const BusMain  = lazy(() => import( './pages/transport_pages/bus_pages/BusMain'));
@@ -382,6 +383,8 @@ function App() {
                   <Route path="bus" element={<BusMain />}>
                     <Route path="single/:id" element={<BusSingle />} />
                   </Route>
+
+                  <Route path="transportaion-analytics" element={<TransportationDashboardMain />} />
 
                   <Route path="dailytriplog" element={<DailyTripLogMain />} />
                   <Route path="fuellog" element={<FuelLogMain />} />

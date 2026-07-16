@@ -16,6 +16,7 @@ import { useRoleCheck } from '../../../hooks/useRoleCheck';
 // Adjust the import path to where your busApi is actually located
 import { useGetAllBuses, useDeleteBus } from '../../../api_services/transport_api/busApi';
 import BusCreateModel from './BusCreateModel';
+import { formatDate } from './../../../utils/utils';
 
 export default function BusMain() {
     // --- Global State ---
@@ -27,8 +28,11 @@ export default function BusMain() {
     const [searchInput, setSearchInput] = useState('');
     const debouncedSearch = useDebounce(searchInput, 500);
 
+    // 1. Update State
     const [filters, setFilters] = useState({
         operationalStatus: '',
+        nextServiceFrom: '',
+        nextServiceTo: '',
     });
 
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -50,6 +54,7 @@ export default function BusMain() {
     // Note: If you add search to your backend, you can pass debouncedSearch here.
     const { data: buses = [], isLoading, isError, refetch } = useGetAllBuses({
         schoolId: schoolId!,
+        search: debouncedSearch, // Or debouncedSearch if you are using it
         ...filters,
     });
 
@@ -64,10 +69,13 @@ export default function BusMain() {
         setFilters(prev => ({ ...prev, [key]: value }));
     };
 
+    // 2. Update Clear Function
     const clearFilters = () => {
         setSearchInput('');
         setFilters({
             operationalStatus: '',
+            nextServiceFrom: '',
+            nextServiceTo: '',
         });
     };
 
@@ -155,17 +163,17 @@ export default function BusMain() {
                         </button>
                     </div>
 
-                    <div className="space-y-4">
+                   <div className="space-y-4">
                         <Input
                             id="search"
                             label="Search Fleet"
-                            placeholder="Reg No, Bus No, or Model..."
+                            placeholder="Reg No, Chassis No, Engine No..."
                             leftIcon="fas fa-search"
                             value={searchInput}
                             onChange={handleSearchChange}
                         />
 
-                        <div className="grid grid-cols-1 gap-3">
+                        <div className="grid grid-cols-1 gap-4">
                             <SearchSelect
                                 label="Operational Status"
                                 options={[
@@ -178,6 +186,25 @@ export default function BusMain() {
                                 onChange={(opt) => handleFilterChange('operationalStatus', String(opt.value))}
                                 placeholder="Select Status..."
                             />
+
+                            {/* NEW: Next Service Date Range */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold text-muted uppercase tracking-wide">Next Service Date</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Input 
+                                        type="date" 
+                                        value={filters.nextServiceFrom} 
+                                        onChange={(e) => setFilters(prev => ({ ...prev, nextServiceFrom: e.target.value }))}
+                                        placeholder="From"
+                                    />
+                                    <Input 
+                                        type="date" 
+                                        value={filters.nextServiceTo} 
+                                        onChange={(e) => setFilters(prev => ({ ...prev, nextServiceTo: e.target.value }))}
+                                        placeholder="To"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -197,6 +224,7 @@ export default function BusMain() {
                                 <Th>Vehicle Details</Th>
                                 <Th>Specs</Th>
                                 <Th>Status</Th>
+                                <Th>Next Service</Th>
                                 <Th className="text-center">Actions</Th>
                             </tr>
                         </THead>
@@ -275,6 +303,12 @@ export default function BusMain() {
                                                     </span>
                                                 );
                                             })()}
+                                        </Td>
+
+                                         <Td>
+                                            <p className="text-sm text-foreground text-center">
+                                                {formatDate(bus.nextServiceDate) ||  'N/A'}
+                                            </p>
                                         </Td>
 
                                         {/* Actions (View and Delete ONLY) */}

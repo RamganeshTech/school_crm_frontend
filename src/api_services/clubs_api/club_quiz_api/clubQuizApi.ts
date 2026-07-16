@@ -20,6 +20,7 @@ export interface QuizQuestion {
 export interface CreateQuizPayload {
     clubId: string;
     clubVideoId?: string;
+    schoolId?: string;
     classId?: string;
     sectionId?: string;
     title: string;

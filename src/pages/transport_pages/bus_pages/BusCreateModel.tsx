@@ -27,6 +27,11 @@ const ALLOWED_BUS_DOCUMENT_NAMES = [
     "Road Tax"
 ];
 
+export const operationalOptions = [
+        { label: 'Active', value: 'active' }, { label: 'In Service', value: 'in_service' },
+        { label: 'On Trip', value: 'on_trip' }, { label: 'Inactive', value: 'inactive' }
+    ];
+
 export default function BusCreateModel({ isOpen, onClose }: BusCreateModelProps) {
     const { schoolId } = useSelector((state: RootState) => state.auth);
     const createBusMutation = useAddBus();
@@ -146,10 +151,7 @@ export default function BusCreateModel({ isOpen, onClose }: BusCreateModelProps)
         { label: 'CNG', value: 'cng' }, { label: 'Electric', value: 'electric' }
     ];
 
-    const operationalOptions = [
-        { label: 'Active', value: 'active' }, { label: 'In Service', value: 'in_service' },
-        { label: 'On Trip', value: 'on_trip' }, { label: 'Inactive', value: 'inactive' }
-    ];
+    
 
     return (
         <SideModal
@@ -201,6 +203,7 @@ export default function BusCreateModel({ isOpen, onClose }: BusCreateModelProps)
                             <Input id="rcOwner" label="RC Owner Name" placeholder="Name on Registration" value={formData.rcOwner} onChange={handleInputChange} />
                             <Input id="purchaseDate" type="date" label="Purchase Date" value={formData.purchaseDate} onChange={handleInputChange} />
                             <Input id="lastServiceDate" type="date" label="Last Service Date" value={formData.lastServiceDate} onChange={handleInputChange} />
+                            <Input id="nextServiceDate" type="date" label="Next Service Date" value={formData.nextServiceDate} onChange={handleInputChange} />
                         </div>
                     </div>
 

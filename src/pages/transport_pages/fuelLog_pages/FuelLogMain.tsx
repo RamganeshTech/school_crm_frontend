@@ -36,7 +36,7 @@ export default function FuelLogMain() {
         fromDate: '',
         toDate: '',
         minAmount: 0,
-        maxAmount: 50000,
+        maxAmount: 100000,
     });
 
 
@@ -113,7 +113,7 @@ export default function FuelLogMain() {
             fromDate: '',
             toDate: '',
             minAmount: 0,
-            maxAmount: 50000,
+            maxAmount: 100000,
         });
     };
 
@@ -252,7 +252,7 @@ export default function FuelLogMain() {
                             <Slider
                                 range
                                 min={0}
-                                max={50000}
+                                max={100000}
                                 step={100}
                                 value={[filters.minAmount, filters.maxAmount]}
                                 onChange={(value) => {

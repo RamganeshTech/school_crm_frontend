@@ -237,7 +237,7 @@ const ClubQuizMain: React.FC = () => {
             </div>
 
             {/* Modals will go here when you build them */}
-            {isCreateModalOpen && <CreateQuizModal onClose={() => setIsCreateModalOpen(false)} clubId={id} videoId={videoId} />}
+            {isCreateModalOpen && <CreateQuizModal onClose={() => setIsCreateModalOpen(false)} clubId={id} videoId={videoId} schoolId={schoolId!} />}
             {quizToUpdate && (
                 <UpdateQuizModal
                     quiz={quizToUpdate}

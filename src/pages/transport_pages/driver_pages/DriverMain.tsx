@@ -15,10 +15,16 @@ import useDebounce from '../../../hooks/useDebounce';
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
 import { useGetAllDrivers, useDeleteDriver } from '../../../api_services/transport_api/driverApi';
 import DriverFormModal from './DriverFormModal';
+import { useGetBusDropDown } from '../../../api_services/transport_api/busApi';
 
 // Placeholder for the external modal component we will build next
 // import DriverFormModal from './DriverFormModal';
 
+export const driverStatusOptions = [
+    { label: 'Active', value: 'active' },
+    { label: 'On Leave', value: 'on_leave' },
+    { label: 'in Active', value: 'inactive' }
+]
 const DriverMain = () => {
     // --- Global State ---
     const { schoolId } = useSelector((state: RootState) => state.auth);
@@ -32,8 +38,21 @@ const DriverMain = () => {
 
     const [filters, setFilters] = useState({
         status: '',
-        licenseType: '',
+        joinedFrom: '',
+        joinedTo: '',
+        assignedBusId: '', // <-- NEW
+        unassigned: '' // We will pass 'true' if we want only unassigned drivers
     });
+
+
+    const { data: busesData } = useGetBusDropDown({ schoolId: schoolId! });
+    const busOptions = React.useMemo(() => {
+        const busesList = Array.isArray(busesData) ? busesData : (busesData?.data || []);
+        return busesList.map((bus: any) => ({
+            label: `${bus.registrationNo} ${bus.busNumber ? `(${bus.busNumber})` : ''}`,
+            value: bus._id
+        }));
+    }, [busesData]);
 
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
@@ -50,8 +69,8 @@ const DriverMain = () => {
     // --- API Hooks ---
     const { data: drivers = [], isLoading, isError } = useGetAllDrivers({
         schoolId: schoolId!,
-        ...filters,
         search: debouncedSearch,
+        ...filters,
     } as any); // Adjust type casting based on your exact hook parameter types
 
     const deleteDriverMutation = useDeleteDriver();
@@ -69,7 +88,10 @@ const DriverMain = () => {
         setSearchInput('');
         setFilters({
             status: '',
-            licenseType: '',
+            joinedFrom: '',
+            joinedTo: '',
+            unassigned: '',
+            assignedBusId: ""
         });
     };
 
@@ -153,7 +175,7 @@ const DriverMain = () => {
                         <Input
                             id="search"
                             label="Search Drivers"
-                            placeholder="Name, Phone, or License..."
+                            placeholder="Name, Phone, or Address..."
                             leftIcon="fas fa-search"
                             value={searchInput}
                             onChange={handleSearchChange}
@@ -162,26 +184,71 @@ const DriverMain = () => {
                         <div className="grid grid-cols-1 gap-3">
                             <SearchSelect
                                 label="Operational Status"
-                                options={[
-                                    { label: 'Active', value: 'active' },
-                                    { label: 'On Leave', value: 'on_leave' },
-                                    { label: 'Suspended', value: 'suspended' }
-                                ]}
+                                options={driverStatusOptions}
                                 value={filters.status}
                                 onChange={(opt) => handleFilterChange('status', String(opt.value))}
                                 placeholder="Select Status..."
                             />
 
-                            <SearchSelect
-                                label="License Type"
-                                options={[
-                                    { label: 'Heavy Motor Vehicle (HMV)', value: 'HMV' },
-                                    { label: 'Light Motor Vehicle (LMV)', value: 'LMV' }
-                                ]}
-                                value={filters.licenseType}
-                                onChange={(opt) => handleFilterChange('licenseType', String(opt.value))}
-                                placeholder="Select Type..."
-                            />
+                            {/* NEW: Assignment Status (Chip Toggle) */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold text-muted uppercase tracking-wide">Bus Assignment</label>
+                                <div className="flex flex-wrap gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFilters(prev => ({ ...prev, unassigned: '' }))}
+                                        className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all duration-200 ${filters.unassigned === ''
+                                                ? 'bg-primary text-white shadow-md'
+                                                : 'bg-background border border-border text-muted hover:bg-surface hover:text-foreground'
+                                            }`}
+                                    >
+                                        All Drivers
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFilters(prev => ({ ...prev, unassigned: 'true' }))}
+                                        className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all duration-200 ${filters.unassigned === 'true'
+                                                ? 'bg-primary text-white shadow-md'
+                                                : 'bg-background border border-border text-muted hover:bg-surface hover:text-foreground'
+                                            }`}
+                                    >
+                                        Unassigned (No Bus)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="pt-2 border-t border-border/50">
+                                <SearchSelect
+                                    label="Filter by Specific Bus"
+                                    options={[{ label: 'Any Bus', value: '' }, ...busOptions]}
+                                    value={filters.assignedBusId}
+                                    onChange={(opt) => setFilters(prev => ({
+                                        ...prev,
+                                        assignedBusId: String(opt.value),
+                                        unassigned: '' // Clear the 'unassigned' chip if they pick a bus
+                                    }))}
+                                    placeholder="Select a bus..."
+                                />
+                            </div>
+
+                            {/* NEW: Joined Date Range */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold text-muted uppercase tracking-wide">Date Joined</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Input
+                                        type="date"
+                                        value={filters.joinedFrom}
+                                        onChange={(e) => setFilters(prev => ({ ...prev, joinedFrom: e.target.value }))}
+                                        placeholder="From"
+                                    />
+                                    <Input
+                                        type="date"
+                                        value={filters.joinedTo}
+                                        onChange={(e) => setFilters(prev => ({ ...prev, joinedTo: e.target.value }))}
+                                        placeholder="To"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -201,6 +268,7 @@ const DriverMain = () => {
                                 <Th>Assigned Bus</Th>
                                 {/* <Th>Experience</Th> */}
                                 <Th>Phone No</Th>
+                                <Th>Status</Th>
                                 <Th className="text-center">Actions</Th>
                             </tr>
                         </THead>
@@ -265,24 +333,23 @@ const DriverMain = () => {
                                             </p>
                                         </Td> */}
 
-                                        {/* Status */}
-                                        {/* <Td>
-                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border shadow-sm ${
-                                                driver.status === 'active' ? 'bg-success/10 border-success/20 text-success' : 
-                                                driver.status === 'on_leave' ? 'bg-warning/10 border-warning/20 text-warning' : 
-                                                'bg-danger/10 border-danger/20 text-danger'
-                                            }`}>
-                                                <i className="fas fa-circle text-[8px]"></i>
-                                                {driver.status ? driver.status.replace('_', ' ').toUpperCase() : 'UNKNOWN'}
-                                            </span>
-                                        </Td> */}
-
                                         <Td>
                                             <p className="text-xs text-muted truncate mt-0.5">
                                                 {driver?.phone || 'No Contact'} <br />
                                                 {driver?.emergencyContact || 'No Contact'}
                                             </p>
                                         </Td>
+
+                                        <Td>
+                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border shadow-sm ${driver.status === 'active' ? 'bg-success/10 border-success/20 text-success' :
+                                                    driver.status === 'on_leave' ? 'bg-warning/10 border-warning/20 text-warning' :
+                                                        'bg-danger/10 border-danger/20 text-danger'
+                                                }`}>
+                                                <i className="fas fa-circle text-[8px]"></i>
+                                                {driver.status ? driver.status.replace('_', ' ').toUpperCase() : 'UNKNOWN'}
+                                            </span>
+                                        </Td>
+
 
                                         {/* Actions */}
                                         <Td className="text-center">

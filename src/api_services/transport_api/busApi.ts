@@ -5,49 +5,49 @@ export type BusOperationalStatus = "active" | "in_service" | "on_trip" | "inacti
 export type FuelType = "diesel" | "petrol" | "cng" | "electric";
 
 export interface IUpload {
-  _id: string;
-  type: "image" | "pdf" | "video";
-  key?: string;
-  url?: string;
-  originalName?: string;
-  uploadedAt: string;
+    _id: string;
+    type: "image" | "pdf" | "video";
+    key?: string;
+    url?: string;
+    originalName?: string;
+    uploadedAt: string;
 }
 
 export interface IStatutoryDocument {
-  _id: string;
-  documentName: string | null;
-  expiry: string | null; // ISO Date string
-  lastCost?: number;
-  status: StatutoryDocStatus;
-  files: IUpload[];
+    _id: string;
+    documentName: string | null;
+    expiry: string | null; // ISO Date string
+    lastCost?: number;
+    status: StatutoryDocStatus;
+    files: IUpload[];
 }
 
 export interface IBus {
-  _id: string;
-  schoolId: string;
-  busNumber: string;
-  registrationNo: string;
-  makeModel: string;
-  year: number;
-  seatingCapacity: number;
-  fuelType: FuelType;
-  chassisNo: string;
-  engineNo: string;
-  purchaseDate: string; // ISO Date string
-  rcOwner: string;
-  statutoryDocuments: IStatutoryDocument[];
-  nextServiceDate?: string;
-  lastServiceDate?: string;
-  assignedDriverId?: string;
-  operationalStatus: BusOperationalStatus;
-  createdAt: string;
-  updatedAt: string;
+    _id: string;
+    schoolId: string;
+    busNumber: string;
+    registrationNo: string;
+    makeModel: string;
+    year: number;
+    seatingCapacity: number;
+    fuelType: FuelType;
+    chassisNo: string;
+    engineNo: string;
+    purchaseDate: string; // ISO Date string
+    rcOwner: string;
+    statutoryDocuments: IStatutoryDocument[];
+    nextServiceDate?: string;
+    lastServiceDate?: string;
+    assignedDriverId?: string;
+    operationalStatus: BusOperationalStatus;
+    createdAt: string;
+    updatedAt: string;
 }
 
 // Helper filter type for listing buses
 export interface IBusFilters {
-  schoolId: string;
-  operationalStatus?: BusOperationalStatus;
+    schoolId: string;
+    operationalStatus?: BusOperationalStatus;
 }
 
 
@@ -60,9 +60,9 @@ import { queryClient } from "../../lib/queryClient";
 
 
 interface BaseResponse<T> {
-  ok: boolean;    // or 'ok'
-  message?: string;
-  data?: T;             // This is where your IDriver goes
+    ok: boolean;    // or 'ok'
+    message?: string;
+    data?: T;             // This is where your IDriver goes
 }
 
 // ---------- CREATE ----------
@@ -96,7 +96,10 @@ export const useAddBus = () => {
 
 // ---------- GET ALL ----------
 
-export const useGetAllBuses = (params?: { schoolId?: string; operationalStatus?: string }) => {
+export const useGetAllBuses = (params?: {
+    schoolId?: string; operationalStatus?: string, search?: string, nextServiceFrom?: string,
+    nextServiceTo?: string
+}) => {
     const { currentRole } = useAuthData();
 
     return useQuery({

@@ -4,9 +4,17 @@ import { GlobalSearch } from './GlobalSearch';
 import GlobalSetupProgress from './GlobalSetupProgress';
 // import { UserAvatar } from './UserAvatar';
 
-export const GlobalHeader = () => {
+export const GlobalHeader = ({onMenuClick}: {onMenuClick:any}) => {
     return (
         <header className="h-14 bg-surface border-b border-border-default flex items-center justify-between px-6 sticky top-0 z-[35]">
+
+            <button
+                onClick={onMenuClick}
+                className="md:hidden p-2 text-muted hover:text-primary transition-colors"
+            >
+                <i className="fas fa-bars text-xl"></i>
+            </button>
+
             {/* Left side: Global Search (Command Palette) */}
             <div className="flex-1 flex items-center">
                 <GlobalSearch />

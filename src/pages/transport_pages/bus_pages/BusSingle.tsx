@@ -17,6 +17,7 @@ import {
     useDeleteBusDocumentAttachment
 } from '../../../api_services/transport_api/busApi';
 import { useGetDriverDropDown } from '../../../api_services/transport_api/driverApi';
+import { operationalOptions } from './BusCreateModel';
 
 // Fixed set — every bus must have exactly these 5 statutory documents
 const ALLOWED_BUS_DOCUMENT_NAMES = [
@@ -204,11 +205,6 @@ export default function BusSingle() {
     const fuelOptions = [
         { label: 'Diesel', value: 'diesel' }, { label: 'Petrol', value: 'petrol' },
         { label: 'CNG', value: 'cng' }, { label: 'Electric', value: 'electric' }
-    ];
-
-    const operationalOptions = [
-        { label: 'Active', value: 'active' }, { label: 'In Service', value: 'in_service' },
-        { label: 'On Trip', value: 'on_trip' }, { label: 'Inactive', value: 'inactive' }
     ];
 
     // --- Loading & Error States ---

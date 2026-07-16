@@ -12,9 +12,12 @@ interface Props {
     onClose: () => void;
     clubId: string;
     videoId: string;
+    schoolId: string;
 }
 
-const CreateQuizModal: React.FC<Props> = ({ onClose, clubId, videoId }) => {
+const CreateQuizModal: React.FC<Props> = ({ onClose, clubId, videoId , schoolId}) => {
+
+
     const createQuizMutation = useCreateClubQuiz();
 
     // Form State
@@ -86,6 +89,7 @@ const CreateQuizModal: React.FC<Props> = ({ onClose, clubId, videoId }) => {
                 clubId,
                 clubVideoId: videoId,
                 title,
+                schoolId: schoolId,
                 description,
                 questions
             });

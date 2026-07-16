@@ -277,6 +277,13 @@ export const baseManagementMenu: MenuItem[] = [
     {
         name: 'Transport Management', path: "#", icon: 'fas fa-id-card',
         subMenu: [
+
+            {
+                name: "Dashboard",
+                path: "/dashboard/transportaion-analytics",
+                icon: "fas fa-chart-pie"
+            },
+
             {
                 name: "Driver",
                 path: "/dashboard/driver",
@@ -304,6 +311,7 @@ export const baseManagementMenu: MenuItem[] = [
                 path: "/dashboard/routes",
                 icon: "fas fa-map-marked-alt"
             },
+
 
 
         ]

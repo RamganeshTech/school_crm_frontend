@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 // import Sidebar from './Sidebar'; // Adjust path as needed
 // import { principalMenu } from '../../config/navigation'; // Import your specific role menu
@@ -15,6 +15,7 @@ import { GlobalHeader } from '../../shared/components/GlobalHeader';
 // import { useAuthData } from '../../hooks/useAuthData';
 import { useAuthorizedMenu } from '../../hooks/useAuthorizedMenu';
 import { toast } from '../../shared/ui/ToastContext';
+import MobileSidebar from '../../shared/components/MobileSidebar';
 
 const DashboardChildrens: React.FC = () => {
     const navigate = useNavigate();
@@ -28,6 +29,8 @@ const DashboardChildrens: React.FC = () => {
     const { schoolName } = useSelector(
         (state: RootState) => state.auth
     );
+
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     // const { studentId } = useCurrentStudent();
 
@@ -134,11 +137,30 @@ const DashboardChildrens: React.FC = () => {
         <div className="w-full h-full border border-primary-soft flex bg-surface relative ">
 
             {/* Sidebar is fixed, so it sits on top of the layout structure */}
-            <Sidebar
-                schoolName={schoolName || ""} // Replace with actual dynamic name if available
+            {/* <Sidebar
+                schoolName={schoolName || ""} 
                 schoolPath="/dashboard"
-                // menuItems={currentMenu} // You can dynamically pass menus based on currentRole here
-                menuItems={menuItems} // You can dynamically pass menus based on currentRole here
+                menuItems={menuItems}
+                onLogout={handleLogout}
+            /> */}
+
+            {/* Desktop Sidebar (Hidden on small screens via standard tailwind wrapper) */}
+            <div className="hidden md:flex h-full z-10 shrink-0">
+                <Sidebar
+                    schoolName={schoolName || ""}
+                    schoolPath="/dashboard"
+                    menuItems={menuItems}
+                    onLogout={handleLogout}
+                />
+            </div>
+
+            {/* Mobile Sidebar (Rendered conditionally via state) */}
+            <MobileSidebar 
+                isOpen={isMobileMenuOpen}
+                onClose={() => setIsMobileMenuOpen(false)}
+                schoolName={schoolName || ""}
+                schoolPath="/dashboard"
+                menuItems={menuItems}
                 onLogout={handleLogout}
             />
 
@@ -153,7 +175,8 @@ const DashboardChildrens: React.FC = () => {
                 {/* Optional: Top Mobile Navbar / Header area can go here if needed later */}
                 {/* <GlobalHeader /> */}
                 <div className="shrink-0">
-                    <GlobalHeader />
+                    {/* <GlobalHeader /> */}
+                    <GlobalHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
                 </div>
                 {/* The Outlet renders the nested routes (Profile, Class, Section, etc.) */}
                 {/* <div className="w-full h-full p-4 md:p-6"> */}

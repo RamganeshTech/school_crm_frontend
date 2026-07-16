@@ -13,6 +13,7 @@ import { useAddDriver, useUpdateDriver } from '../../../api_services/transport_a
 import { useGetBusDropDown } from '../../../api_services/transport_api/busApi';
 import { SearchSelect } from '../../../shared/ui/SearchSelect';
 import { DRIVER_DOCUMENT_NAMES } from './DriverSingle';
+import { driverStatusOptions } from './DriverMain';
 
 interface DriverFormModalProps {
     isOpen: boolean;
@@ -44,6 +45,7 @@ export default function DriverFormModal({ isOpen, onClose, driverData }: DriverF
         emergencyContact: '',
         address: '',
         assignedBusId: '', // <-- Add this
+        status: ""
     };
 
     const [formDataState, setFormDataState] = useState(initialFormState);
@@ -296,6 +298,14 @@ export default function DriverFormModal({ isOpen, onClose, driverData }: DriverF
                                 value={formDataState.assignedBusId}
                                 onChange={(opt) => setFormDataState(prev => ({ ...prev, assignedBusId: String(opt.value) }))}
                                 placeholder="Search & Assign Bus..."
+                            />
+
+                             <SearchSelect
+                                label="Status"
+                                options={driverStatusOptions}
+                                value={formDataState.status}
+                                onChange={(opt) => setFormDataState(prev => ({ ...prev, status: String(opt.value) }))}
+                                placeholder="Status Options..."
                             />
                         </div>
 

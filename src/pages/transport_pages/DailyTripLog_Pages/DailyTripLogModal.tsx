@@ -22,10 +22,11 @@ interface DailyTripLogModalProps {
     onClose: () => void;
     logData?: any | null; // Null means Create Mode, Object means View/Edit Mode
     logId: any
+    tripLogs?: any[]; // <-- ADD THIS
 
 }
 
-export default function DailyTripLogModal({ isOpen, onClose, logData, logId }: DailyTripLogModalProps) {
+export default function DailyTripLogModal({ isOpen, onClose, logData, logId , tripLogs}: DailyTripLogModalProps) {
     const { schoolId } = useSelector((state: RootState) => state.auth);
 
     // --- API Hooks ---
@@ -81,6 +82,33 @@ export default function DailyTripLogModal({ isOpen, onClose, logData, logId }: D
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, logData]);
+
+
+    // --- Auto-fill Opening Odometer on Bus Selection ---
+    useEffect(() => {
+        // Only run this in Create Mode when a bus is actually selected
+        if (isOpen && isEditMode && !logId && formData.busId && tripLogs && tripLogs.length > 0) {
+            
+            // Find the most recent log for this specific bus. 
+            // (Assuming your tripLogs from the API are already sorted newest to oldest)
+            const latestLogForBus = tripLogs.find((log: any) => 
+                (log.busId?._id === formData.busId) || (log.busId === formData.busId)
+            );
+
+            if (latestLogForBus && latestLogForBus.closingOdometer) {
+                setFormData(prev => ({
+                    ...prev,
+                    openingOdometer: latestLogForBus.closingOdometer.toString()
+                }));
+            } else {
+                // If the bus has no previous trips, leave it blank for manual entry
+                setFormData(prev => ({
+                    ...prev,
+                    openingOdometer: '' 
+                }));
+            }
+        }
+    }, [formData.busId, isEditMode, logId, isOpen, tripLogs]);
 
     // --- Handlers ---
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
