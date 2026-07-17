@@ -28,7 +28,7 @@ import { SearchSelect } from '../../../shared/ui/SearchSelect';
 import { Toggle } from '../../../shared/ui/Toggle';
 import { toast } from '../../../shared/ui/ToastContext';
 import AssignClass from './AssignClass';
-import CollectFeeModal from './CollectFeeModal';
+import CollectFeeModal, { BUS_FEE_HEADS } from './CollectFeeModal';
 import { getAcademicYears } from '../../../utils/utils';
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
 import { useGetFeeConfig, type FeeHeadItem } from './../../../api_services/feeStructure_api/feeStructureConfigApi';
@@ -124,6 +124,12 @@ export default function StudentRecordSingle() {
     const fDues = record?.duesv1 || {};
     const orderedHeads: FeeHeadItem[] = feeConfig?.feeHeads || [];
 
+
+    // 🌟 3. Compute effective heads for rendering
+    const standardHeadNames = orderedHeads.map(h => h.feeHead);
+    const effectiveHeadNames = record?.isBusApplicable
+        ? [...standardHeadNames, ...BUS_FEE_HEADS]
+        : standardHeadNames;
 
 
     const concession = record?.concession || {};
@@ -533,17 +539,31 @@ export default function StudentRecordSingle() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-y-4 gap-x-6">
-                        <div>
-                            <p className="text-muted text-xs font-semibold">Class & Section</p>
-                            <p className="font-medium text-foreground text-sm mt-0.5">
-                                {displayClassName} - {displaySectionName}
-                            </p>
+                        <div className='flex flex-col gap-3 '>
+                            <div>
+
+                                <p className="text-muted text-xs font-semibold">Class & Section</p>
+                                <p className="font-medium text-foreground text-sm mt-0.5">
+                                    {displayClassName} - {displaySectionName}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p className="text-muted text-xs font-semibold">Bus Point</p>
+                                <p className="font-medium text-foreground text-sm mt-0.5">
+                                     {record?.busPoint?.routeName || "No bus point mentioned"}
+                                </p>
+                            </div>
                         </div>
 
-                        <div>
-                            <p className="text-muted text-xs font-semibold">Roll Number & Type</p>
-                            <p className="font-medium text-foreground text-sm mt-0.5">{actualRollNumber}</p>
-                            {/* <p className="text-xs text-muted mt-1 capitalize">Admission: <span className='font-bold'>{record?.newOld || 'N/A'}</span></p> */}
+                        <div className='flex flex-col gap-3 '>
+                            <div>
+
+                                <p className="text-muted text-xs font-semibold">Roll Number & Type</p>
+                                <p className="font-medium text-foreground text-sm mt-0.5">{actualRollNumber}</p>
+                                {/* <p className="text-xs text-muted mt-1 capitalize">Admission: <span className='font-bold'>{record?.newOld || 'N/A'}</span></p> */}
+                            </div>
+
 
                             <div className="flex items-center gap-2 mt-1">
                                 {!isEditingType ? (
@@ -717,8 +737,9 @@ export default function StudentRecordSingle() {
 
 
 
-                            {orderedHeads.map((headObj, index) => {
-                                const headName = headObj.feeHead; // 🌟 Extract the string value
+                            {/* {orderedHeads.map((headObj, index) => { */}
+                            {effectiveHeadNames.map((headName, index) => {
+                                // const headName = headObj.feeHead; // 🌟 Extract the string value
 
                                 return (
                                     <tr key={`${headName}-${index}`} className="hover:bg-background/50 transition-colors">
@@ -736,13 +757,13 @@ export default function StudentRecordSingle() {
                                 <td className="px-4 py-4 font-bold text-foreground">Grand Total</td>
                                 <td className="px-4 py-4 text-right font-bold">
                                     {/* 🌟 Use h.feeHead in the reduce functions */}
-                                    ₹{orderedHeads.reduce((sum, h) => sum + Number(fStruct?.[h.feeHead] ?? 0), 0)}
+                                    ₹{effectiveHeadNames.reduce((sum, headName) => sum + Number(fStruct?.[headName] ?? 0), 0)}
                                 </td>
                                 <td className="px-4 py-4 text-right text-success font-bold">
-                                    ₹{orderedHeads.reduce((sum, h) => sum + Number(fPaid?.[h.feeHead] ?? 0), 0)}
+                                    ₹{effectiveHeadNames.reduce((sum, headName) => sum + Number(fPaid?.[headName] ?? 0), 0)}
                                 </td>
                                 <td className="px-4 py-4 text-right text-danger font-bold">
-                                    ₹{orderedHeads.reduce((sum, h) => sum + Number(fDues?.[h.feeHead] ?? 0), 0)}
+                                    ₹{effectiveHeadNames.reduce((sum, headName) => sum + Number(fDues?.[headName] ?? 0), 0)}
                                 </td>
                             </tr>
                         </tbody>
@@ -1010,7 +1031,7 @@ export default function StudentRecordSingle() {
                                 </div>
                             </div>}
 
-                           
+
                             <div className="flex items-start gap-2.5 bg-primary-soft/30 border border-primary/20 rounded-xl p-3.5">
                                 <i className="fas fa-info-circle text-primary text-sm mt-0.5 shrink-0"></i>
                                 <div className="flex flex-col gap-0.5">
@@ -1119,9 +1140,9 @@ export default function StudentRecordSingle() {
                         </Button> */}
 
                         <Button type="submit" variant="primary"
-                        disabled={!record.classId}
-                        title={`${!record.classId ? "disabled because student not assigned to any class" : ""}`}
-                         isLoading={applyConcessionMutation.isPending || updateConcessionMutation.isPending} className="cursor-pointer">
+                            disabled={!record.classId}
+                            title={`${!record.classId ? "disabled because student not assigned to any class" : ""}`}
+                            isLoading={applyConcessionMutation.isPending || updateConcessionMutation.isPending} className="cursor-pointer">
                             {concessionModalMode === 'update' ? 'Update Concession' : (isRecordCreated ? 'Apply Concession' : 'Initialize & Apply')}
                         </Button>
                     </div>

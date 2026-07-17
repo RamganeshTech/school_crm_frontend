@@ -12,6 +12,7 @@ const CORRESPONDENT_ONLY: UserRole[] = ["correspondent"];
 const GENERAL_READ_ROLES: UserRole[] = ["correspondent", "teacher", "principal", "administrator", "viceprincipal", "accountant", "parent"];
 const SOCIAL_WRITE_ROLES: UserRole[] = ["correspondent", "administrator"];
 const SOCIAL_READ_ROLES: UserRole[] = ["correspondent", "teacher", "parent", "principal", "administrator", "viceprincipal", "accountant"];
+const ACADEMIC_RATE_ROLES: UserRole[] = ["correspondent",  "principal", "administrator", "accountant"];
 
 
 export interface AcademicTermDates {
@@ -269,7 +270,7 @@ export const useUpsertAcademicTermDates = () => {
     }) => {
       try {
         // Adjust permissions based on your constants (e.g., CORRESPONDENT_ONLY or allow admins too)
-        checkPermission(currentRole, SOCIAL_WRITE_ROLES);
+        checkPermission(currentRole, ACADEMIC_RATE_ROLES);
 
         const response = await Api.put<BaseResponse>(`/api/school/update/academic-termdate/${id}`, data);
         if (response.data.ok) return response.data;
@@ -299,7 +300,7 @@ export const useDeleteAcademicTermDates = () => {
       academicTermDateId: string; 
     }) => {
       try {
-        checkPermission(currentRole, SOCIAL_WRITE_ROLES);
+        checkPermission(currentRole, ACADEMIC_RATE_ROLES);
 
         // Note: Make sure this URL matches your Express route exactly
         const response = await Api.delete<BaseResponse>(

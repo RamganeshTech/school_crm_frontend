@@ -7,6 +7,7 @@ import { getAcademicYears } from "../../../utils/utils";
 import { useGetStudentRecordByIdV1 } from "../../../api_services/student_api/studentRecordApi";
 import { useGetFeeConfig, type FeeHeadItem } from "../../../api_services/feeStructure_api/feeStructureConfigApi";
 import { SearchSelect } from "../../../shared/ui/SearchSelect";
+import { BUS_FEE_HEADS } from "../StudentRecord_Pages/CollectFeeModal";
 // import { RootState } from "@/store";
 // import { useGetSchoolById } from "@/hooks/school/useGetSchoolById";
 // import { useGetStudentRecordByIdV1 } from "@/hooks/student/useGetStudentRecordByIdV1";
@@ -63,17 +64,26 @@ const StudentFeeInfo: React.FC<StudentFeeInfoProps> = ({
     const receipts = record?.receipts || [];
     const orderedHeads: FeeHeadItem[] = feeConfig?.feeHeads || [];
 
+    // 🌟 Add this block:
+    const standardHeadNames = orderedHeads.map(h => h.feeHead);
+    const effectiveHeadNames = record?.isBusApplicable
+        ? [...standardHeadNames, ...BUS_FEE_HEADS]
+        : standardHeadNames;
+
     const totalSuccessfullyPaid = receipts
         .filter((tx: any) => tx.status === "success")
         .reduce((sum: number, tx: any) => sum + Number(tx.amountPaid || 0), 0);
 
-    // const grandTotal = orderedHeads.reduce((sum, h) => sum + Number(fStruct?.[h] ?? 0), 0);
-    // const grandPaid = orderedHeads.reduce((sum, h) => sum + Number(fPaid?.[h] ?? 0), 0);
-    // const grandDue = orderedHeads.reduce((sum, h) => sum + Number(fDues?.[h] ?? 0), 0);
 
-    const grandTotal = orderedHeads.reduce((sum, h) => sum + Number(fStruct?.[h.feeHead] ?? 0), 0);
-    const grandPaid = orderedHeads.reduce((sum, h) => sum + Number(fPaid?.[h.feeHead] ?? 0), 0);
-    const grandDue = orderedHeads.reduce((sum, h) => sum + Number(fDues?.[h.feeHead] ?? 0), 0);
+    // const grandTotal = orderedHeads.reduce((sum, h) => sum + Number(fStruct?.[h.feeHead] ?? 0), 0);
+    // const grandPaid = orderedHeads.reduce((sum, h) => sum + Number(fPaid?.[h.feeHead] ?? 0), 0);
+    // const grandDue = orderedHeads.reduce((sum, h) => sum + Number(fDues?.[h.feeHead] ?? 0), 0);
+
+
+    // 🌟 Replace the old reduce functions with these:
+    const grandTotal = effectiveHeadNames.reduce((sum, headName) => sum + Number(fStruct?.[headName] ?? 0), 0);
+    const grandPaid = effectiveHeadNames.reduce((sum, headName) => sum + Number(fPaid?.[headName] ?? 0), 0);
+    const grandDue = effectiveHeadNames.reduce((sum, headName) => sum + Number(fDues?.[headName] ?? 0), 0);
 
     const handleRevertFee = (txId: string) => {
         if (onRevertFee) onRevertFee(txId);
@@ -170,7 +180,8 @@ const StudentFeeInfo: React.FC<StudentFeeInfoProps> = ({
                 </div>
 
                 <div className="overflow-x-auto">
-                    {orderedHeads.length > 0 ? (
+                    {/* {orderedHeads.length > 0 ? ( */}
+                    {effectiveHeadNames.length > 0 ? (
                         <table className="w-full text-left text-sm whitespace-nowrap">
                             <thead className="bg-background text-muted uppercase text-xs tracking-wider border-b border-border">
                                 <tr>
@@ -196,9 +207,11 @@ const StudentFeeInfo: React.FC<StudentFeeInfoProps> = ({
                                     </tr>
                                 ))} */}
 
-                                {orderedHeads.map((headObj, index) => {
+                                {/* {orderedHeads.map((headObj, index) => {
                                     // Extract the actual string name from the object
-                                    const headName = headObj.feeHead;
+                                    const headName = headObj.feeHead; */}
+
+                                    {effectiveHeadNames.map((headName, index) => {
 
                                     return (
                                         <tr key={`${headName}-${index}`} className="hover:bg-background/50 transition-colors">

@@ -236,9 +236,7 @@ export const useGetAllBusRoutesDropDown = (params: { schoolId: string }) => {
                 checkPermission(currentRole, ["administrator", "correspondent"]);
 
                 // Passing schoolId in params as per standard, though check your backend to ensure it extracts from req.query if req.params is undefined.
-                const { data } = await Api.get('/api/transport/bus-route/drop-down', {
-                    params: { schoolId: params.schoolId }
-                });
+                const { data } = await Api.get(`/api/transport/bus-route/drop-down/${params.schoolId}`);
 
                 if (!data.ok) throw new Error(data.message || 'Failed to fetch bus route dropdown');
                 return data.data;

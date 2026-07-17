@@ -39,7 +39,7 @@ export const useGetAllBillRecordsInfinite = (params: Omit<GetBillRecordsParams, 
         queryFn: async ({ pageParam = 1 }) => {
             try {
                 // Protect the route locally based on your backend allowed roles
-                checkPermission(currentRole, ["correspondent", "administrator", "accountant"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "accountant", "principal"]);
 
                 const { data } = await Api.get<any>('/api/school-config/bill-record/get', {
                     params: { ...params, page: pageParam }

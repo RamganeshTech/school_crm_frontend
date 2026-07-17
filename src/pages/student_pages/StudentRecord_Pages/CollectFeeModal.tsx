@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SideModal } from '../../../shared/ui/SideModal'; // Adjust path
 import { Input, Label } from '../../../shared/ui/Input'; // Adjust path
 import { Button } from '../../../shared/ui/Button'; // Adjust path
@@ -6,6 +6,8 @@ import { Toggle } from '../../../shared/ui/Toggle'; // Adjust path
 import { toast } from '../../../shared/ui/ToastContext'; // Adjust path
 import { useCollectFeev1 } from '../../../api_services/student_api/studentRecordApi';
 import type { FeeHeadItem } from '../../../api_services/feeStructure_api/feeStructureConfigApi';
+import { SearchSelect } from '../../../shared/ui/SearchSelect';
+import { useGetAllBusRoutesDropDown } from '../../../api_services/transport_api/busRouteApi';
 // import { useCollectFeeAndManageRecord } from '../../../api_services/feeStructure_api/feeStructureApi'; // Adjust path to actual mutation hook
 
 interface CollectFeeModalProps {
@@ -19,6 +21,11 @@ interface CollectFeeModalProps {
     feeConfig: { feeHeads: FeeHeadItem[] } | null;  // add this
 
 }
+
+// export const BUS_FEE_HEADS = ["busFirstTerm", "busSecondTerm", "busThirdTerm"];
+export const BUS_FEE_HEADS = ["bus first term", "bus second term", "bus third term"];
+
+
 
 export default function CollectFeeModal({
     isOpen,
@@ -34,6 +41,15 @@ export default function CollectFeeModal({
     const collectFeeMutation = useCollectFeev1(); // Replace with your actual hook name
 
     // console.log("feeConfig student record", feeConfig)
+
+
+    // Fetch Bus Routes
+    const { data: busRoutes } = useGetAllBusRoutesDropDown({ schoolId });
+    const busRouteOptions = busRoutes?.map((route: any) => ({
+        value: route._id,
+        label: route.routeName
+    })) || [];
+
 
     // Safe extraction of nested IDs
     const actualStudentId = typeof record?.studentId === 'object' ? record?.studentId?._id : record?.studentId;
@@ -51,16 +67,9 @@ export default function CollectFeeModal({
         chequeDate: '',
         remarks: '',
         manualDueAllocation: false,
-        // paidHeads: {
-        //     admissionFee: 0,
-        //     firstTermAmt: 0,
-        //     secondTermAmt: 0,
-        //     busFirstTermAmt: 0,
-        //     busSecondTermAmt: 0
-        // }
-
-        paidHeads: {} as Record<string, number>
-
+        paidHeads: {} as Record<string, number>,
+        // isBusApplicable: false,
+        // busPoint: ""
     });
 
 
@@ -72,9 +81,16 @@ export default function CollectFeeModal({
 
     const [feeFiles, setFeeFiles] = useState<FileList | null>(null);
 
+    // Transport States (Initialized from existing record if available)
+    const [isBusApplicable, setIsBusApplicable] = useState(false);
+    const [busPoint, setBusPoint] = useState<string>('');
+
     // --- Validations & Calculations ---
     const calculatedManualTotal = Object.values(feeData.paidHeads).reduce((a, b) => a + (Number(b) || 0), 0);
     const isManualValid = feeData.manualDueAllocation ? calculatedManualTotal === Number(feeData.amount) : true;
+
+    const selectedBusRoute = (busRoutes || [])?.find((route: any) => String(route._id) === String(busPoint));
+    const selectedRouteFeeAmount = Number(selectedBusRoute?.feeAmount || 0);
 
     const calculatedCashTotal =
         (denominations.notes500 * 500) +
@@ -86,14 +102,31 @@ export default function CollectFeeModal({
 
     const isCashValid = feeData.paymentMode === 'cash' ? calculatedCashTotal === Number(feeData.amount) : true;
 
-    const canSubmit = Number(feeData.amount) > 0 && isManualValid && isCashValid;
+    const isBusValid = !isBusApplicable || (isBusApplicable && busPoint);
+    const canSubmit = Number(feeData.amount) > 0 && isManualValid && isCashValid && isBusValid;
+
+    // Sync initial state when record changes
+    useEffect(() => {
+        if (record) {
+            setIsBusApplicable(record.isBusApplicable || false);
+            setBusPoint(record.busPoint?._id || record.busPoint || '');
+        }
+    }, [record]);
+
+    // --- Dynamic Heads Calculation ---
+    const effectiveHeadsToRender = [...(feeConfig?.feeHeads?.map(h => h.feeHead) || [])];
+    if (isBusApplicable) {
+        effectiveHeadsToRender.push(...BUS_FEE_HEADS);
+    }
+
+
 
     // --- Submit Handler ---
     const handleFeeSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!schoolId || !studentId || !record) return;
 
-        if(!selectedAcademicYear) {
+        if (!selectedAcademicYear) {
             toast.error("Select the Academic Year")
             return;
         }
@@ -109,6 +142,14 @@ export default function CollectFeeModal({
         formData.append('remarks', feeData.remarks);
         formData.append('newOld', record?.newOld || 'new');
         formData.append('academicYear', selectedAcademicYear);
+        // formData.append('isBusApplicable', selectedAcademicYear);
+        // formData.append('academicYear', selectedAcademicYear);
+
+        // 🌟 Append Transport Details
+        formData.append('isBusApplicable', String(isBusApplicable));
+        if (isBusApplicable && busPoint) {
+            formData.append('busPoint', busPoint);
+        }
 
         // Add Manual Allocation Data
         formData.append('manualDueAllocation', String(feeData.manualDueAllocation));
@@ -158,6 +199,9 @@ export default function CollectFeeModal({
             setFeeFiles(null);
             setDenominations({ notes500: 0, notes200: 0, notes100: 0, notes50: 0, notes20: 0, notes10: 0 });
 
+            setIsBusApplicable(record?.isBusApplicable || false);
+            setBusPoint(record?.busPoint?._id || record?.busPoint || '');
+
             toast.success("Fee collected successfully!");
             refetch();
             onClose(); // Close modal last
@@ -166,8 +210,9 @@ export default function CollectFeeModal({
         }
     };
 
-    // const totalDues = feeConfig?.feeHeads?.reduce((sum, head) => sum + Number(fDues?.[head] ?? 0), 0) ?? 0;
-    const totalDues = feeConfig?.feeHeads?.reduce((sum, headObj) => sum + Number(fDues?.[headObj.feeHead] ?? 0), 0) ?? 0;
+    // const totalDues = feeConfig?.feeHeads?.reduce((sum, headObj) => sum + Number(fDues?.[headObj.feeHead] ?? 0), 0) ?? 0;
+    const totalDues = effectiveHeadsToRender.reduce((sum, headName) => sum + Number(fDues?.[headName] ?? 0), 0) ?? 0;
+
 
     // Performance Optimization: If modal is closed, don't render its heavy contents
     // if (!isOpen) return null;
@@ -195,6 +240,45 @@ export default function CollectFeeModal({
                         required min="1" placeholder="e.g., 5000"
                     />
 
+
+                    <div className="bg-background border border-border rounded-xl p-4 space-y-4">
+                        <Toggle
+                            checked={isBusApplicable}
+                            // onChange={(checked) => setIsBusApplicable(checked)}
+                            onChange={(checked) => {
+                                setIsBusApplicable(checked);
+                                if (!checked) {
+                                    // Wipe out bus-related payments and reset the dropdown if turned off
+                                    setFeeData((prev) => {
+                                        const newPaidHeads = { ...prev.paidHeads };
+                                        BUS_FEE_HEADS.forEach((head) => delete newPaidHeads[head]);
+                                        return { ...prev, paidHeads: newPaidHeads };
+                                    });
+                                    setBusPoint('');
+                                }
+                            }}
+                            label="Bus / Transport Applicable"
+                            description="Enable to assign a bus point and include transport dues."
+                        />
+
+                        {isBusApplicable && (
+                            <div className="pt-3 border-t border-border animate-in fade-in slide-in-from-top-2">
+                                <Label className="mb-1.5 block">Bus Route Point</Label>
+                                <SearchSelect
+                                    options={busRouteOptions}
+                                    // value={busRouteOptions.find((opt: any) => opt.value === busPoint) || null}
+                                    value={busRouteOptions.find((opt: any) => String(opt.value) === String(busPoint)) || null}
+                                    onChange={(selected: any) => setBusPoint(selected?.value || '')}
+                                    placeholder="Select Bus Route..."
+                                />
+                                {!busPoint && (
+                                    <p className="text-xs text-danger mt-1">Please select a bus point to proceed.</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+
                     {/* --- MANUAL ALLOCATION TOGGLE & UI --- */}
                     <div className="bg-background border border-border rounded-xl p-4 space-y-4">
                         <Toggle
@@ -213,52 +297,28 @@ export default function CollectFeeModal({
                                     </span>
                                 </div>
 
-                                {/* {fDues?.admissionDues > 0 && (
-                                    <Input id="m_adm" type="number" label={`Admission Fee (Max ₹${fDues.admissionDues})`} value={feeData.paidHeads.admissionFee || ''} onChange={(e) => setFeeData({ ...feeData, paidHeads: { ...feeData.paidHeads, admissionFee: Number(e.target.value) } })} max={fDues.admissionDues} />
-                                )}
-                                {fDues?.firstTermDues > 0 && (
-                                    <Input id="m_t1" type="number" label={`First Term (Max ₹${fDues.firstTermDues})`} value={feeData.paidHeads.firstTermAmt || ''} onChange={(e) => setFeeData({ ...feeData, paidHeads: { ...feeData.paidHeads, firstTermAmt: Number(e.target.value) } })} max={fDues.firstTermDues} />
-                                )}
-                                {fDues?.secondTermDues > 0 && (
-                                    <Input id="m_t2" type="number" label={`Second Term (Max ₹${fDues.secondTermDues})`} value={feeData.paidHeads.secondTermAmt || ''} onChange={(e) => setFeeData({ ...feeData, paidHeads: { ...feeData.paidHeads, secondTermAmt: Number(e.target.value) } })} max={fDues.secondTermDues} />
-                                )}
-                                {record?.isBusApplicable && fDues?.busfirstTermDues > 0 && (
-                                    <Input id="m_b1" type="number" label={`Bus First Term (Max ₹${fDues.busfirstTermDues})`} value={feeData.paidHeads.busFirstTermAmt || ''} onChange={(e) => setFeeData({ ...feeData, paidHeads: { ...feeData.paidHeads, busFirstTermAmt: Number(e.target.value) } })} max={fDues.busfirstTermDues} />
-                                )}
-                                {record?.isBusApplicable && fDues?.busSecondTermDues > 0 && (
-                                    <Input id="m_b2" type="number" label={`Bus Second Term (Max ₹${fDues.busSecondTermDues})`} value={feeData.paidHeads.busSecondTermAmt || ''} onChange={(e) => setFeeData({ ...feeData, paidHeads: { ...feeData.paidHeads, busSecondTermAmt: Number(e.target.value) } })} max={fDues.busSecondTermDues} />
-                                )} */}
-
-
-                                {/* {feeConfig?.feeHeads?.map((head) => {
-                                    const due = Number(fDues?.[head] ?? 0);
-                                    // if (due <= 0) return null;
-                                    return (
-                                        <Input
-                                            key={head}
-                                            id={`m_${head}`}
-                                            type="number"
-                                            label={`${head} (Max ₹${due})`}
-                                            value={feeData.paidHeads[head] || ''}
-                                            onChange={(e) => setFeeData({
-                                                ...feeData,
-                                                paidHeads: { ...feeData.paidHeads, [head]: Math.max(0, Number(e.target.value)) }
-                                            })}
-                                            max={due}
-                                        />
-                                    );
-                                })} */}
-
-                                {feeConfig?.feeHeads?.map((headObj, index) => {
+                                {/* {feeConfig?.feeHeads?.map((headObj, index) => {
                                     const headName = headObj.feeHead; // 🌟 Extract string value
-                                    const due = Number(fDues?.[headName] ?? 0);
+                                    const due = Number(fDues?.[headName] ?? 0); */}
+
+                                {effectiveHeadsToRender.map((headName, index) => {
+                                    // const due = Number(fDues?.[headName] ?? 0);
+
+                                    const isBusHead = BUS_FEE_HEADS.includes(headName);
+                                    const hasExistingStructure = Number(record?.feeStructurev1?.[headName] ?? 0) > 0;
+
+                                    // 🌟 If it's a bus head and the structure isn't in the DB yet, fallback to the route's fee
+                                    const due = (isBusHead && !hasExistingStructure)
+                                        ? selectedRouteFeeAmount
+                                        : Number(fDues?.[headName] ?? 0);
 
                                     // if (due <= 0) return null;
 
                                     return (
                                         <Input
                                             key={`${headName}-${index}`}
-                                            id={`m_${headName}`}
+                                            // id={`m_${headName}`}
+                                            id={`m_${headName.replace(/\s+/g, '_')}`} // 🌟 Replaces spaces with underscores
                                             type="number"
                                             label={`${headName} (Max ₹${due})`}
                                             value={feeData.paidHeads[headName] || ''}
@@ -338,6 +398,7 @@ export default function CollectFeeModal({
                             )}
                         </div>
                     )}
+
 
                     {/* --- UPLOADS & REMARKS --- */}
                     <div className="flex flex-col gap-1.5">

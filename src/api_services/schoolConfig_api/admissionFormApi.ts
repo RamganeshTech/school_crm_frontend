@@ -65,7 +65,7 @@ export const useGetInfiniteAdmissionForms = (filters: AdmissionFilterParams) => 
         // Include all filters in the queryKey so it resets when filters change
         queryKey: ['admissionForms', filters],
         queryFn: async ({ pageParam = 1 }) => {
-            checkPermission(currentRole, ["correspondent", "administrator"]);
+            checkPermission(currentRole, ["correspondent", "administrator", "principal"]);
 
             // Build query string dynamically
             const params = new URLSearchParams({
@@ -100,7 +100,7 @@ export const useGetSingleAdmissionForm = ({ formId, studentId = undefined }: { f
         queryKey: ['singleAdmissionForm', formId, studentId],
         queryFn: async () => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "principal"]);
 
 
                 // const params = new URLSearchParams({
@@ -148,7 +148,7 @@ export const useGetAdmissionFormsDropdown = (params: DropdownParams) => {
         queryKey: ['admissionFormsDropdown', params.schoolId, params.academicYear, params.search],
         queryFn: async () => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "principal"]);
 
                 const queryParams = new URLSearchParams({
                     schoolId: params.schoolId,
@@ -204,7 +204,7 @@ export const useGenerateAdmissionLink = () => {
     return useMutation({
         mutationFn: async ({ schoolId }: { schoolId: string }) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "principal"]);
 
                 const { data } = await Api.post(`/api/school/admission-form/generate-link`, { schoolId });
 
@@ -233,7 +233,7 @@ export const useDeleteAdmissionForm = () => {
     return useMutation({
         mutationFn: async ({ id }: DeleteAdmissionFormParams) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "principal"]);
 
                 const { data } = await Api.delete(`/api/school/admission-form/${id}`);
 
@@ -270,7 +270,7 @@ export const useUpdateAdmissionFormStatus = () => {
     return useMutation({
         mutationFn: async ({ id, studentId, status }: UpdateStatusParams) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "principal"]);
 
                 const params = new URLSearchParams();
                 if (id) params.append('id', id);
@@ -306,7 +306,7 @@ export const useUpdateAdmissionFormDetails = () => {
     return useMutation({
         mutationFn: async ({ id, studentId, formData }: UpdateDetailsParams) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "principal"]);
 
                 const params = new URLSearchParams();
                 if (id) params.append('id', id);
@@ -343,7 +343,7 @@ export const useLinkStudentToForm = () => {
     return useMutation({
         mutationFn: async ({ id, studentId }: LinkStudentParams) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "principal"]);
 
                 const { data } = await Api.patch(`/api/school/admission-form/${id}/link-student`, { studentId });
 

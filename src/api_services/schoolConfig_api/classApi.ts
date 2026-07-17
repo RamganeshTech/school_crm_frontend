@@ -81,7 +81,7 @@ export const useCreateClass = () => {
   return useMutation({
     mutationFn: async ({ schoolId, data: classData }: CreateClassParams) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator","teacher"]);
+        checkPermission(currentRole, ["correspondent", "administrator","teacher", "principal"]);
 
 
         const { data } = await Api.post<CreateClassResponse>(`/api/class/create/${schoolId}`, classData);
@@ -108,7 +108,7 @@ export const useUpdateClass = () => {
   return useMutation({
     mutationFn: async ({ id, data: updateData }: UpdateClassParams) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator","teacher"]);
+        checkPermission(currentRole, ["correspondent", "administrator","teacher", "principal"]);
 
 
         const { data } = await Api.put<BaseResponse>(`/api/class/update/${id}`, updateData);
@@ -136,7 +136,7 @@ export const useDeleteClass = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator","teacher"]);
+        checkPermission(currentRole, ["correspondent", "administrator","teacher", "principal"]);
 
 
         const { data } = await Api.delete<BaseResponse>(`/api/class/delete/${id}`);

@@ -32,7 +32,7 @@ export const useCreateAdmissionBook = () => {
         mutationFn: async (params: CreateAdmissionBookParams) => {
             try {
                 // Ensure only allowed roles can trigger this
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "principal"]);
 
                 const { data } = await Api.post(`/api/school-config/admission-book`, params);
 
@@ -61,7 +61,7 @@ export const useGetAllAdmissionBooks = (schoolId: string | undefined) => {
         queryKey: ['admissionBooks', schoolId],
         queryFn: async () => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "principal"]);
 
                 const { data } = await Api.get(`/api/school-config/admission-book/${schoolId}`);
                 
@@ -87,7 +87,7 @@ export const useUpdateAdmissionBook = () => {
     return useMutation({
         mutationFn: async ({ id, bookName, isActive }: UpdateAdmissionBookParams) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "principal"]);
 
                 const { data } = await Api.patch(`/api/school-config/admission-book/${id}`, { bookName, isActive });
 
@@ -115,7 +115,7 @@ export const useEditFormSequence = () => {
     return useMutation({
         mutationFn: async ({ id, newFormNumber }: EditFormSequenceParams) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "principal"]);
 
                 const { data } = await Api.patch(`/api/school-config/admission-book/${id}/sequence`, { newFormNumber });
 
@@ -144,7 +144,7 @@ export const useDeleteAdmissionBook = () => {
     return useMutation({
         mutationFn: async ({ id }: { id: string; schoolId: string }) => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "principal"]);
 
                 const { data } = await Api.delete(`/api/school-config/admission-book/${id}`);
 

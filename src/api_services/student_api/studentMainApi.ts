@@ -166,7 +166,7 @@ export const useCreateStudent = () => {
   return useMutation({
     mutationFn: async (formData: FormData) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator", "accountant","teacher"]);
+        checkPermission(currentRole, ["correspondent", "administrator", "accountant","teacher", "principal"]);
 
         const { data } = await Api.post<ApiResponse>(`/api/student/create`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -198,7 +198,7 @@ export const useUpdateStudent = () => {
   return useMutation({
     mutationFn: async ({ id, formData }: UpdateStudentParams) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator", "accountant", "parent","teacher"]);
+        checkPermission(currentRole, ["correspondent", "administrator", "accountant", "parent","teacher", "principal"]);
 
         const { data } = await Api.put<ApiResponse>(`/api/student/update/${id}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -236,7 +236,7 @@ export const useUploadStudentFiles = () => {
     mutationFn: async ({ studentId, formData }: UploadFilesPayload) => {
       try {
         // 1. Guard route at frontend layer
-        checkPermission(currentRole, ["correspondent", "administrator", "accountant","teacher"]);
+        checkPermission(currentRole, ["correspondent", "administrator", "accountant","teacher", "principal"]);
 
         // 2. Make the API request with multipart headers
         // Make sure your backend route includes the /:studentId param we added in the previous step!
@@ -287,7 +287,7 @@ export const useDeleteStudent = () => {
   return useMutation<ApiResponse, Error, string>({
     mutationFn: async (id: string) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator", "teacher"]);
+        checkPermission(currentRole, ["correspondent", "administrator", "teacher", "principal"]);
 
         const { data } = await Api.delete<ApiResponse>(`/api/student/delete/${id}`);
 
@@ -323,7 +323,7 @@ export const useDeleteStudentDocument = () => {
   return useMutation({
     mutationFn: async ({ studentId, documentId }: DeleteDocumentPayload) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator", "accountant", "teacher"]);
+        checkPermission(currentRole, ["correspondent", "administrator", "accountant", "teacher", "principal"]);
 
         const { data } = await Api.delete<ApiResponse>(
             `/api/student/v1/delete-document/${studentId}/${documentId}`

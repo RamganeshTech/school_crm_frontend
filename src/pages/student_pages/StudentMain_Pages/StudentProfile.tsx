@@ -230,8 +230,8 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
 
 
     const { isParent, isAdmin, isCorrespondent, isPrincipal, isAccountant , isTeacher} = useRoleCheck()
-    const canEdit = isAdmin || isCorrespondent || isParent || isAccountant || isTeacher
-    const canDeleteDocument = isAdmin || isCorrespondent || isAccountant || isTeacher
+    const canEdit = isAdmin || isCorrespondent || isParent || isAccountant || isTeacher || isPrincipal
+    const canDeleteDocument = isAdmin || isCorrespondent || isAccountant || isTeacher || isPrincipal
     const canEditPendingRequest = isParent || isAdmin || isCorrespondent || isPrincipal
     const canShowOtherDetails = isParent
 
@@ -296,59 +296,7 @@ export default function StudentProfile({ studentId }: { studentId: string | unde
         }
     };
 
-    // const handleSave = async () => {
-    //     try {
-
-    //         if (editForm.mandatory?.mobileNumber &&
-    //             !/^\d{10}$/.test(editForm.mandatory.mobileNumber)) {
-    //             toast.error("Invalid mobile number");
-    //             return;
-    //         }
-
-    //         if (editForm.mandatory?.alternateMobile &&
-    //             !/^\d{10}$/.test(editForm.mandatory.alternateMobile)) {
-    //             toast.error("Invalid alternate mobile");
-    //             return;
-    //         }
-
-    //         if (editForm.mandatory?.email &&
-    //             !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.mandatory.email)) {
-    //             toast.error("Invalid email address");
-    //             return;
-    //         }
-
-
-    //         const formData = new FormData();
-    //         formData.append('studentName', editForm.studentName);
-    //         formData.append('newOld', editForm.newOld);
-
-    //         Object.keys(editForm.mandatory || {}).forEach(key => {
-    //             if (editForm.mandatory[key] !== undefined && editForm.mandatory[key] !== null) {
-    //                 formData.append(`mandatory[${key}]`, editForm.mandatory[key]);
-    //             }
-    //         });
-
-    //         Object.keys(editForm.nonMandatory || {}).forEach(key => {
-    //             if (editForm.nonMandatory[key] !== undefined && editForm.nonMandatory[key] !== null) {
-    //                 formData.append(`nonMandatory[${key}]`, editForm.nonMandatory[key]);
-    //             }
-    //         });
-
-    //         if (selectedFile) {
-    //             formData.append('file', selectedFile);
-    //         }
-
-    //         await updateStudentMutation.mutateAsync({ id: studentId!, formData });
-    //         toast.success("Updated Successfully!");
-
-    //         setIsEditing(false);
-    //     } catch (error: any) {
-    //         toast.error(error.message || "Failed to update");
-
-    //     }
-    // };
-
-
+   
     const [selectedFiles, setSelectedFiles] = useState<File[]>([])
 
     const uploadFilesMutation = useUploadStudentFiles();

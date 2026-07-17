@@ -77,9 +77,9 @@ export default function StudentMain() {
     });
 
     const { isParent, isPrincipal, isVicePrincipal, isCorrespondent, isAdmin, isTeacher } = useRoleCheck()
-    const canCreate = !isParent && !isPrincipal && !isVicePrincipal
-    const canDelete = isCorrespondent || isAdmin || isTeacher
-    const canEdit = !isPrincipal && !isVicePrincipal
+    const canCreate = !isParent && !isVicePrincipal
+    const canDelete = isCorrespondent || isAdmin || isTeacher || isPrincipal
+    const canEdit = !isVicePrincipal
 
     // const { data, isLoading, isError, refetch } = useGetAllStudents({
     //     schoolId: schoolId!,

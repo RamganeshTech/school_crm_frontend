@@ -401,7 +401,7 @@ function AssignmentModal({ isOpen, onClose, routeData, assignmentData }: { isOpe
     // Form State (Pre-fill if editing)
     const [busId, setBusId] = useState(assignmentData?.busId?._id || assignmentData?.busId || '');
     const [driverId, setDriverId] = useState(assignmentData?.driverId?._id || assignmentData?.driverId || '');
-    const [shift, setShift] = useState(assignmentData?.shift || 'Morning');
+    const [shift, setShift] = useState(assignmentData?.shift || 'pickup');
 
     // Initialize stop timings based on current route stops, pre-filling times if editing
     const [stopTimings, setStopTimings] = useState<{ stopName: string, time: string }[]>(() => {
@@ -416,7 +416,7 @@ function AssignmentModal({ isOpen, onClose, routeData, assignmentData }: { isOpe
         if (isOpen) {
             setBusId(assignmentData?.busId?._id || assignmentData?.busId || '');
             setDriverId(assignmentData?.driverId?._id || assignmentData?.driverId || '');
-            setShift(assignmentData?.shift || 'Morning');
+            setShift(assignmentData?.shift || 'pickup');
 
             setStopTimings(routeData.stops?.map((s: any) => {
                 const existingTiming = assignmentData?.stopTimings?.find((t: any) => t.stopName === s.stopName || t.stopId === s._id);
@@ -484,10 +484,10 @@ function AssignmentModal({ isOpen, onClose, routeData, assignmentData }: { isOpe
                         <div className="flex flex-col gap-1.5">
                             <Label>Shift *</Label>
                             <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" value={shift} onChange={(e) => setShift(e.target.value)}>
-                                <option value="Morning">Morning</option>
-                                <option value="Afternoon">Afternoon</option>
-                                <option value="Evening">Evening</option>
-                                <option value="Night">Night</option>
+                                <option value="pickup">Pick Up</option>
+                                <option value="drop">Drop</option>
+                                {/* <option value="Evening">Evening</option>
+                                <option value="Night">Night</option> */}
                             </select>
                         </div>
                     </div>

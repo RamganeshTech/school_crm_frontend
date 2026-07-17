@@ -22,7 +22,7 @@ import { toast } from '../../shared/ui/ToastContext';
 export default function ClassConfiguration() {
     // --- Global State ---
     const { schoolId } = useSelector((state: RootState) => state.auth);
-    const { isAccountant, isParent, isPrincipal, isVicePrincipal } = useRoleCheck()
+    const { isAccountant, isParent, isVicePrincipal } = useRoleCheck()
 
     // --- API Hooks ---
     const { data: classes, isLoading, isError } = useGetClasses(schoolId!);
@@ -118,7 +118,7 @@ export default function ClassConfiguration() {
     };
 
 
-    const canModify = !isAccountant && !isParent && !isPrincipal && !isVicePrincipal
+    const canModify = !isAccountant && !isParent && !isVicePrincipal
 
     // --- Render Guards ---
     if (isLoading) {

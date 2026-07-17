@@ -41,8 +41,8 @@ export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineC
     const academicYearOptions = getAcademicYears();
 
     // --- Role Permissions ---
-    const { isCorrespondent, isAdmin } = useRoleCheck();
-    const canModify = isCorrespondent || isAdmin;
+    const { isCorrespondent, isAdmin , isPrincipal} = useRoleCheck();
+    const canModify = isCorrespondent || isAdmin || isPrincipal;
 
     // --- Local State ---
     const [selectedYear, setSelectedYear] = useState<string>(schoolData?.currentAcademicYear || '');
