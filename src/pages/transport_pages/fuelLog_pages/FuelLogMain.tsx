@@ -417,7 +417,7 @@ export default function FuelLogMain() {
             <FuelLogModal
                 isOpen={isFormOpen}
                 onClose={() => setIsFormOpen(false)}
-                logData={selectedLog}
+                // logData={selectedLog}
                 logId={selectedLog?._id}
             />
         </div>

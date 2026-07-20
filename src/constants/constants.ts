@@ -317,6 +317,35 @@ export const baseManagementMenu: MenuItem[] = [
         ]
     },
 
+    {
+        name: 'EB Management', path: "#", icon: 'fas fa-bolt',
+        subMenu: [
+             {
+                name: "Dashboard",
+                path: "/dashboard/eb-dashboard",
+                icon: "fas fa-chart-pie"
+            },
+            {
+                name: "Premises",
+                path: "/dashboard/premises",
+                icon: "fas fa-building"
+            },
+            {
+                name: "Eb Log",
+                path: "/dashboard/eb-log",
+                icon: "fas fa-bolt"
+            },
+             {
+                name: "Tariff",
+                path: "/dashboard/tariff",
+                icon: "fas fa-file-invoice"
+            },
+
+           
+        ]
+    }
+
+
     // { name: 'Fee Collection', path: "/dashboard/fee-collection", icon: 'fas fa-cash-register' },
 
 ];

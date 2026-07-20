@@ -20,6 +20,10 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, ADMIN_CORREPONDENT, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
+import PremiseMain from './pages/premises_pages/PremiseMain';
+import EbLogMain from './pages/eb_pages/EbLogMain';
+import EbDashboardMain from './pages/eb_pages/dashboards/EbDashboardMain';
+import TariffMain from './pages/eb_pages/tariff_pages/TariffMain';
 const TransportationDashboardMain = lazy(() => import(  './pages/transport_pages/dashboard/TransportationDashboardMain'));
 const DriverMain  = lazy(() => import( './pages/transport_pages/driver_pages/DriverMain'));
 const DriverSingle  = lazy(() => import( './pages/transport_pages/driver_pages/DriverSingle'));
@@ -298,6 +302,12 @@ function App() {
                   <Route path="fee-collection" element={<FeeCollectionMain />} >
                     <Route path="single/:studentId" element={<FeeCollectionSingle />} />
                   </Route>
+
+                  <Route path="premises" element={<PremiseMain />} />
+                  
+                  <Route path="eb-dashboard" element={<EbDashboardMain />} />
+                  <Route path="eb-log" element={<EbLogMain />} />
+                  <Route path="tariff" element={<TariffMain />} />
 
                 </Route>
 
