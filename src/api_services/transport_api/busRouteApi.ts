@@ -275,6 +275,31 @@ export const useGetSingleBusRoute = (routeId?: string) => {
 };
 
 
+export const useGetAssignedRoutesForDriver = (driverId: string | undefined) => {
+    const { currentRole } = useAuthData();
+
+    return useQuery({
+        queryKey: ['driver-assigned-routes', driverId],
+        queryFn: async () => {
+            try {
+                // Matches the backend multiRoleAuth array
+                checkPermission(currentRole, ["administrator", "correspondent", "principal"]);
+
+                // Adjust the base URL prefix (/api/transport/...) if your busStoprouter is mounted differently in server.ts
+                const { data } = await Api.get(`/api/transport/bus-route/assigned-routes/${driverId}`);
+
+                if (!data.ok) throw new Error(data.message || 'Failed to fetch assigned routes');
+                return data.data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+                throw new Error(errorMessage);
+            }
+        },
+        // The query will only execute when a valid driverId is passed
+        enabled: !!driverId,
+    });
+};
+
 // ---------- 6. UPDATE ROUTE ----------
 
 export const useUpdateBusRoute = () => {

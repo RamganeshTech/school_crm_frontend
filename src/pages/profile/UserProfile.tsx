@@ -208,14 +208,23 @@ export default function UserProfile() {
 
 
             {/* 🛑 ADDED: Header Section with Avatar and Title */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pb-2 border-b border-border">
+            <div className="flex items-start sm:items-center gap-4 pb-2 border-b border-border">
                 <UserAvatar
                     userName={user?.userName || 'User'}
                     size="lg"
                     navigateTo="#" // Prevents routing since we are already on the profile
                 />
-                <div>
+                {/* <div>
                     <h1 className="text-2xl font-bold text-foreground">
+                        User Profile
+                    </h1>
+                    <p className="text-sm text-muted mt-1">
+                        Manage your personal details, view your school, and check assignments.
+                    </p>
+                </div> */}
+
+                <div className="min-w-0 flex-1">
+                    <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">
                         User Profile
                     </h1>
                     <p className="text-sm text-muted mt-1">
@@ -225,20 +234,43 @@ export default function UserProfile() {
             </div>
 
             {!isParent && (
-                <div className="flex items-center gap-6 border-b border-border mb-2">
-                    <button onClick={() => setActiveTab('profile')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
-                        <i className="far fa-id-card mr-2"></i> Profile
-                    </button>
-                    {EMPLOYEE_PROFILE_TABS.map((tab) => (
-                        <button
-                            key={tab.key}
-                            onClick={() => setActiveTab(tab.key)}
-                            className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
-                        >
-                            <i className={`${tab.icon} mr-1.5`}></i>{tab.label}
+                // <div className="flex items-center gap-6 border-b border-border mb-2">
+                <div className="border-b border-border mb-6 overflow-x-auto no-scrollbar min-h-10">
+                    <div className="flex items-center gap-6 w-max min-w-full px-1">
+
+
+                        <button onClick={() => setActiveTab('profile')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
+                            <i className="far fa-id-card mr-2"></i> Profile
                         </button>
-                    ))}
+                        {EMPLOYEE_PROFILE_TABS.map((tab) => (
+                            <button
+                                key={tab.key}
+                                onClick={() => setActiveTab(tab.key)}
+                                className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
+                            >
+                                <i className={`${tab.icon} mr-1.5`}></i>{tab.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
+
+                //       <div className="border-b border-border mb-6 overflow-x-auto no-scrollbar min-h-10">
+                //     <div className="flex items-center gap-6 w-max min-w-full px-1">
+                //         <button onClick={() => setActiveTab('profile')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap flex-shrink-0 ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
+                //             <i className="far fa-id-card mr-2"></i> Account Profile
+                //         </button>
+
+                //         {EMPLOYEE_PROFILE_TABS.map((tab) => (
+                //             <button
+                //                 key={tab.key}
+                //                 onClick={() => setActiveTab(tab.key)}
+                //                 className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap flex-shrink-0 ${activeTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
+                //             >
+                //                 <i className={`${tab.icon} mr-1.5`}></i>{tab.label}
+                //             </button>
+                //         ))}
+                //     </div>
+                // </div>
             )}
 
 

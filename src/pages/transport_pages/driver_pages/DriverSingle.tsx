@@ -17,6 +17,7 @@ import {
 } from '../../../api_services/transport_api/driverApi';
 import { useGetBusDropDown } from '../../../api_services/transport_api/busApi';
 import { SearchSelect } from '../../../shared/ui/SearchSelect';
+import DriverRoute from './DriverRoute';
 
 
 export const DRIVER_DOCUMENT_NAMES = [
@@ -74,11 +75,11 @@ export default function DriverSingle() {
                 joinedDate: driverData.joinedDate ? new Date(driverData.joinedDate).toISOString().split('T')[0] : '',
                 emergencyContact: driverData.emergencyContact || '',
                 address: driverData.address || '',
-               assignedBusId: (driverData.assignedBusId as any)?._id || driverData.assignedBusId || '',
+                assignedBusId: (driverData.assignedBusId as any)?._id || driverData.assignedBusId || '',
 
             });
             setPhotoFile(null);
-           
+
             // Map the 6 standard documents and merge with existing DB data
             const mergedDocs = DRIVER_DOCUMENT_NAMES.map((docName, index) => {
                 const existing = driverData.documents?.find((d: any) => d.documentName === docName);
@@ -119,7 +120,7 @@ export default function DriverSingle() {
     const handleSelectChange = (key: string, value: string) => {
         setFormData(prev => ({ ...prev, [key]: value }));
     };
-  
+
 
 
     // --- Save Handler ---
@@ -149,11 +150,11 @@ export default function DriverSingle() {
             // 2. Profile Photo
             if (photoFile) payload.append('photo', photoFile);
 
-          // 3. Documents Metadata & Files
+            // 3. Documents Metadata & Files
             // Filter to only send documents that have actual data (new files, details, or an expiry date)
-            const activeDocs = documentForms.filter(doc => 
-                (doc.newFiles && doc.newFiles.length > 0) || 
-                doc.detail || 
+            const activeDocs = documentForms.filter(doc =>
+                (doc.newFiles && doc.newFiles.length > 0) ||
+                doc.detail ||
                 doc.expiryDate
             );
 
@@ -203,13 +204,13 @@ export default function DriverSingle() {
     const handleDeleteFileClick = async (e: React.MouseEvent, documentId: string, fileId: string) => {
         e.preventDefault();
         // if (window.confirm("Are you sure you want to delete this file? This cannot be undone.")) {
-            try {
-                await deleteDocAttachmentMutation.mutateAsync({ id: id!, documentId, fileId });
-                toast.success("File deleted successfully");
-                refetch();
-            } catch (error: any) {
-                toast.error(error.message || "Failed to delete file");
-            }
+        try {
+            await deleteDocAttachmentMutation.mutateAsync({ id: id!, documentId, fileId });
+            toast.success("File deleted successfully");
+            refetch();
+        } catch (error: any) {
+            toast.error(error.message || "Failed to delete file");
+        }
         // }
     };
 
@@ -307,7 +308,7 @@ export default function DriverSingle() {
                             <InfoField label="Date of Birth" isEdit={isEditMode}>
                                 {isEditMode ? <Input id="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={handleInputChange} /> : <p className="font-medium text-foreground">{driverData.dateOfBirth ? new Date(driverData.dateOfBirth).toLocaleDateString() : 'N/A'}</p>}
                             </InfoField>
-                            
+
                             <InfoField label="Joined Date" isEdit={isEditMode}>
                                 {isEditMode ? <Input id="joinedDate" type="date" value={formData.joinedDate} onChange={handleInputChange} /> : <p className="font-medium text-foreground">{driverData.joinedDate ? new Date(driverData.joinedDate).toLocaleDateString() : 'N/A'}</p>}
                             </InfoField>
@@ -319,16 +320,16 @@ export default function DriverSingle() {
                             <InfoField label="Assigned Bus" isEdit={isEditMode}>
                                 {isEditMode ? (
                                     <SearchSelect
-                                        options={busOptions} 
-                                        value={formData.assignedBusId} 
-                                        onChange={(opt) => handleSelectChange('assignedBusId', String(opt.value))} 
-                                        placeholder="Search & Assign Bus..." 
+                                        options={busOptions}
+                                        value={formData.assignedBusId}
+                                        onChange={(opt) => handleSelectChange('assignedBusId', String(opt.value))}
+                                        placeholder="Search & Assign Bus..."
                                     />
                                 ) : (
                                     <p className="font-medium text-foreground">
                                         {
-                                            (driverData.assignedBusId as any)?.busNumber || 
-                                            busOptions.find((opt:any) => opt.value === formData.assignedBusId)?.label || 
+                                            (driverData.assignedBusId as any)?.busNumber ||
+                                            busOptions.find((opt: any) => opt.value === formData.assignedBusId)?.label ||
                                             'Not Assigned'
                                         }
                                     </p>
@@ -354,7 +355,7 @@ export default function DriverSingle() {
             </div>
 
 
-           {/* FULL WIDTH: Statutory Documents List */}
+            {/* FULL WIDTH: Statutory Documents List */}
             <div className="bg-surface rounded-xl border border-border p-5 shadow-sm mt-4">
                 <h4 className="font-semibold text-foreground border-b border-border pb-3 mb-4 flex items-center gap-2">
                     <i className="fas fa-folder-open text-muted"></i> Statutory Documents
@@ -364,7 +365,7 @@ export default function DriverSingle() {
                     {documentForms.map((doc) => (
                         <div key={doc.id} className="border border-border/60 bg-background rounded-lg p-4">
                             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-                                
+
                                 {/* Document Type */}
                                 <div>
                                     <p className="text-xs font-bold text-muted uppercase tracking-wide">Document Type</p>
@@ -375,22 +376,22 @@ export default function DriverSingle() {
                                 <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <InfoField label="Details" isEdit={isEditMode}>
                                         {isEditMode ? (
-                                            <Input 
-                                                value={doc.detail} 
-                                                onChange={(e) => setDocumentForms(prev => prev.map(d => d.id === doc.id ? { ...d, detail: e.target.value } : d))} 
-                                                placeholder="Enter details..." 
+                                            <Input
+                                                value={doc.detail}
+                                                onChange={(e) => setDocumentForms(prev => prev.map(d => d.id === doc.id ? { ...d, detail: e.target.value } : d))}
+                                                placeholder="Enter details..."
                                             />
                                         ) : (
                                             <p className="text-sm font-medium mt-1">{doc.detail || 'N/A'}</p>
                                         )}
                                     </InfoField>
-                                    
+
                                     <InfoField label="Expiry Date" isEdit={isEditMode}>
                                         {isEditMode ? (
-                                            <Input 
-                                                type="date" 
-                                                value={doc.expiryDate} 
-                                                onChange={(e) => setDocumentForms(prev => prev.map(d => d.id === doc.id ? { ...d, expiryDate: e.target.value } : d))} 
+                                            <Input
+                                                type="date"
+                                                value={doc.expiryDate}
+                                                onChange={(e) => setDocumentForms(prev => prev.map(d => d.id === doc.id ? { ...d, expiryDate: e.target.value } : d))}
                                             />
                                         ) : (
                                             <p className="text-sm font-medium mt-1">{doc.expiryDate ? new Date(doc.expiryDate).toLocaleDateString() : 'N/A'}</p>
@@ -401,13 +402,13 @@ export default function DriverSingle() {
                                 {/* Files Upload & Preview */}
                                 <div>
                                     <p className="text-xs font-bold text-muted uppercase tracking-wide mb-2">Attached Files</p>
-                                    
+
                                     {/* Existing Files from DB */}
                                     {doc.existingFiles.length > 0 ? (
                                         <div className="flex flex-col gap-3 mb-2">
                                             {doc.existingFiles.map((file: any) => (
                                                 <div key={file._id} className="flex items-center justify-between bg-surface border border-border rounded p-2 shadow-sm">
-                                                    
+
                                                     {/* File Preview Link */}
                                                     {file.type === 'image' ? (
                                                         <a href={file.url} target="_blank" rel="noreferrer" className="flex  w-fit items-center gap-3 overflow-hidden min-w-0">
@@ -418,15 +419,15 @@ export default function DriverSingle() {
                                                         </a>
                                                     ) : (
                                                         <a href={file.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 overflow-hidden min-w-0 text-xs text-primary hover:underline" title={file.originalName}>
-                                                            <i className="fas fa-file-pdf text-danger text-base shrink-0"></i> 
+                                                            <i className="fas fa-file-pdf text-danger text-base shrink-0"></i>
                                                             <span className="truncate">{file.originalName || 'Document File'}</span>
                                                         </a>
                                                     )}
 
                                                     {/* Delete Button (Edit Mode Only) */}
                                                     {isEditMode && (
-                                                        <button 
-                                                            onClick={(e) => handleDeleteFileClick(e, doc.id, file._id)} 
+                                                        <button
+                                                            onClick={(e) => handleDeleteFileClick(e, doc.id, file._id)}
                                                             className="text-danger hover:bg-danger/10 p-1.5 rounded transition-colors ml-3 shrink-0"
                                                             title="Delete File"
                                                         >
@@ -460,6 +461,11 @@ export default function DriverSingle() {
                     ))}
                 </div>
             </div>
+
+
+            <section className='w-full'>
+                <DriverRoute driverId={id} />
+            </section>
 
 
         </div>

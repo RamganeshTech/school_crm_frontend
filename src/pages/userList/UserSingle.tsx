@@ -11,13 +11,8 @@ import { toast } from '../../shared/ui/ToastContext';
 import { useAssignRole, useGetSingleUser, useUpdateUser } from '../../api_services/auth_api/authApi';
 import { AUTH_CHECK_ROLES, type ValidUserRole } from '../../constants/constants';
 import {
-    // useAddEmployeeDocuments, useCreateEmployeeProfile, useDeleteEmployeeDocument,
     useGetEmployeeProfileByUserId,
-    //  useUpdateEmployeeProfile 
 } from '../../api_services/auth_api/employeeProfileApi';
-// import { ImageGallery } from '../../shared/components/ImageGallery';
-// import { HrDetailsTab } from './user_components/HrDetailsTab';
-// import { DocumentsTab } from './user_components/DocumentsTab';
 import { EMPLOYEE_PROFILE_TABS, UserProfileComponents } from './user_components/UserProfileComponentsGroup';
 
 
@@ -25,14 +20,6 @@ import { EMPLOYEE_PROFILE_TABS, UserProfileComponents } from './user_components/
 export type EmployeeProfileTabType = 'profile' | 'professional' | 'contact' | 'bank' | 'education' | 'salary' | 'documents';
 
 
-// const INITIAL_PROFILE_STATE = {
-//     employeeNo: '', designation: '', department: '', employmentType: '',
-//     dateOfJoining: '', nationalId: '', pfNumber: '', yearsOfExperience: 0,
-//     currentAddress: '', permanentAddress: '',
-
-//     emergencyContact: { name: '', relation: '', phone: '' },
-//     bankDetails: { accountName: '', accountNumber: '', bankName: '', ifscCode: '' }
-// };
 
 export default function UserSingle() {
     const { userId } = useParams<{ userId: string }>();
@@ -44,6 +31,7 @@ export default function UserSingle() {
     // const [isEditingProfile, setIsEditingProfile] = useState(false);
 
     const [userFormData, setUserFormData] = useState<any>({});
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     // const [profileFormData, setProfileFormData] = useState<any>(INITIAL_PROFILE_STATE);
 
     // const { data: users, isLoading: isUsersLoading, refetch } = useGetAllUsers({ role: 'all', schoolId: schoolId! });
@@ -60,11 +48,6 @@ export default function UserSingle() {
 
     const { mutateAsync: updateUser, isPending: isUserUpdating } = useUpdateUser();
     const { mutateAsync: assignRole, } = useAssignRole(); // Add this line
-    // const { mutateAsync: createProfile, isPending: isCreatingProfile } = useCreateEmployeeProfile();
-    // const { mutateAsync: updateProfile, isPending: isUpdatingProfile } = useUpdateEmployeeProfile();
-    // const { mutateAsync: addDocuments, isPending: isUploadingDocs } = useAddEmployeeDocuments();
-    // const { mutateAsync: deleteDocument, isPending: isDeletingDoc } = useDeleteEmployeeDocument();
-    // const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
     // Sync User Account Data
     useEffect(() => {
@@ -76,38 +59,13 @@ export default function UserSingle() {
         }
     }, [userDetails]);
 
-    // Sync HR Profile Data
-    // useEffect(() => {
-    //     if (hasProfile) {
-    //         setProfileFormData({
-    //             ...validProfile,
-    //             dateOfJoining: validProfile.dateOfJoining ? new Date(validProfile.dateOfJoining).toISOString().split('T')[0] : '',
-    //             emergencyContact: validProfile.emergencyContact || INITIAL_PROFILE_STATE.emergencyContact,
-    //             bankDetails: validProfile.bankDetails || INITIAL_PROFILE_STATE.bankDetails,
-    //                         educationDetails: validProfile.educationDetails?.length ? validProfile.educationDetails : []
-
-    //         });
-    //         setIsEditingProfile(false);
-    //     } else {
-    //         setProfileFormData(INITIAL_PROFILE_STATE);
-    //         setIsEditingProfile(true);
-    //     }
-    // }, [validProfile, hasProfile]);
 
 
     // Handlers
     const formatRole = (role: string) => role ? role.charAt(0).toUpperCase() + role.slice(1) : "N/A";
     const roleOptions = useMemo(() => AUTH_CHECK_ROLES.map(role => ({ label: formatRole((role || '')), value: role })), []);
 
-    // const handleUserEditSubmit = async () => {
-    //     try {
-    //         await updateUser({ userId: userId!, data: userFormData });
-    //         setIsEditingUser(false);
-    //         toast.success("Account profile updated successfully");
-    //     } catch (error: any) {
-    //         toast.error(error.message || "Failed to update account");
-    //     }
-    // };
+
 
     const handleUserEditSubmit = async () => {
         // 🌟 1. Phone Number Validation
@@ -164,117 +122,74 @@ export default function UserSingle() {
         setIsEditingUser(false);
     };
 
-    // const handleProfileSubmit = async () => {
-    //     try {
-    //         if (hasProfile) {
-    //             await updateProfile({ userId: userId!, updateData: profileFormData });
-    //             toast.success("Employment record updated!");
-    //             setIsEditingProfile(false);
-    //         } else {
-    //             // await createProfile({ ...profileFormData, userId: userId!, schoolId: schoolId! });
-
-    //             const formData = new FormData();
-    //             const payload = { ...profileFormData, userId: userId!, schoolId: schoolId! };
-
-    //             Object.entries(payload).forEach(([key, value]) => {
-    //                 if (value === undefined || value === null) return;
-    //                 if (typeof value === "object") {
-    //                     formData.append(key, JSON.stringify(value));
-    //                 } else {
-    //                     formData.append(key, value as string);
-    //                 }
-    //             });
-
-    //             selectedFiles.forEach((file) => formData.append("files", file));
-
-    //             await createProfile(formData);
-    //             toast.success("Employment record created!");
-    //             setIsEditingProfile(false)
-    //             refetch()
-    //             // toast.success("Employment record created!");
-    //         }
-    //     } catch (error: any) {
-    //         toast.error(error.message || "Failed to save employment record");
-    //     }
-    // };
-
-    // const handleCancelProfileEdit = () => {
-    //     setProfileFormData({
-    //         ...validProfile,
-    //         dateOfJoining: validProfile?.dateOfJoining ? new Date(validProfile.dateOfJoining).toISOString().split('T')[0] : '',
-    //         emergencyContact: validProfile?.emergencyContact || INITIAL_PROFILE_STATE.emergencyContact
-    //     });
-    //     setIsEditingProfile(false);
-    // };
-
-    // const handleDocumentUpload = async () => {
-    //     if (selectedFiles.length === 0) {
-    //         toast.error("Please select at least one file.");
-    //         return;
-    //     }
-    //     try {
-    //         await addDocuments({ userId: userId!, files: selectedFiles });
-    //         toast.success("Documents uploaded successfully!");
-    //         setSelectedFiles([]);
-    //         refetch()
-    //     } catch (error: any) {
-    //         toast.error(error.message || "Failed to upload documents");
-    //     }
-    // };
 
 
-    // const allDocs = validProfile?.documents || [];
-    // const imageDocs = allDocs?.filter((doc: any) => doc?.type === 'image');
-    // const pdfDocs = allDocs?.filter((doc: any) => doc.type === 'pdf');
-
-    // const galleryImages: any[] = imageDocs.map((doc: any) => ({
-    //     type: 'image',
-    //     key: doc.key,
-    //     url: doc.url,
-    //     originalName: doc.originalName || 'Document photo',
-    //     uploadedAt: doc.uploadedAt || new Date(),
-    //     _id: doc._id
-    // }));
-
-
-    // const handleDocumentDelete = async (documentId: string) => {
-    //     try {
-    //         await deleteDocument({ userId: userId!, documentId });
-    //         toast.success("Document deleted.");
-    //         refetch()
-
-    //     } catch (error: any) {
-    //         toast.error(error.message || "Failed to delete document");
-    //     }
-    // };
-
-    // const handleGalleryDelete = (image: any) => {
-    //     handleDocumentDelete(image._id);
-    // };
+    const profileImgUrl = validProfile?.profileImage?.url || userDetails?.profileImage?.url;
 
     if (isUsersLoading) return <div className="p-6 text-center text-muted"><i className="fas fa-spinner fa-spin mr-2"></i> Loading user...</div>;
     if (!userDetails) return <div className="p-6 text-center text-muted">User not found.</div>;
 
     return (
-        <div className="w-full h-full flex flex-col bg-mainBg p-4 sm:p-6 animate-fade-in">
+        <div className="w-full h-full flex flex-col bg-mainBg p-4 sm:p-6">
             {/* HEADER */}
+
+
             <header className="flex items-center gap-4 mb-6 border-b border-border pb-4">
-                <button onClick={() => navigate(-1)} className="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-border text-muted hover:text-primary transition-colors">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-border text-muted hover:text-primary transition-colors shrink-0"
+                >
                     <i className="fas fa-arrow-left"></i>
                 </button>
-                <div>
+
+                {/* --- Profile Image / Initial Fallback --- */}
+                <div
+
+                    className={`w-14 h-14 rounded-full bg-primary/10 border border-primary/20 flex items-center 
+                justify-center overflow-hidden shrink-0 shadow-sm${profileImgUrl ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                    title={profileImgUrl ? "Click to view image" : ""}
+                >
+                    {profileImgUrl ? (
+                        <img
+                            src={profileImgUrl}
+                            alt={userDetails.userName}
+                            onClick={() => setIsImageModalOpen(true)}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <span className="text-xl font-bold text-primary">
+                            {userDetails.userName?.charAt(0)?.toUpperCase()}
+                        </span>
+                    )}
+                </div>
+
+                <div className="min-w-0 flex-1">
                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                         {userDetails.userName}
                         <span className="px-2 py-1 bg-primary-soft text-primary rounded-md text-[10px] font-bold uppercase tracking-wider">
                             {formatRole(userDetails.role)}
                         </span>
                     </h1>
-                    <p className="text-sm text-muted mt-1">{userDetails.email || "No email"} | {userDetails.phoneNo || "No phone"}</p>
+                    <p className="text-sm text-muted mt-1">
+                        {userDetails.email || "No email"} | {userDetails.phoneNo || "No phone"}
+                    </p>
                 </div>
+
+                {/* <div className="min-w-0 flex-1">
+                    <h1 className="text-2xl font-bold text-foreground flex items-center gap-3 min-w-0">
+                        <span className="truncate">{userDetails.userName}</span>
+                        <span className="px-2 py-1 bg-primary-soft text-primary rounded-md text-[10px] font-bold uppercase tracking-wider shrink-0">
+                            {formatRole(userDetails.role)}
+                        </span>
+                    </h1>
+                    <p className="text-sm text-muted mt-1 truncate">
+                        {userDetails.email || "No email"} | {userDetails.phoneNo || "No phone"}
+                    </p>
+                </div> */}
             </header>
 
             {/* TABS */}
-            <div className="flex items-center gap-6 border-b border-border mb-6">
+            {/* <div className="flex items-center gap-6 border-b border-border mb-6">
                 <button onClick={() => setActiveTab('profile')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
                     <i className="far fa-id-card mr-2"></i> Account Profile
                 </button>
@@ -289,6 +204,25 @@ export default function UserSingle() {
                     </button>
                 ))}
 
+            </div> */}
+
+
+            <div className="border-b border-border mb-6 overflow-x-auto no-scrollbar min-h-10">
+                <div className="flex items-center gap-6 w-max min-w-full px-1">
+                    <button onClick={() => setActiveTab('profile')} className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap flex-shrink-0 ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}>
+                        <i className="far fa-id-card mr-2"></i> Account Profile
+                    </button>
+
+                    {EMPLOYEE_PROFILE_TABS.map((tab) => (
+                        <button
+                            key={tab.key}
+                            onClick={() => setActiveTab(tab.key)}
+                            className={`cursor-pointer pb-3 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap flex-shrink-0 ${activeTab === tab.key ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
+                        >
+                            <i className={`${tab.icon} mr-1.5`}></i>{tab.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* TAB 1: ACCOUNT PROFILE */}
@@ -326,28 +260,6 @@ export default function UserSingle() {
             )}
 
 
-
-            {/* {activeTab === 'details' && (
-                <HrDetailsTab
-                    userId={userId!}
-                    schoolId={schoolId!}
-                    validProfile={validProfile}
-                    hasProfile={hasProfile}
-                    isLoading={isProfileLoading}
-                    refetch={refetch}
-                />
-            )}
-
-            {activeTab === 'documents' && (
-                <DocumentsTab
-                    userId={userId!}
-                    hasProfile={hasProfile}
-                    documents={validProfile?.documents || []}
-                    refetch={refetch}
-                />
-            )} */}
-
-
             <UserProfileComponents
                 activeTab={activeTab}
                 userId={userId!}
@@ -357,6 +269,34 @@ export default function UserSingle() {
                 isLoading={isProfileLoading}
                 refetch={refetch}
             />
+
+            {isImageModalOpen && profileImgUrl && (
+                <div
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in"
+                    onClick={() => setIsImageModalOpen(false)}
+                >
+                    {/* Inner container to prevent clicks on the image from closing the modal */}
+                    <div
+                        className="relative max-w-full max-h-full"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Close Button */}
+                        <button
+                            onClick={() => setIsImageModalOpen(false)}
+                            className="absolute -top-10 right-0 md:-right-10 text-white/70 hover:text-white transition-colors text-2xl w-8 h-8 flex items-center justify-center bg-black/50 hover:bg-black/80 rounded-full"
+                        >
+                            <i className="fas fa-times"></i>
+                        </button>
+
+                        {/* Enlarged Image */}
+                        <img
+                            src={profileImgUrl}
+                            alt={userDetails.userName}
+                            className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl"
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
