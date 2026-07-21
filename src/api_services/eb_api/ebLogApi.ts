@@ -213,6 +213,7 @@ export interface IEBPremisesAnalytics {
     yesterdayConsumption: number | null;
     avg30DayConsumption: number | null;
     projectedThisMonthConsumption: number | null;
+    totalConsumption: number | null;
 }
 
 
@@ -230,7 +231,7 @@ export const useGetEBDashboardOverview = (schoolId?: string) => {
                 checkPermission(currentRole, READ_ROLES);
 
                 const { data } = await Api.get<BaseResponse<IEBDashboardOverview>>(
-                    `/api/eb/logs/analytics/dashboard/${schoolId}`
+                    `/api/eb/logs/analytics/${schoolId}/dashboard`
                 );
 
                 if (!data.ok) throw new Error(data.message || 'Failed to fetch EB dashboard overview');
@@ -260,7 +261,7 @@ export const useGetEBPremisesAnalytics = (schoolId?: string) => {
                 checkPermission(currentRole, READ_ROLES);
 
                 const { data } = await Api.get<BaseResponse<IEBPremisesAnalytics[]>>(
-                    `/api/eb/logs/analytics/premises/${schoolId}`
+                    `/api/eb/logs/analytics/${schoolId}/premises`
                 );
 
                 if (!data.ok) throw new Error(data.message || 'Failed to fetch premises analytics');
@@ -281,6 +282,7 @@ export const useGetEBPremisesAnalytics = (schoolId?: string) => {
 export interface ISeriesPoint {
     label: string;
     kwUsed: number | null;
+    cost?: number | null; // <-- Added this field
 }
 
 export interface IChartPremises {
@@ -315,12 +317,50 @@ export const useGetPremisesEBConsumptionChart = (
 
                 // 2. Pass the params to Axios so they are sent in the URL query string
                 const { data } = await Api.get<BaseResponse<IEBConsumptionChartData>>(
-                    `/api/eb/logs/analytics/line-chart/consumption/${schoolId}`,
+                    `/api/eb/logs/analytics/${schoolId}/line-chart/consumption`,
                     { params } 
                 );
 
                 if (!data.ok) throw new Error(data.message || 'Failed to fetch chart data');
                 return data.data as IEBConsumptionChartData;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+                throw new Error(errorMessage);
+            }
+        },
+        enabled: !!schoolId,
+    });
+};
+
+
+
+
+
+// Add to your existing interfaces
+export interface IEBBillKpis {
+    monthlyProjectedBill: number;
+    projectedUnitsThisMonth: number;
+    estimatedDailyEBCost: number;
+}
+
+// ============================
+// BILLING KPIs HOOK
+// ============================
+export const useGetEBBillKpis = (schoolId?: string) => {
+    const { currentRole } = useAuthData();
+
+    return useQuery({
+        queryKey: ['ebBillKpis', schoolId],
+        queryFn: async () => {
+            try {
+                checkPermission(currentRole, READ_ROLES);
+
+                const { data } = await Api.get<BaseResponse<IEBBillKpis>>(
+                    `/api/eb/logs/analytics/${schoolId}/bill/kpi`
+                );
+
+                if (!data.ok) throw new Error(data.message || 'Failed to fetch billing KPIs');
+                return data.data as IEBBillKpis;
             } catch (error: any) {
                 const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
                 throw new Error(errorMessage);

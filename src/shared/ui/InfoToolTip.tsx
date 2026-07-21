@@ -26,7 +26,7 @@ export default function InfoTooltip({
   position = "auto",
   icon="fa-info",
   title,
-  iconSize = 14,
+  iconSize = 20,
   className = "",
   popupClassName = "",
 }: InfoTooltipProps) {
@@ -177,8 +177,9 @@ export default function InfoTooltip({
         }}
         style={{ width: iconSize, height: iconSize, fontSize: iconSize * 0.65 }}
         className="cursor-pointer inline-flex items-center justify-center rounded-full p-2
-         bg-slate-200 text-slate-600 font-semibold leading-none hover:bg-slate-300 focus:outline-none focus:ring-2
-          focus:ring-slate-400 focus:ring-offset-1 transition-colors shrink-0"
+         bg-white text-slate-500 border border-slate-300 font-semibold leading-none
+          hover:bg-slate-50 hover:border-slate-400 hover:text-slate-700 focus:outline-none focus:ring-2
+          focus:ring-slate-300 focus:ring-offset-1 transition-colors shrink-0"
       >
         {/* {icon ?? "?"} */}
         <i className = {`fas ${icon}`} />

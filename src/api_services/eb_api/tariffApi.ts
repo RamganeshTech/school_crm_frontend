@@ -10,8 +10,7 @@ import { queryClient } from '../../lib/queryClient';
 // ============================
 
 export interface ITariffSlab {
-    minKw: number;
-    maxKw: number; // Use a high number or null to represent "above X"
+    upto: number;
     ratePerUnit: number;
 }
 

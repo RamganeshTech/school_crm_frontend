@@ -279,7 +279,7 @@ export const baseManagementMenu: MenuItem[] = [
         subMenu: [
 
             {
-                name: "Dashboard",
+                name: "Transport Dashboard",
                 path: "/dashboard/transportaion-analytics",
                 icon: "fas fa-chart-pie"
             },
@@ -321,7 +321,7 @@ export const baseManagementMenu: MenuItem[] = [
         name: 'EB Management', path: "#", icon: 'fas fa-bolt',
         subMenu: [
              {
-                name: "Dashboard",
+                name: "EB Dashboard",
                 path: "/dashboard/eb-dashboard",
                 icon: "fas fa-chart-pie"
             },

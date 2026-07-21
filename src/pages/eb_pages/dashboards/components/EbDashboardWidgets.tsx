@@ -1,43 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { Card } from '../../../../shared/ui/Card';
-import { useGetPremisesEBConsumptionChart, type IEBLog, type IEBPremisesAnalytics } from '../../../../api_services/eb_api/ebLogApi';
+import { useGetEBBillKpis, useGetPremisesEBConsumptionChart, type IEBLog, type IEBPremisesAnalytics } from '../../../../api_services/eb_api/ebLogApi';
 import { TableContainer, TBody, Td, Th, THead, Tr } from '../../../../shared/ui/TableLayout';
 import { formatTime12Hour } from '../../../../utils/utils';
 // import { TableContainer, TBody, Td, Th, THead, Tr } from '../../../../shared/ui/TableLayout';
 
-// // ==========================================
-// // WIDGET 1: KPI Stat Card (Highly Reusable)
-// // ==========================================
-// interface EbStatCardProps {
-//     title: string;
-//     value: string | number;
-//     icon: string;
-//     subtitle?: string;
-//     isLoading?: boolean;
-//     valueColor?: string;
-// }
-
-// export const EbStatCard: React.FC<EbStatCardProps> = ({ title, value, icon, subtitle, isLoading, valueColor = "text-foreground" }) => (
-//     <Card className="bg-surface border border-border-default p-5 flex flex-col justify-between shadow-sm h-full">
-//         <div className="flex justify-between items-start mb-4">
-//             <h3 className="text-[13px] font-semibold text-muted uppercase tracking-wide">{title}</h3>
-//             <div className="w-8 h-8 rounded-md bg-background border border-border-default flex items-center justify-center text-muted">
-//                 <i className={`${icon} text-sm`}></i>
-//             </div>
-//         </div>
-//         <div>
-//             {isLoading ? (
-//                 <div className="h-8 w-24 bg-border-soft animate-pulse rounded"></div>
-//             ) : (
-//                 <p className={`text-2xl font-bold ${valueColor}`}>{value}</p>
-//             )}
-//             {subtitle && (
-//                 <p className="text-xs text-muted mt-1.5 font-medium">{subtitle}</p>
-//             )}
-//         </div>
-//     </Card>
-// );
-// // EbDashboardWidgets.tsx
 
 // ==========================================
 // WIDGET 1: KPI Stat Card
@@ -51,22 +18,49 @@ interface EbStatCardProps {
     valueColor?: string;
 }
 
+// export const EbStatCard: React.FC<EbStatCardProps> = ({ title, value, icon, subtitle, isLoading, valueColor = "text-foreground" }) => (
+//     <Card className="bg-surface border border-border-default p-5 flex flex-col justify-between shadow-sm h-full hover:shadow-md transition-shadow">
+//         <div className="flex justify-between items-start mb-4">
+//             <h3 className="text-[13px] font-semibold text-muted uppercase tracking-wide">{title}</h3>
+//             <div className="w-9 h-9 rounded-lg bg-sub-header border border-border-default flex items-center justify-center text-primary shadow-sm">
+//                 <i className={`${icon} text-sm`}></i>
+//             </div>
+//         </div>
+//         <div>
+//             {isLoading ? (
+//                 <div className="h-8 w-24 bg-border-soft animate-pulse rounded"></div>
+//             ) : (
+//                 <p className={`text-2xl font-bold ${valueColor}`}>{value}</p>
+//             )}
+//             {subtitle && (
+//                 <p className="text-xs text-muted mt-2 font-medium bg-mainBg inline-block px-2 py-1 rounded-md border border-border-soft">{subtitle}</p>
+//             )}
+//         </div>
+//     </Card>
+// );
+
 export const EbStatCard: React.FC<EbStatCardProps> = ({ title, value, icon, subtitle, isLoading, valueColor = "text-foreground" }) => (
-    <Card className="bg-surface border border-border-default p-5 flex flex-col justify-between shadow-sm h-full hover:shadow-md transition-shadow">
-        <div className="flex justify-between items-start mb-4">
-            <h3 className="text-[13px] font-semibold text-muted uppercase tracking-wide">{title}</h3>
-            <div className="w-9 h-9 rounded-lg bg-sub-header border border-border-default flex items-center justify-center text-primary shadow-sm">
-                <i className={`${icon} text-sm`}></i>
+    <Card className="bg-surface border border-border-default p-3.5 flex flex-col justify-between shadow-sm h-full hover:border-primary-soft transition-colors group rounded-xl">
+        <div className="flex justify-between items-start mb-2">
+            <h3 className="text-[11px] font-semibold text-muted uppercase tracking-wider line-clamp-1 mr-2" title={title}>
+                {title}
+            </h3>
+            <div className="w-7 h-7 rounded bg-sub-header border border-border-soft flex items-center justify-center text-primary group-hover:bg-primary-soft/20 transition-colors shrink-0">
+                <i className={`${icon} text-[12px]`}></i>
             </div>
         </div>
         <div>
             {isLoading ? (
-                <div className="h-8 w-24 bg-border-soft animate-pulse rounded"></div>
+                <div className="h-6 w-16 bg-border-soft animate-pulse rounded"></div>
             ) : (
-                <p className={`text-2xl font-bold ${valueColor}`}>{value}</p>
+                <p className={`text-[17px] font-bold ${valueColor} truncate`} title={String(value)}>
+                    {value}
+                </p>
             )}
             {subtitle && (
-                <p className="text-xs text-muted mt-2 font-medium bg-mainBg inline-block px-2 py-1 rounded-md border border-border-soft">{subtitle}</p>
+                <p className="text-[10px] text-muted mt-0.5 font-medium truncate" title={subtitle}>
+                    {subtitle}
+                </p>
             )}
         </div>
     </Card>
@@ -336,7 +330,7 @@ export const EbConsumptionChart: React.FC = () => {
     const { schoolId } = useAuthData();
 
     // 2. Local State Management for the Chart
-    const [period, setPeriod] = useState<string>("week");
+    const [period, setPeriod] = useState<string>("month");
     const [customDates, setCustomDates] = useState({
         // Default to last 7 days
         fromDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0], 
@@ -496,6 +490,369 @@ export const EbConsumptionChart: React.FC = () => {
                 ) : (
                     <div className="w-full h-full">
                         <Line data={chartDataObj} options={chartOptions} />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+
+// const CHART_COLORS = ["#4b5563", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#14b8a6", "#ec4899"];
+
+export const EbCostChart: React.FC = () => {
+    const { schoolId } = useAuthData();
+
+    // Local State Management
+    const [period, setPeriod] = useState<string>("month");
+    const [customDates, setCustomDates] = useState({
+        fromDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0], 
+        toDate: new Date().toISOString().split('T')[0]
+    });
+
+    // Autonomous Data Fetching
+    const { data, isLoading } = useGetPremisesEBConsumptionChart(schoolId!, {
+        period,
+        ...(period === 'custom' ? customDates : {})
+    });
+    
+    // Transform backend data for Cost (Billing)
+    const chartDataObj = useMemo(() => {
+        if (!data || !data.premises || data.premises.length === 0) return null;
+
+        const labels = data.premises[0].series.map(s => s.label);
+        
+        const datasets = data.premises.map((p, index) => {
+            const color = CHART_COLORS[index % CHART_COLORS.length];
+            return {
+                label: p.premisesName,
+                // Extracting the 'cost' field instead of 'kwUsed'
+                data: p.series.map(s => s.cost ?? null), 
+                borderColor: color,
+                backgroundColor: color,
+                borderWidth: 2,
+                pointRadius: 3,
+                pointHoverRadius: 5,
+                tension: 0.1,
+                spanGaps: true, 
+            };
+        });
+
+        return { labels, datasets };
+    }, [data]);
+
+    // Chart.js Configuration for Currency
+    const chartOptions: ChartOptions<'line'> = useMemo(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+                align: 'end',
+                labels: {
+                    usePointStyle: true,
+                    boxWidth: 8,
+                    font: { size: 12, family: 'inherit' },
+                    color: '#6b6b6b' 
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                titleColor: '#1a1a1a', 
+                bodyColor: '#6b6b6b', 
+                borderColor: '#dbdbdb', 
+                borderWidth: 1,
+                padding: 10,
+                boxPadding: 4,
+                usePointStyle: true,
+                titleFont: { size: 13, weight: 'bold' },
+                bodyFont: { size: 12 },
+                callbacks: {
+                    label: (context) => {
+                        let label = context.dataset.label || '';
+                        if (label) label += ': ';
+                        if (context.parsed.y !== null) {
+                            // Format as currency
+                            label += `₹${context.parsed.y.toLocaleString('en-IN')}`;
+                        }
+                        return label;
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                grid: { display: false },
+                ticks: { font: { size: 11 }, color: '#6b6b6b' },
+                border: { color: '#dbdbdb' }
+            },
+            y: {
+                grid: { color: '#f3f4f6', tickLength: 0 },
+                border: { display: false, dash: [4, 4] },
+                ticks: { 
+                    font: { size: 11 }, 
+                    color: '#6b6b6b', 
+                    padding: 8,
+                    callback: (value) => `₹${value}` // Y-Axis currency formatting
+                }
+            }
+        }
+    }), []);
+
+    return (
+        <div className="bg-surface border border-border-default rounded-xl shadow-sm overflow-hidden flex flex-col w-full">
+            {/* Chart Header & Controls */}
+            <div className="p-4 border-b border-border-default bg-mainBg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                    <i className="fas fa-file-invoice-dollar text-primary text-sm"></i>
+                    <h3 className="text-[15px] font-semibold text-foreground">Estimated Billing Cost Over Time</h3>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <div className="flex bg-background border border-border-default rounded-lg p-0.5 shadow-sm overflow-x-auto w-full sm:w-auto">
+                        {['today', 'week', 'month', 'year', 'custom'].map(p => (
+                            <button
+                                key={p}
+                                onClick={() => setPeriod(p)}
+                                className={`px-3 py-1.5 text-[12px] font-medium rounded-md capitalize whitespace-nowrap transition-colors ${
+                                    period === p 
+                                    ? 'bg-primary text-white shadow-sm' 
+                                    : 'text-muted hover:text-foreground hover:bg-sub-header'
+                                }`}
+                            >
+                                {p}
+                            </button>
+                        ))}
+                    </div>
+
+                    {period === 'custom' && (
+                        <div className="flex items-center gap-2 w-full sm:w-auto animate-in fade-in zoom-in-95 duration-200">
+                            <input
+                                type="date"
+                                value={customDates.fromDate}
+                                onChange={(e) => setCustomDates({ ...customDates, fromDate: e.target.value })}
+                                className="px-2 py-1.5 rounded-md border border-border-default bg-background text-[12px] text-foreground focus:border-primary-soft focus:outline-none"
+                            />
+                            <span className="text-muted text-xs">to</span>
+                            <input
+                                type="date"
+                                value={customDates.toDate}
+                                onChange={(e) => setCustomDates({ ...customDates, toDate: e.target.value })}
+                                className="px-2 py-1.5 rounded-md border border-border-default bg-background text-[12px] text-foreground focus:border-primary-soft focus:outline-none"
+                            />
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Chart Rendering Area */}
+            <div className="p-4 h-[350px] w-full relative">
+                {isLoading ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center">
+                        <i className="fas fa-circle-notch fa-spin text-primary text-2xl mb-3"></i>
+                        <p className="text-sm text-muted font-medium">Rendering cost chart...</p>
+                    </div>
+                ) : !chartDataObj ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-mainBg border border-border-default flex items-center justify-center mb-3 text-muted text-lg shadow-sm">
+                            <i className="fas fa-rupee-sign"></i>
+                        </div>
+                        <p className="text-sm font-medium text-foreground">No cost data available for this period.</p>
+                    </div>
+                ) : (
+                    <div className="w-full h-full">
+                        <Line data={chartDataObj} options={chartOptions} />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+
+
+
+
+
+// Import the new hook at the top of EbDashboardWidgets.tsx
+
+// ==========================================
+// WIDGET 5: Billing & Cost KPIs
+// ==========================================
+export const EbBillingKpis: React.FC = () => {
+    const { schoolId } = useAuthData();
+    const { data, isLoading } = useGetEBBillKpis(schoolId!);
+
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <EbStatCard
+                title="Monthly Projected Bill"
+                value={data ? `₹${data.monthlyProjectedBill.toLocaleString('en-IN')}` : '₹0'}
+                icon="fas fa-file-invoice-dollar"
+                subtitle="Estimated total for this month"
+                isLoading={isLoading}
+                valueColor="text-primary" // Red for expenses
+            />
+            
+            <EbStatCard
+                title="Estimated Daily Cost"
+                value={data ? `₹${data.estimatedDailyEBCost.toLocaleString('en-IN')}` : '₹0'}
+                icon="fas fa-calendar-day"
+                subtitle="Average cost per day (MTD)"
+                isLoading={isLoading}
+                valueColor="text-primary" // Orange for daily run rate
+            />
+
+            <EbStatCard
+                title="Projected Monthly Units"
+                value={data ? `${data.projectedUnitsThisMonth.toLocaleString('en-IN')} kWh` : '0 kWh'}
+                icon="fas fa-tachometer-alt"
+                subtitle="Estimated usage by month-end"
+                isLoading={isLoading}
+                valueColor="text-primary"
+            />
+        </div>
+    );
+};
+
+
+
+import {
+    ArcElement,
+} from 'chart.js';
+import { Doughnut } from 'react-chartjs-2';
+
+// Register Chart.js elements for Doughnut/Pie charts
+ChartJS.register(ArcElement, Tooltip, Legend);
+
+// ==========================================
+// WIDGET 6: Total Consumption Doughnut Chart
+// ==========================================
+interface EbConsumptionDoughnutProps {
+    data: IEBPremisesAnalytics[];
+    isLoading: boolean;
+}
+
+// Professional color palette matching your line charts
+const DOUGH_CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#14b8a6", "#ec4899", "#4b5563"];
+
+export const EbConsumptionDoughnut: React.FC<EbConsumptionDoughnutProps> = ({ data, isLoading }) => {
+
+    // Transform backend analytics data into Chart.js Doughnut format
+    const chartDataObj = useMemo(() => {
+        if (!data || data.length === 0) return null;
+
+        // Filter out premises that have completely null/zero total consumption if you prefer, 
+        // or keep them to show a 0 value. We will keep them here and default null to 0.
+        const labels = data.map(p => p.premisesName);
+        const consumptionValues = data.map(p => p.totalConsumption || 0);
+        
+        // Generate a background color array matching the number of premises
+        const backgroundColors = data.map((_, index) => DOUGH_CHART_COLORS[index % DOUGH_CHART_COLORS.length]);
+
+        return {
+            labels,
+            datasets: [
+                {
+                    data: consumptionValues,
+                    backgroundColor: backgroundColors,
+                    borderWidth: 0, // Removes the harsh white borders between slices
+                    hoverOffset: 4 // Slight pop-out effect when hovering
+                }
+            ]
+        };
+    }, [data]);
+
+    // Chart Configuration Options
+    const chartOptions: ChartOptions<'doughnut'> = useMemo(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '75%', // Makes it a thin, modern doughnut (lower % makes it thicker like a pie)
+        plugins: {
+            legend: {
+                position: 'right', // Place legend on the side to save vertical space
+                labels: {
+                    usePointStyle: true,
+                    boxWidth: 8,
+                    font: { size: 12, family: 'inherit' },
+                    color: '#6b6b6b',
+                    padding: 20
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                titleColor: '#1a1a1a', 
+                bodyColor: '#6b6b6b', 
+                borderColor: '#dbdbdb', 
+                borderWidth: 1,
+                padding: 10,
+                boxPadding: 4,
+                usePointStyle: true,
+                bodyFont: { size: 13, weight: 'bold' },
+                callbacks: {
+                    label: (context) => {
+                        let label = context.label || '';
+                        if (label) label += ': ';
+                        if (context.parsed !== null) {
+                            // Format with commas and add kWh
+                            label += `${context.parsed.toLocaleString('en-IN')} kWh`;
+                        }
+                        return label;
+                    }
+                }
+            }
+        }
+    }), []);
+
+    // Calculate total sum for the center of the Doughnut
+    const totalSum = useMemo(() => {
+        if (!data) return 0;
+        return data.reduce((sum, item) => sum + (item.totalConsumption || 0), 0);
+    }, [data]);
+
+    return (
+        <div className="bg-surface border border-border-default rounded-xl shadow-sm overflow-hidden flex flex-col h-full w-full">
+            {/* Header */}
+            <div className="p-4 border-b border-border-default bg-mainBg flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                    <i className="fas fa-chart-pie text-primary text-sm"></i>
+                    <h3 className="text-[15px] font-semibold text-foreground">Total Consumption Share</h3>
+                </div>
+            </div>
+
+            {/* Chart Area */}
+            <div className="p-4 relative flex-1 flex flex-col items-center justify-center min-h-[300px]">
+                {isLoading ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center">
+                        <i className="fas fa-circle-notch fa-spin text-primary text-2xl mb-3"></i>
+                        <p className="text-sm text-muted font-medium">Loading distribution...</p>
+                    </div>
+                ) : !chartDataObj || totalSum === 0 ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-mainBg border border-border-default flex items-center justify-center mb-3 text-muted text-lg shadow-sm">
+                            <i className="fas fa-chart-pie"></i>
+                        </div>
+                        <p className="text-sm font-medium text-foreground">No consumption data to display.</p>
+                    </div>
+                ) : (
+                    <div className="w-full h-full relative flex items-center justify-center">
+                        {/* The Doughnut Chart */}
+                        <div className="w-full h-full max-w-[400px]">
+                            <Doughnut data={chartDataObj} options={chartOptions} />
+                        </div>
+                        
+                        {/* Custom Center Text for the Doughnut */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pr-[120px]"> 
+                            {/* pr-[120px] offsets the text slightly to account for the legend on the right */}
+                            <span className="text-[10px] font-bold text-muted uppercase tracking-wider mb-0.5">Total Usage</span>
+                            <span className="text-lg font-bold text-foreground">
+                                {totalSum.toLocaleString('en-IN')} <span className="text-[11px] font-sans font-medium text-muted">kWh</span>
+                            </span>
+                        </div>
                     </div>
                 )}
             </div>

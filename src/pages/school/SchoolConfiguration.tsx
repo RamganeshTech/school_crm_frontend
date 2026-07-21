@@ -19,7 +19,7 @@ import { useRoleCheck } from '../../hooks/useRoleCheck';
 import BillBookConfig from './billBook_pages/BillBookConfig';
 import AdmissionBookConfig from './Admission_Pages/admissionRecords_pages/AdmissionBookConfig';
 import SystemReadinessCard from './SystemReadinessCard';
-import AcademicTimelineConfig from './AcademicTimelineConfig';
+import AcademicTimelineConfig from './AcademicDateTimelineConfig';
 import { useSearchParams } from 'react-router-dom';
 
 // type TabOptions = 'details' | 'socials';

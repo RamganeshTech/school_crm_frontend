@@ -15,7 +15,7 @@ interface TariffModalProps {
 }
 
 export default function TariffModal({ isOpen, onClose, tariffData, schoolId, canEdit }: TariffModalProps) {
-    
+
     // --- API Hooks ---
     const { mutateAsync: createTariff, isPending: isCreating } = useCreateTariff();
     const { mutateAsync: updateTariff, isPending: isUpdating } = useUpdateTariff();
@@ -44,11 +44,12 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
                 });
                 // Deep copy slabs to avoid mutating cache directly before saving
                 setSlabs(tariffData.slabs ? JSON.parse(JSON.stringify(tariffData.slabs)) : []);
-                setIsEditMode(false); 
+                setIsEditMode(false);
             } else {
                 // Create Mode
                 setFormData(initialFormState);
-                setSlabs([{ minKw: 0, maxKw: 100, ratePerUnit: 0 }]); // Start with one default slab
+                // setSlabs([{ minKw: 0, maxKw: 100, ratePerUnit: 0 }]); // Start with one default slab
+                setSlabs([{ upto: 100, ratePerUnit: 0 }]); // Start with one default slab
                 setIsEditMode(true);
             }
         }
@@ -58,17 +59,18 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
     // --- Handlers: Basic Fields ---
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value, type, checked } = e.target;
-        setFormData(prev => ({ 
-            ...prev, 
-            [id]: type === 'checkbox' ? checked : value 
+        setFormData(prev => ({
+            ...prev,
+            [id]: type === 'checkbox' ? checked : value
         }));
     };
 
     // --- Handlers: Dynamic Slabs ---
     const handleAddSlab = () => {
         const lastSlab = slabs[slabs.length - 1];
-        const newMin = lastSlab ? Number(lastSlab.maxKw) + 1 : 0;
-        setSlabs(prev => [...prev, { minKw: newMin, maxKw: newMin + 100, ratePerUnit: 0 }]);
+        // Automatically suggest the next 'upto' limit by adding 100
+        const newUpto = lastSlab ? Number(lastSlab.upto) + 100 : 100;
+        setSlabs(prev => [...prev, { upto: newUpto, ratePerUnit: 0 }]);
     };
 
     const handleRemoveSlab = (indexToRemove: number) => {
@@ -79,9 +81,9 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
         setSlabs(prev => {
             const updated = [...prev];
             // Convert to number, but handle empty string temporarily if user is typing
-            updated[index] = { 
-                ...updated[index], 
-                [field]: value === '' ? '' : Number(value) 
+            updated[index] = {
+                ...updated[index],
+                [field]: value === '' ? '' : Number(value)
             };
             return updated;
         });
@@ -113,16 +115,19 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
             }
 
             // Basic Slab Validation
+            // Basic Slab Validation
+            let previousUpto = -1;
             for (let i = 0; i < slabs.length; i++) {
                 const slab = slabs[i];
-                if (slab.minKw === undefined || slab.maxKw === undefined || slab.ratePerUnit === undefined) {
+                if (slab.upto === undefined || slab.ratePerUnit === undefined) {
                     toast.error(`Slab ${i + 1} has missing values.`);
                     return;
                 }
-                if (Number(slab.minKw) >= Number(slab.maxKw)) {
-                    toast.error(`Slab ${i + 1}: Max kW must be greater than Min kW.`);
+                if (Number(slab.upto) <= previousUpto) {
+                    toast.error(`Slab ${i + 1}: 'Up To' limit must be greater than the previous slab.`);
                     return;
                 }
+                previousUpto = Number(slab.upto);
             }
 
             // Prepare Payload
@@ -165,10 +170,10 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
             }
         >
             <form onSubmit={handleSubmit} className="flex flex-col h-full space-y-6">
-                
+
                 {/* Scrollable Content Area */}
                 <div className="space-y-6 overflow-y-auto custom-scrollbar pr-2 flex-1 pb-4 mt-2">
-                    
+
                     {/* --- Basic Information --- */}
                     <div className="bg-surface/50 p-5 rounded-xl border border-border-default/50 space-y-5">
                         <h4 className="text-sm font-semibold text-foreground border-b border-border-default pb-2 flex items-center gap-2">
@@ -179,12 +184,12 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
                             <div className="sm:col-span-2">
                                 <InfoField label="Tariff Plan Name *" isEdit={isEditMode}>
                                     {isEditMode ? (
-                                        <Input 
-                                            id="tariffName" 
-                                            placeholder="e.g. Commercial Plan A, Residential" 
-                                            value={formData.tariffName} 
-                                            onChange={handleInputChange} 
-                                            required 
+                                        <Input
+                                            id="tariffName"
+                                            placeholder="e.g. Commercial Plan A, Residential"
+                                            value={formData.tariffName}
+                                            onChange={handleInputChange}
+                                            required
                                         />
                                     ) : (
                                         <p className="font-medium text-foreground text-[14px]">{formData.tariffName || 'N/A'}</p>
@@ -194,13 +199,13 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
 
                             <InfoField label="Fixed Charge per kW (₹) *" isEdit={isEditMode}>
                                 {isEditMode ? (
-                                    <Input 
-                                        id="fixedChargePerKw" 
+                                    <Input
+                                        id="fixedChargePerKw"
                                         type="number"
                                         step="any"
-                                        placeholder="e.g. 150" 
-                                        value={formData.fixedChargePerKw} 
-                                        onChange={handleInputChange} 
+                                        placeholder="e.g. 150"
+                                        value={formData.fixedChargePerKw}
+                                        onChange={handleInputChange}
                                         required
                                     />
                                 ) : (
@@ -243,10 +248,10 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
                                 <i className="fas fa-layer-group text-muted"></i> Usage Slabs
                             </h4>
                             {isEditMode && (
-                                <Button 
-                                    type="button" 
-                                    variant="outline" 
-                                    size="sm" 
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
                                     onClick={handleAddSlab}
                                     className="h-7 text-xs border-border-default"
                                     leftIcon="fas fa-plus"
@@ -264,7 +269,7 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
                             <div className="space-y-3">
                                 {slabs.map((slab, index) => (
                                     <div key={index} className="relative bg-background border border-border-default rounded-lg p-3 sm:p-4 group">
-                                        
+
                                         {/* Slab Header/Number */}
                                         <div className="absolute -top-2.5 left-3 bg-surface border border-border-default px-2 py-0.5 rounded text-[10px] font-bold text-muted uppercase tracking-wider">
                                             Slab {index + 1}
@@ -282,34 +287,23 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
                                             </button>
                                         )}
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-1">
-                                            <InfoField label="Min kW" isEdit={isEditMode}>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-1">
+                                            <InfoField label="Up To (kW)" isEdit={isEditMode}>
                                                 {isEditMode ? (
                                                     <Input
                                                         type="number"
-                                                        value={String(slab.minKw)}
-                                                        onChange={(e) => handleSlabChange(index, 'minKw', e.target.value)}
+                                                        value={String(slab.upto)}
+                                                        onChange={(e) => handleSlabChange(index, 'upto', e.target.value)}
                                                         required
                                                     />
                                                 ) : (
-                                                    <p className="font-mono text-[13px] text-foreground">{slab.minKw} kW</p>
+                                                    <p className="font-mono text-[13px] text-foreground">
+                                                        {index === 0 ? `0 - ${slab.upto}` : `${Number(slabs[index - 1].upto) + 1} - ${slab.upto}`} kW
+                                                    </p>
                                                 )}
                                             </InfoField>
 
-                                            <InfoField label="Max kW" isEdit={isEditMode}>
-                                                {isEditMode ? (
-                                                    <Input
-                                                        type="number"
-                                                        value={String(slab.maxKw)}
-                                                        onChange={(e) => handleSlabChange(index, 'maxKw', e.target.value)}
-                                                        required
-                                                    />
-                                                ) : (
-                                                    <p className="font-mono text-[13px] text-foreground">{slab.maxKw} kW</p>
-                                                )}
-                                            </InfoField>
-
-                                            <InfoField label="Rate per kW (₹)" isEdit={isEditMode}>
+                                            <InfoField label="Rate per Unit (₹)" isEdit={isEditMode}>
                                                 {isEditMode ? (
                                                     <Input
                                                         type="number"

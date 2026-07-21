@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '../../shared/ui/Button';
 import { Input } from '../../shared/ui/Input';
 import { SideModal } from '../../shared/ui/SideModal';
@@ -10,6 +10,8 @@ import {
     useUpdatePremises,
     type IPremises
 } from '../../api_services/eb_api/premisesApi';
+import { useGetTariffs } from '../../api_services/eb_api/tariffApi';
+import { SearchSelect } from '../../shared/ui/SearchSelect';
 
 interface PremisesModalProps {
     isOpen: boolean;
@@ -24,12 +26,15 @@ export default function PremisesModal({ isOpen, onClose, premisesData, schoolId,
     // --- API Hooks ---
     const { mutateAsync: createPremises, isPending: isCreating } = useCreatePremises();
     const { mutateAsync: updatePremises, isPending: isUpdating } = useUpdatePremises();
+    const { data: tariffsList = [], isLoading: isTariffsLoading } = useGetTariffs(schoolId);
+
     const isPending = isCreating || isUpdating;
 
     // --- State Setup ---
     const initialFormState = {
         premisesName: '',
         premisesAddress: '',
+        tariffId: '', // <-- Added tariffId to state
         meterLocation: '',
         consumerNumber: '',
         sanctionedLoad: '',
@@ -49,6 +54,7 @@ export default function PremisesModal({ isOpen, onClose, premisesData, schoolId,
                     premisesName: premisesData.premisesName || '',
                     premisesAddress: premisesData.premisesAddress || '',
                     meterLocation: premisesData.meterLocation || '',
+                    tariffId: premisesData.tariffId || '', // <-- Load existing tariffId
                     consumerNumber: premisesData.consumerNumber || '',
                     sanctionedLoad: premisesData.sanctionedLoad ? String(premisesData.sanctionedLoad) : '',
                     billingCycleStartDate: premisesData.billingCycleStartDate 
@@ -65,6 +71,21 @@ export default function PremisesModal({ isOpen, onClose, premisesData, schoolId,
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, premisesData]);
+
+
+    // Format options for the SearchSelect
+    const tariffOptions = useMemo(() => {
+        return tariffsList.map((tariff) => ({
+            value: tariff._id,
+            label: tariff.tariffName
+        }));
+    }, [tariffsList]);
+
+    // Find selected tariff name for View Mode
+    const selectedTariffName = useMemo(() => {
+        return tariffsList.find(t => t._id === formData.tariffId)?.tariffName || 'N/A';
+    }, [tariffsList, formData.tariffId]);
+
 
     // --- Handlers ---
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -85,6 +106,7 @@ export default function PremisesModal({ isOpen, onClose, premisesData, schoolId,
             setFormData({
                 premisesName: premisesData.premisesName || '',
                 premisesAddress: premisesData.premisesAddress || '',
+                tariffId: premisesData.tariffId || '', // <-- Revert tariffId
                 meterLocation: premisesData.meterLocation || '',
                 consumerNumber: premisesData.consumerNumber || '',
                 sanctionedLoad: premisesData.sanctionedLoad ? String(premisesData.sanctionedLoad) : '',
@@ -111,6 +133,7 @@ export default function PremisesModal({ isOpen, onClose, premisesData, schoolId,
                 premisesName: formData.premisesName,
                 premisesAddress: formData.premisesAddress || undefined,
                 meterLocation: formData.meterLocation || undefined,
+                tariffId: formData.tariffId || undefined, // <-- Add tariffId to payload
                 consumerNumber: formData.consumerNumber || undefined,
                 sanctionedLoad: formData.sanctionedLoad ? Number(formData.sanctionedLoad) : undefined,
                 billingCycleStartDate: formData.billingCycleStartDate || undefined,
@@ -186,6 +209,23 @@ export default function PremisesModal({ isOpen, onClose, premisesData, schoolId,
                                     />
                                 ) : (
                                     <p className="text-sm text-foreground">{formData.premisesAddress || 'N/A'}</p>
+                                )}
+                            </InfoField>
+
+                            {/* --- Tariff Selection Field Added Here --- */}
+                            <InfoField label="Tariff Plan" isEdit={isEditMode}>
+                                {isEditMode ? (
+                                    <SearchSelect
+                                        options={tariffOptions}
+                                        value={formData.tariffId}
+                                        onChange={(val) => setFormData(prev => ({ ...prev, tariffId: String(val.value) }))}
+                                        placeholder={isTariffsLoading ? "Loading tariffs..." : "Search and select tariff..."}
+                                    />
+                                ) : (
+                                    <p className="text-sm text-foreground bg-background border border-border px-2 py-1 rounded w-fit font-medium">
+                                        <i className="fas fa-bolt text-primary mr-2 text-xs"></i>
+                                        {selectedTariffName}
+                                    </p>
                                 )}
                             </InfoField>
 

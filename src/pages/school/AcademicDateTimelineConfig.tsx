@@ -15,6 +15,7 @@ import {
     useUpsertAcademicTermDates,
     useDeleteAcademicTermDates
 } from '../../api_services/schoolConfig_api/schoolapi'; // Adjust path as needed
+import InfoTooltip from './../../shared/ui/InfoToolTip';
 
 // --- Helper Functions ---
 const formatForInput = (dateValue?: string | Date | null) => {
@@ -29,11 +30,11 @@ const formatForDisplay = (dateValue?: string | Date | null) => {
     return isNaN(d.getTime()) ? '-' : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-interface AcademicTimelineConfigProps {
+interface AcademicDateTimelineConfigProps {
     schoolData: any;
 }
 
-export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineConfigProps) {
+export default function AcademicDateTimelineConfig({ schoolData }: AcademicDateTimelineConfigProps) {
     // --- API Hooks ---
     const upsertMutation = useUpsertAcademicTermDates();
     const deleteMutation = useDeleteAcademicTermDates();
@@ -41,7 +42,7 @@ export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineC
     const academicYearOptions = getAcademicYears();
 
     // --- Role Permissions ---
-    const { isCorrespondent, isAdmin , isPrincipal} = useRoleCheck();
+    const { isCorrespondent, isAdmin, isPrincipal } = useRoleCheck();
     const canModify = isCorrespondent || isAdmin || isPrincipal;
 
     // --- Local State ---
@@ -100,6 +101,9 @@ export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineC
             setIsEditing(false); // Return to read-only view after save
         } catch (error: any) {
             // Error handled by hook
+            toast.error(error?.message || "failed to update dates");
+
+
         }
     };
 
@@ -115,20 +119,20 @@ export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineC
             toast.success("Timeline deleted successfully!");
             // It will naturally revert to 'isEditing = true' via the useEffect since existingConfig will disappear
         } catch (error: any) {
+            toast.error(error?.message || "failed to delete");
             // Error handled by hook
         }
     };
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full items-start animate-in fade-in duration-300">
-
             {/* --- LEFT COL: Selector & Quick Navigation --- */}
             <Card className="lg:col-span-1 shadow-sm border-border/60 sticky top-0">
                 <CardHeader
                     title="Select Timeline"
                     subtitle="Choose an academic year to manage."
                 />
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-2 sm:space-y-6">
                     <SearchSelect
                         label="Academic Year"
                         options={academicYearOptions}
@@ -152,8 +156,8 @@ export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineC
                                         onClick={() => setSelectedYear(term?.academicYear)}
                                         // Added cursor-pointer here
                                         className={`flex items-center justify-between p-2.5 rounded-lg border text-sm transition-colors cursor-pointer ${selectedYear === term.academicYear
-                                                ? 'bg-primary/5 border-primary text-primary font-bold'
-                                                : 'bg-surface border-border hover:border-primary/40 text-foreground'
+                                            ? 'bg-primary/5 border-primary text-primary font-bold'
+                                            : 'bg-surface border-border hover:border-primary/40 text-foreground'
                                             }`}
                                     >
                                         <span>{term?.academicYear}</span>
@@ -172,10 +176,15 @@ export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineC
 
             {/* --- RIGHT COL: Dynamic Details / Form View --- */}
             <Card className="lg:col-span-2 shadow-sm border-border/60 h-full min-h-[400px]">
-                <CardHeader
-                    title={selectedYear ? `Timeline Details: ${selectedYear}` : "Timeline Details"}
-                    subtitle={selectedYear ? "Manage term start dates for this year." : "Select a year on the left to begin."}
-                />
+                <section className='flex justify-between items-center border-b border-primary-hover px-3 sm:px-5'>
+                    <CardHeader
+                        title={selectedYear ? `Timeline Details: ${selectedYear}` : "Timeline Details"}
+                        subtitle={selectedYear ? "Manage term start dates for this year." : "Select a year on the left to begin."}
+                        className='!border-none !px-0 text-[10px] !sm:text-xs'
+                    />
+
+                    <InfoTooltip description='This Academic Date configuration is used to for update and track the Fee Status of each student.' />
+                </section>
                 <CardContent className="h-full">
 
                     {/* STATE 1: No Year Selected */}
@@ -183,7 +192,7 @@ export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineC
                         <div className="flex flex-col items-center justify-center h-full min-h-[250px] bg-surface rounded-xl border border-dashed border-border">
                             <i className="fas fa-hand-pointer text-3xl text-muted opacity-50 mb-3"></i>
                             <p className="text-sm font-semibold text-foreground">No Year Selected</p>
-                            <p className="text-xs text-muted mt-1 text-center max-w-sm">
+                            <p className="text-[10px] sm:text-xs text-muted mt-1 text-center max-w-sm">
                                 Please select an academic year from the dropdown on the left to view or edit its term dates.
                             </p>
                         </div>
@@ -191,9 +200,12 @@ export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineC
 
                         /* STATE 2: Read-Only View (Data Exists & Not Editing) */
                         existingConfig && !isEditing ? (
-                            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                <div className="bg-background border border-border/50 rounded-xl p-6 mb-6">
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            // <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 flex flex-col">
+                                {/* <div className="bg-background border border-border/50 rounded-xl p-6 mb-6"> */}
+                                <div className="bg-background border border-border/50 rounded-xl p-4 mb-4 overflow-y-auto custom-scrollbar flex-1">
+                                    {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-6"> */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div className="flex flex-col items-center justify-center p-4 bg-surface rounded-lg border border-border/40 text-center">
                                             <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-2">Term 1</p>
                                             <p className="text-sm font-bold text-foreground">{formatForDisplay(existingConfig.firstTerm)}</p>
@@ -227,13 +239,12 @@ export default function AcademicTimelineConfig({ schoolData }: AcademicTimelineC
                                             leftIcon="fas fa-edit"
                                             onClick={() => setIsEditing(true)}
                                         >
-                                            Edit Dates
+                                            Edit <span className='hidden sm:inline-block sm:ml-1'>Dates</span>
                                         </Button>
                                     </div>
                                 )}
                             </div>
                         ) :
-
                             /* STATE 3: Form View (No Data OR Editing Existing) */
                             (
                                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
