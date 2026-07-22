@@ -17,7 +17,7 @@ import { lazy, Suspense } from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { ToastContainer } from './shared/ui/ToastContext';
 import { useAuthCheck } from './hooks/useAuthCheck';
-import { ACADEMIC_ACCESS, ADMIN_CORREPONDENT, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
+import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
 const PremiseMain = lazy(() => import('./pages/premises_pages/PremiseMain'));
