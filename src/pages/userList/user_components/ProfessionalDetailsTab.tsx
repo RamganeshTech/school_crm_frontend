@@ -51,28 +51,7 @@ export function ProfessionalDetailsTab({ userId, schoolId, validProfile, hasProf
         }
     }, [validProfile, hasProfile]);
 
-    // const handleSubmit = async () => {
-    //     try {
-    //         if (hasProfile) {
-    //             await updateProfile({ userId, updateData: formData });
-    //             toast.success("Professional details updated!");
-    //             setIsEditing(false);
-    //         } else {
-    //             const fd = new FormData();
-    //             const payload = { ...formData, userId, schoolId };
-    //             Object.entries(payload).forEach(([key, value]) => {
-    //                 if (value === undefined || value === null) return;
-    //                 fd.append(key, value as string);
-    //             });
-    //             await createProfile(fd);
-    //             toast.success("Employment record created!");
-    //             setIsEditing(false);
-    //         }
-    //         refetch();
-    //     } catch (error: any) {
-    //         toast.error(error.message || "Failed to save professional details");
-    //     }
-    // };
+  
 
     const handleSubmit = async () => {
     try {

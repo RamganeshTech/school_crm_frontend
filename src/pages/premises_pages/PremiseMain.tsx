@@ -331,7 +331,7 @@ export const PremiseMain: React.FC = () => {
     const { isAccountant, isParent, isVicePrincipal, isTeacher } = useRoleCheck();
 
     // Permissions check
-    const canModify = !isAccountant && !isParent && !isVicePrincipal && !isTeacher;
+    const canModify =  !isAccountant && !isParent && !isVicePrincipal && !isTeacher;
 
     // 2. React Query Hooks
     const { data: premisesList = [], isLoading, isError } = useGetPremises(schoolId!);

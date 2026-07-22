@@ -124,7 +124,7 @@ export default function PremisesModal({ isOpen, onClose, premisesData, schoolId,
 
         try {
             if (!formData.premisesName) {
-                toast.error("Premises Name is required.");
+                toast.warning("Premises Name is required.");
                 return;
             }
 

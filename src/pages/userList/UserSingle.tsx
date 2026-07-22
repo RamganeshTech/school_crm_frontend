@@ -17,7 +17,7 @@ import { EMPLOYEE_PROFILE_TABS, UserProfileComponents } from './user_components/
 
 
 // type TabType = 'profile' | 'details' | 'documents';
-export type EmployeeProfileTabType = 'profile' | 'professional' | 'contact' | 'bank' | 'education' | 'salary' | 'documents';
+export type EmployeeProfileTabType = 'profile' | 'professional' | 'contact' | 'bank' | 'education' | 'salary' | 'documents' | "id";
 
 
 
@@ -143,7 +143,7 @@ export default function UserSingle() {
                 </button>
 
                 {/* --- Profile Image / Initial Fallback --- */}
-                <div
+                {/* <div
 
                     className={`w-14 h-14 rounded-full bg-primary/10 border border-primary/20 flex items-center 
                 justify-center overflow-hidden shrink-0 shadow-sm${profileImgUrl ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
@@ -161,9 +161,28 @@ export default function UserSingle() {
                             {userDetails.userName?.charAt(0)?.toUpperCase()}
                         </span>
                     )}
+                </div> */}
+
+                <div
+                    className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-36 xl:h-36 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden shrink-0 shadow-sm ${profileImgUrl ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
+                        }`}
+                    title={profileImgUrl ? "Click to view image" : ""}
+                >
+                    {profileImgUrl ? (
+                        <img
+                            src={profileImgUrl}
+                            alt={userDetails.userName}
+                            onClick={() => setIsImageModalOpen(true)}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">
+                            {userDetails.userName?.charAt(0)?.toUpperCase()}
+                        </span>
+                    )}
                 </div>
 
-                <div className="min-w-0 flex-1">
+                {/* <div className="min-w-0 flex-1">
                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                         {userDetails.userName}
                         <span className="px-2 py-1 bg-primary-soft text-primary rounded-md text-[10px] font-bold uppercase tracking-wider">
@@ -173,19 +192,19 @@ export default function UserSingle() {
                     <p className="text-sm text-muted mt-1">
                         {userDetails.email || "No email"} | {userDetails.phoneNo || "No phone"}
                     </p>
-                </div>
+                </div> */}
 
-                {/* <div className="min-w-0 flex-1">
-                    <h1 className="text-2xl font-bold text-foreground flex items-center gap-3 min-w-0">
-                        <span className="truncate">{userDetails.userName}</span>
-                        <span className="px-2 py-1 bg-primary-soft text-primary rounded-md text-[10px] font-bold uppercase tracking-wider shrink-0">
+                <div className="min-w-0 flex-1">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground flex items-end gap-3">
+                        {userDetails.userName}
+                        <span className="px-2 py-1 bg-primary-soft text-primary rounded-md text-[10px] sm:text-md  font-bold uppercase tracking-wider">
                             {formatRole(userDetails.role)}
                         </span>
                     </h1>
-                    <p className="text-sm text-muted mt-1 truncate">
+                    <p className="text-sm  sm:text-md lg:text-lg xl:text-xl text-muted mt-1">
                         {userDetails.email || "No email"} | {userDetails.phoneNo || "No phone"}
                     </p>
-                </div> */}
+                </div>
             </header>
 
             {/* TABS */}

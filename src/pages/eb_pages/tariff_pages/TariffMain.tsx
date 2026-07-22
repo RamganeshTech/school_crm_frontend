@@ -11,10 +11,10 @@ import TariffModal from "./TariffModal";
 export const TariffMain: React.FC = () => {
     // 1. Auth & Role Hooks
     const { schoolId } = useAuthData();
-    const { isAccountant, isParent, isVicePrincipal, isTeacher } = useRoleCheck();
+    const { isParent, isVicePrincipal, isTeacher } = useRoleCheck();
 
     // Permissions check
-    const canModify = !isAccountant && !isParent && !isVicePrincipal && !isTeacher;
+    const canModify =  !isParent && !isVicePrincipal && !isTeacher;
 
     // 2. React Query Hooks
     const { data: tariffsList = [], isLoading, isError } = useGetTariffs(schoolId!);

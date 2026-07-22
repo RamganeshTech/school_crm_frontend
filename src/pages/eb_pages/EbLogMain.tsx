@@ -14,6 +14,9 @@ import { Button } from '../../shared/ui/Button';
 import { TableContainer, TBody, Td, Th, THead, Tr } from '../../shared/ui/TableLayout';
 import EbLogModal from './EbLogModal';
 import useDebounce from '../../hooks/useDebounce';
+import { useRoleCheck } from '../../hooks/useRoleCheck';
+import { toast } from '../../shared/ui/ToastContext';
+import { formatTime12Hour } from '../../utils/utils';
 
 export default function EbLogMain() {
     // --- Global State (Mocked based on context) ---
@@ -44,9 +47,9 @@ export default function EbLogMain() {
     const [selectedLog, setSelectedLog] = useState<IEBLog | null>(null);
 
     // --- Permissions ---
-    // const { isCorrespondent, isAdmin, isPrincipal, isAccountant } = useRoleCheck();
-    const canCreate = true; // Replace with: isCorrespondent || isAdmin || isPrincipal || isAccountant
-    const canDelete = true; // Replace with appropriate roles
+    const { isCorrespondent, isAdmin, isPrincipal, isAccountant } = useRoleCheck();
+    const canCreate = isCorrespondent || isAdmin || isPrincipal || isAccountant; // Replace with: isCorrespondent || isAdmin || isPrincipal || isAccountant
+    const canDelete = isCorrespondent || isAdmin || isPrincipal || isAccountant; // Replace with appropriate roles
 
     // --- API Hooks ---
     // 1. Fetch Premises for the Filter Dropdown
@@ -105,9 +108,9 @@ export default function EbLogMain() {
         if (window.confirm(`Are you sure you want to delete EB Log ${logNo}?`)) {
             try {
                 await deleteEBLog({ schoolId: schoolId!, logId: id });
-                // toast.success("EB Log deleted successfully!");
+                toast.success("EB Log deleted successfully!");
             } catch (error: any) {
-                // toast.error(error.message || "Failed to delete EB log");
+                toast.error(error.message || "Failed to delete EB log");
             }
         }
     };
@@ -326,7 +329,7 @@ export default function EbLogMain() {
                                                 })}
                                                 <span className="mx-1">•</span>
                                                 <i className="far fa-clock text-[10px]"></i>
-                                                {log.time}
+                                                {formatTime12Hour(log.time)}
                                             </p>
                                         </Td>
 
