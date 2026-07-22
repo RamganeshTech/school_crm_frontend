@@ -16,7 +16,8 @@ interface UserIdTabProps {
                 key?: string;
                 url?: string;
             } | null;
-        };
+        },
+        currentAddress?: string
     } | null;
     hasProfile?: boolean;
     isLoading?: boolean;
@@ -29,6 +30,7 @@ export function UserIdTab({ validProfile, isLoading }: UserIdTabProps) {
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const user = validProfile?.userId;
     const profileImgUrl = user?.profileImage?.url;
+    const currentAddress = validProfile?.currentAddress;   // ← add this line
 
     return (
         <div className="bg-surface border border-border rounded-xl p-6 shadow-sm max-w-7xl">
@@ -45,9 +47,8 @@ export function UserIdTab({ validProfile, isLoading }: UserIdTabProps) {
                     {/* --- Portrait Photo / Initial Fallback --- */}
                     <div
                         onClick={() => profileImgUrl && setIsImageModalOpen(true)}
-                        className={`w-32 h-44 sm:w-36 sm:h-48 md:w-40 md:h-52 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden shrink-0 shadow-sm ${
-                            profileImgUrl ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
-                        }`}
+                        className={`w-32 h-44 sm:w-36 sm:h-48 md:w-40 md:h-52 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden shrink-0 shadow-sm ${profileImgUrl ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
+                            }`}
                         title={profileImgUrl ? 'Click to view image' : ''}
                     >
                         {profileImgUrl ? (
@@ -85,6 +86,10 @@ export function UserIdTab({ validProfile, isLoading }: UserIdTabProps) {
                             <div>
                                 <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Phone Number</p>
                                 <p className="font-medium text-foreground">{user?.phoneNo || '-'}</p>
+                            </div>
+                            <div className="sm:col-span-2">
+                                <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Current Address</p>
+                                <p className="font-medium text-foreground">{currentAddress || '-'}</p>
                             </div>
                         </div>
                     </div>
