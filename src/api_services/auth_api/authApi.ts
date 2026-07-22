@@ -293,7 +293,7 @@ export const useAssignRole = () => {
   return useMutation({
     mutationFn: async ({ userId, newRole }: { userId: string, newRole: UserRole }) => {
       try {
-        checkPermission(currentRole, ["correspondent", "administrator"]);
+        checkPermission(currentRole, ["correspondent", "administrator","principal"]);
 
         const { data } = await Api.put<BaseResponse>(`/api/user/assignrole/${userId}`, { role: newRole });
 
