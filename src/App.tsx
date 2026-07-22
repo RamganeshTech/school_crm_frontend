@@ -20,19 +20,19 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, ADMIN_CORREPONDENT, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
-const PremiseMain = lazy(() => import( './pages/premises_pages/PremiseMain'));
-const EbLogMain = lazy(() => import( './pages/eb_pages/EbLogMain'));
-const EbDashboardMain = lazy(() => import( './pages/eb_pages/dashboards/EbDashboardMain'));
-const TariffMain = lazy(() => import( './pages/eb_pages/tariff_pages/TariffMain'));
-const TransportationDashboardMain = lazy(() => import(  './pages/transport_pages/dashboard/TransportationDashboardMain'));
-const DriverMain  = lazy(() => import( './pages/transport_pages/driver_pages/DriverMain'));
-const DriverSingle  = lazy(() => import( './pages/transport_pages/driver_pages/DriverSingle'));
-const BusMain  = lazy(() => import( './pages/transport_pages/bus_pages/BusMain'));
-const BusSingle  = lazy(() => import( './pages/transport_pages/bus_pages/BusSingle'));
-const DailyTripLogMain  = lazy(() => import( './pages/transport_pages/DailyTripLog_Pages/DailyTripLogMain'));
-const FuelLogMain  = lazy(() => import('./pages/transport_pages/fuelLog_pages/FuelLogMain'));
-const BusRouteMain  = lazy(() => import('./pages/transport_pages/BusRoute_Pages/BusRouteMain'));
-const BusRouteSingle  = lazy(() => import( './pages/transport_pages/BusRoute_Pages/BusRouteSingle'));  
+const PremiseMain = lazy(() => import('./pages/premises_pages/PremiseMain'));
+const EbLogMain = lazy(() => import('./pages/eb_pages/EbLogMain'));
+const EbDashboardMain = lazy(() => import('./pages/eb_pages/dashboards/EbDashboardMain'));
+const TariffMain = lazy(() => import('./pages/eb_pages/tariff_pages/TariffMain'));
+const TransportationDashboardMain = lazy(() => import('./pages/transport_pages/dashboard/TransportationDashboardMain'));
+const DriverMain = lazy(() => import('./pages/transport_pages/driver_pages/DriverMain'));
+const DriverSingle = lazy(() => import('./pages/transport_pages/driver_pages/DriverSingle'));
+const BusMain = lazy(() => import('./pages/transport_pages/bus_pages/BusMain'));
+const BusSingle = lazy(() => import('./pages/transport_pages/bus_pages/BusSingle'));
+const DailyTripLogMain = lazy(() => import('./pages/transport_pages/DailyTripLog_Pages/DailyTripLogMain'));
+const FuelLogMain = lazy(() => import('./pages/transport_pages/fuelLog_pages/FuelLogMain'));
+const BusRouteMain = lazy(() => import('./pages/transport_pages/BusRoute_Pages/BusRouteMain'));
+const BusRouteSingle = lazy(() => import('./pages/transport_pages/BusRoute_Pages/BusRouteSingle'));
 
 
 const ParentListMain = lazy(() => import('./pages/parent/ParentListMain'));
@@ -267,15 +267,14 @@ function App() {
                 </Route>
 
 
-                <Route element={<ProtectedRoute allowedRoles={ADMIN_CORREPONDENT} />}>
+                {/* <Route element={<ProtectedRoute allowedRoles={ADMIN_CORREPONDENT} />}>
                   <Route path="user-list" element={<UserListMain />} >
                     <Route path="single/:userId" element={<UserSingle />} />
                   </Route>
 
                   <Route path="parent-list" element={<ParentListMain />} />
-                  {/* <Route path="single/:userId" element={<UserSingle />} /> */}
-                  {/* </Route> */}
-                </Route>
+                  
+                </Route> */}
 
 
 
@@ -304,7 +303,7 @@ function App() {
                   </Route>
 
                   <Route path="premises" element={<PremiseMain />} />
-                  
+
                   <Route path="eb-dashboard" element={<EbDashboardMain />} />
                   <Route path="eb-log" element={<EbLogMain />} />
                   <Route path="tariff" element={<TariffMain />} />
@@ -401,6 +400,13 @@ function App() {
                   <Route path="routes" element={<BusRouteMain />} >
                     <Route path="single/:routeId" element={<BusRouteSingle />} />
                   </Route>
+
+                  <Route path="user-list" element={<UserListMain />} >
+                    <Route path="single/:userId" element={<UserSingle />} />
+                  </Route>
+
+                  <Route path="parent-list" element={<ParentListMain />} />
+
 
                 </Route>
 
