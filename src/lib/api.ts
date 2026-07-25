@@ -90,7 +90,7 @@ Api.interceptors.response.use(
       // was the `/isauthenticated` check itself. Let the useAuthCheck hook handle 
       // the failure gracefully. Otherwise, you get an infinite reload loop.
       if (!originalRequestUrl.includes('/api/user/isauthenticated')) {
-        console.warn(`🚨 A rogue API call to ${originalRequestUrl} failed with 401 and wiped Redux!`);
+        // console.warn(`🚨 A rogue API call to ${originalRequestUrl} failed with 401 and wiped Redux!`);
         store.dispatch(logout());
 
         // Optional: If you use React Router, it's better to let the protected 

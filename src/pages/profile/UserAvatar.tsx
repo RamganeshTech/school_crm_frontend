@@ -21,14 +21,14 @@ export const UserAvatar = () => {
   }
   return (
     <div
-      className="flex items-center gap-3 cursor-pointer hover:bg-sub-header/50 p-2 rounded-xl transition-colors"
+      className="flex items-center gap-3 cursor-pointer hover:bg-sub-header/50 p-1 sm:p-2 rounded-xl transition-colors"
       onClick={handleClick}
     >
-      <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-inverse font-bold text-sm shadow-sm">
+      <div className="w-6 h-6 sm:w-9 sm:h-9 rounded-full bg-primary flex items-center justify-center text-inverse font-bold text-sm shadow-sm">
         {initials}
       </div>
       <div className="hidden md:block">
-        <p className="text-sm font-semibold text-foreground">{userName}</p>
+        <p className="text-[12px] sm:text-sm font-normal sm:font-semibold text-foreground">{userName}</p>
         <p className="text-[10px] text-muted uppercase">View Profile</p>
       </div>
     </div>

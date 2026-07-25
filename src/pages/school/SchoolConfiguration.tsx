@@ -177,56 +177,62 @@ export default function SchoolConfiguration() {
 
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3">
                     <i className="fas fa-cogs text-primary"></i>
                     School Configuration
                 </h1>
-                <p className="text-sm text-muted mt-1">Update your institution's core details and online presence.</p>
+                <p className="text-[12px] sm:text-sm text-muted mt-1">Update your institution's core details and online presence.</p>
             </div>
 
+
+
+
             {/* Tabs */}
-            <div className="flex items-center gap-6 border-b border-divider">
-                <button
-                    onClick={() => setActiveTab('details')}
-                    className={`pb-3 cursor-pointer text-sm font-medium transition-colors border-b-2 ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
-                >
-                    <i className="fas fa-info-circle mr-2"></i> General Details
-                </button>
-                <button
-                    onClick={() => setActiveTab('socials')}
-                    className={`pb-3 cursor-pointer text-sm font-medium transition-colors border-b-2 ${activeTab === 'socials' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
-                >
-                    <i className="fas fa-hashtag mr-2"></i> Social Links
-                </button>
-
-                {/* 🌟 Conditionally rendered Bill Book Tab */}
-                {canManageBillBook && (
+            {/* <div className="flex items-center gap-6 border-b border-divider"> */}
+            <div className="border-b border-border mb-6 overflow-x-auto no-scrollbar min-h-10">
+                <div className="flex items-center gap-6 w-max min-w-full px-1">
                     <button
-                        onClick={() => setActiveTab('billbook')}
-                        className={`pb-3 cursor-pointer text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === 'billbook' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
+                        onClick={() => setActiveTab('details')}
+                        className={`pb-3 cursor-pointer text-sm font-medium transition-colors border-b-2 ${activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
                     >
-                        <i className="fas fa-file-invoice-dollar mr-2"></i> Bill Book
+                        <i className="fas fa-info-circle mr-2"></i> General Details
                     </button>
-                )}
-
-                {canManageBillBook && (
                     <button
-                        onClick={() => setActiveTab('admissionbook')}
-                        className={`pb-3 cursor-pointer text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === 'admissionbook' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
+                        onClick={() => setActiveTab('socials')}
+                        className={`pb-3 cursor-pointer text-sm font-medium transition-colors border-b-2 ${activeTab === 'socials' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
                     >
-                        <i className="fas fa-address-book mr-2"></i> Admission Book
+                        <i className="fas fa-hashtag mr-2"></i> Social Links
                     </button>
-                )}
+
+                    {/* 🌟 Conditionally rendered Bill Book Tab */}
+                    {canManageBillBook && (
+                        <button
+                            onClick={() => setActiveTab('billbook')}
+                            className={`pb-3 cursor-pointer text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === 'billbook' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
+                        >
+                            <i className="fas fa-file-invoice-dollar mr-2"></i> Bill Book
+                        </button>
+                    )}
+
+                    {canManageBillBook && (
+                        <button
+                            onClick={() => setActiveTab('admissionbook')}
+                            className={`pb-3 cursor-pointer text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === 'admissionbook' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
+                        >
+                            <i className="fas fa-address-book mr-2"></i> Admission Book
+                        </button>
+                    )}
 
 
-                {canShowAcademicDates && (
-                    <button
-                        onClick={() => setActiveTab('academicTermDate')}
-                        className={`pb-3 cursor-pointer text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === 'academicTermDate' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
-                    >
-                        <i className="fas fa-calendar mr-2"></i> Academic Dates
-                    </button>
-                )}
+                    {canShowAcademicDates && (
+                        <button
+                            onClick={() => setActiveTab('academicTermDate')}
+                            className={`pb-3 cursor-pointer text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${activeTab === 'academicTermDate' ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-foreground'}`}
+                        >
+                            <i className="fas fa-calendar mr-2"></i> Academic Dates
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* --- TAB CONTENT: DETAILS --- */}

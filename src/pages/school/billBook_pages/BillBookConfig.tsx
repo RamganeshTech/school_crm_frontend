@@ -215,7 +215,8 @@ export default function BillBookConfig() {
                         // <div className="space-y-3 max-h-full overflow-y-auto">
                         <div className="space-y-3 overflow-y-auto max-h-[350px] md:max-h-[500px] pr-2 custom-scrollbar">
                             {billBooks?.map((book: any) => (
-                                <div key={book._id} className="flex items-center justify-between p-3 border border-border rounded-lg bg-surface transition-colors hover:border-primary/30">
+                                // <div key={book._id} className="flex items-center justify-between p-3 border border-border rounded-lg bg-surface transition-colors hover:border-primary/30">
+                                <div key={book._id} className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0 p-3 border border-border rounded-lg bg-surface transition-colors hover:border-primary/30">
                                     <div>
                                         <h4 className="font-semibold text-foreground text-sm flex items-center gap-2">
                                             {book.bookName}
@@ -225,14 +226,15 @@ export default function BillBookConfig() {
                                             Next Sequence: <span className="font-bold text-foreground bg-background px-1.5 py-0.5 rounded border border-border">#{book?.billNumber || "N/A"}</span>
                                         </p>
                                     </div>
-                                    <div className="flex items-center gap-2 shrink-0">
+                                    {/* <div className="flex items-center gap-2 shrink-0"> */}
+                                    <div className="flex items-center gap-2 shrink-0 w-full md:w-auto flex-wrap sm:flex-nowrap">
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             leftIcon="fas fa-edit"
                                             onClick={() => handleOpenEdit(book)}
                                         >
-                                            Edit
+                                        Edit
                                         </Button>
 
                                         <Button
@@ -249,7 +251,7 @@ export default function BillBookConfig() {
                                         {!book.isActive && (
                                             <Button
                                                 variant="danger"
-                                                size="sm"
+                                                size="icon"
                                                 onClick={() => handleDelete(book._id)}
                                                 isLoading={deleteBillBookMutation.isPending}
                                                 className="px-2"

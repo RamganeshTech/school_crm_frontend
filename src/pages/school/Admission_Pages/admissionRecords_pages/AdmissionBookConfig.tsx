@@ -195,17 +195,19 @@ export default function AdmissionBookConfig() {
                     ) : (
                         <div className="space-y-3 overflow-y-auto max-h-[350px] md:max-h-[500px] pr-2 custom-scrollbar">
                             {admissionBooks?.map((book: any) => (
-                                <div key={book._id} className="flex items-center justify-between p-3 border border-border rounded-lg bg-surface transition-colors hover:border-primary/30 shrink-0">
+                                // <div key={book._id} className="flex items-center justify-between p-3 border border-border rounded-lg bg-surface transition-colors hover:border-primary/30 shrink-0">
+                                <div key={book._id} className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0 p-3 border border-border rounded-lg bg-surface transition-colors hover:border-primary/30 shrink-0">
                                     <div>
                                         <h4 className="font-semibold text-foreground text-sm flex items-center gap-2">
                                             {book.bookName}
                                             {book.isActive && <span className="px-2 py-0.5 bg-success/10 text-success text-[10px] uppercase rounded font-bold shadow-sm">Active</span>}
                                         </h4>
                                         <p className="text-xs text-muted mt-1">
-                                            Next Sequence: <span className="font-bold text-foreground bg-background px-1.5 py-0.5 rounded border border-border">#{book?.formNumber || "N/A"}</span>
+                                            <span className='block sm:inline'>Next Sequence:</span> <span className="font-bold text-foreground bg-background px-1.5 py-0.5 rounded border border-border">#{book?.formNumber || "N/A"}</span>
                                         </p>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    {/* <div className="flex items-center gap-2"> */}
+                                    <div className="flex items-center gap-2 w-full md:w-auto flex-wrap sm:flex-nowrap">
                                         <Button variant="outline" size="sm" leftIcon="fas fa-edit" onClick={() => handleOpenEdit(book)}>
                                             Edit
                                         </Button>

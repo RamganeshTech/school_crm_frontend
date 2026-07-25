@@ -6,7 +6,7 @@ import GlobalSetupProgress from './GlobalSetupProgress';
 
 export const GlobalHeader = ({onMenuClick}: {onMenuClick:any}) => {
     return (
-        <header className="h-14 bg-surface border-b border-border-default flex items-center justify-between px-6 sticky top-0 z-[35]">
+        <header className="h-14 bg-surface border-b border-border-default flex items-center justify-between px-2 sm:px-6 sticky top-0 z-[35]">
 
             <button
                 onClick={onMenuClick}
@@ -22,7 +22,7 @@ export const GlobalHeader = ({onMenuClick}: {onMenuClick:any}) => {
 
             {/* Right side: User Profile */}
             {/* <div className="flex items-center gap-4"> */}
-            <div className="flex  items-center gap-4 pl-6 ml-4 border-l border-border">
+            <div className="flex items-center gap-1 sm:gap-4 sm:pl-6 sm:ml-4 border-l border-border">
 
                 {/* Optional: Add a notification bell here later */}
                 {/* <button className="w-10 h-10 rounded-full flex items-center justify-center text-muted hover:bg-mainBg hover:text-primary transition-colors">

@@ -43,7 +43,7 @@ export default function GlobalSetupProgress() {
             {/* 🌟 CIRCULAR PROGRESS BUTTON */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative !cursor-pointer flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface transition-colors group"
+                className="relative !cursor-pointer flex items-center justify-center w-8 h-8  rounded-full hover:bg-surface transition-colors group"
                 title="School Setup Progress"
             >
                 {/* SVG Progress Border */}
@@ -70,7 +70,7 @@ export default function GlobalSetupProgress() {
                 {/* Center Icon */}
                 {/* Center Percentage */}
                 <div className="relative flex items-center justify-center group-hover:text-foreground transition-colors">
-                    <span className="text-[11px] font-bold text-foreground tracking-tighter">
+                    <span className="text-[9px] sm:text-[11px] font-bold text-foreground tracking-tighter">
                         {progressData.overallPercentage}%
                     </span>
 
@@ -85,13 +85,13 @@ export default function GlobalSetupProgress() {
 
             {/* 🌟 DROPDOWN MENU */}
             {isOpen && (
-                <div className="absolute right-0 mt-3 w-80 bg-surface border border-border shadow-2xl rounded-xl z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-[-10px] sm:right-0 mt-3 w-60 sm:w-80 bg-surface border border-border shadow-2xl rounded-xl z-50 animate-in fade-in slide-in-from-top-2">
 
                     {/* Dropdown Header */}
                     <div className="p-4 border-b border-border bg-background/50 rounded-t-xl flex justify-between items-center">
                         <div>
                             <h3 className="text-sm font-bold text-foreground">Setup Required</h3>
-                            <p className="text-[10px] font-bold text-muted uppercase tracking-wider mt-0.5">School Readiness</p>
+                            <p className="text-[10px] font-bold text-muted tracking-wider mt-0.5">School Readiness</p>
                         </div>
                         <div className="text-xl font-bold text-primary">
                             {progressData.overallPercentage}%
@@ -159,10 +159,15 @@ export default function GlobalSetupProgress() {
                     {/* Dropdown Footer */}
                     <div className="p-3 border-t border-border bg-background/50 rounded-b-xl">
                         <button
-                            onClick={() => { setIsOpen(false); navigate('/dashboard/class'); }}
+                            onClick={() => { 
+                                setIsOpen(false); 
+                                if(progressData.overallPercentage < 100){
+                                    navigate('/dashboard/class');
+                                }
+                             }}
                             className="w-full py-2 bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-xs font-bold rounded-lg"
                         >
-                            Go to Configurations <i className="fas fa-arrow-right ml-1 text-[10px]"></i>
+                           {progressData.overallPercentage < 100 ?  <>"Go to Configurations" <i className="fas fa-arrow-right ml-1 text-[10px]"></i> </>: "Configurations completed" }
                         </button>
                     </div>
 

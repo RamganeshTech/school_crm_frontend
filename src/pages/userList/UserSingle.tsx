@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthData } from '../../hooks/useAuthData';
 import { Button } from '../../shared/ui/Button';
@@ -8,7 +8,7 @@ import { SearchSelect } from '../../shared/ui/SearchSelect';
 import { toast } from '../../shared/ui/ToastContext';
 
 // Import your Auth/User hooks (Adjust names if they differ in your authApi)
-import { useAssignRole, useGetSingleUser, useUpdateUser } from '../../api_services/auth_api/authApi';
+import { useAssignRole, useGetSingleUser, useUpdateProfileImage, useUpdateUser } from '../../api_services/auth_api/authApi';
 import { AUTH_CHECK_ROLES, type ValidUserRole } from '../../constants/constants';
 import {
     useGetEmployeeProfileByUserId,
@@ -28,16 +28,18 @@ export default function UserSingle() {
 
     const [activeTab, setActiveTab] = useState<EmployeeProfileTabType>('professional');
     const [isEditingUser, setIsEditingUser] = useState(false);
-    // const [isEditingProfile, setIsEditingProfile] = useState(false);
 
     const [userFormData, setUserFormData] = useState<any>({});
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-    // const [profileFormData, setProfileFormData] = useState<any>(INITIAL_PROFILE_STATE);
+
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const updateImageMutation = useUpdateProfileImage();
 
     // const { data: users, isLoading: isUsersLoading, refetch } = useGetAllUsers({ role: 'all', schoolId: schoolId! });
     const { data: userDetails, isLoading: isUsersLoading } = useGetSingleUser(userId);
 
-    console.log("userDetails", userDetails)
+    // console.log("userDetails", userDetails)
     // const userDetails = users?.find((u: any) => u._id === userId);
 
     const { data: rawEmployeeProfile, isLoading: isProfileLoading, refetch } = useGetEmployeeProfileByUserId(userId);
@@ -122,6 +124,34 @@ export default function UserSingle() {
         setIsEditingUser(false);
     };
 
+// 📸 Image Upload Handler
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            toast.error("Please select a valid image file (JPG, PNG, etc.)");
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) { 
+            toast.error("Image size should be less than 5MB");
+            return;
+        }
+
+        try {
+            // Using userId from useParams
+            await updateImageMutation.mutateAsync({ userId: userId!, file });
+            toast.success("Profile picture updated successfully!");
+            refetch(); // Trigger refetch to grab the new image URL
+        } catch (error: any) {
+            toast.error(error.message || "Failed to update profile picture");
+        } finally {
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
 
 
     const profileImgUrl = validProfile?.profileImage?.url || userDetails?.profileImage?.url;
@@ -142,28 +172,7 @@ export default function UserSingle() {
                     <i className="fas fa-arrow-left"></i>
                 </button>
 
-                {/* --- Profile Image / Initial Fallback --- */}
                 {/* <div
-
-                    className={`w-14 h-14 rounded-full bg-primary/10 border border-primary/20 flex items-center 
-                justify-center overflow-hidden shrink-0 shadow-sm${profileImgUrl ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
-                    title={profileImgUrl ? "Click to view image" : ""}
-                >
-                    {profileImgUrl ? (
-                        <img
-                            src={profileImgUrl}
-                            alt={userDetails.userName}
-                            onClick={() => setIsImageModalOpen(true)}
-                            className="w-full h-full object-cover"
-                        />
-                    ) : (
-                        <span className="text-xl font-bold text-primary">
-                            {userDetails.userName?.charAt(0)?.toUpperCase()}
-                        </span>
-                    )}
-                </div> */}
-
-                <div
                     className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-36 xl:h-36 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden shrink-0 shadow-sm ${profileImgUrl ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
                         }`}
                     title={profileImgUrl ? "Click to view image" : ""}
@@ -180,19 +189,56 @@ export default function UserSingle() {
                             {userDetails.userName?.charAt(0)?.toUpperCase()}
                         </span>
                     )}
-                </div>
-
-                {/* <div className="min-w-0 flex-1">
-                    <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-                        {userDetails.userName}
-                        <span className="px-2 py-1 bg-primary-soft text-primary rounded-md text-[10px] font-bold uppercase tracking-wider">
-                            {formatRole(userDetails.role)}
-                        </span>
-                    </h1>
-                    <p className="text-sm text-muted mt-1">
-                        {userDetails.email || "No email"} | {userDetails.phoneNo || "No phone"}
-                    </p>
                 </div> */}
+
+                <div className="relative shrink-0">
+                    <div
+                        className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-36 xl:h-36 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden shadow-sm ${profileImgUrl ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                        title={profileImgUrl ? "Click to view image" : ""}
+                        onClick={() => {
+                            if (profileImgUrl && !updateImageMutation.isPending) setIsImageModalOpen(true);
+                        }}
+                    >
+                        {profileImgUrl ? (
+                            <img
+                                src={profileImgUrl}
+                                alt={userDetails.userName}
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">
+                                {userDetails.userName?.charAt(0)?.toUpperCase()}
+                            </span>
+                        )}
+
+                        {/* Loading Overlay */}
+                        {updateImageMutation.isPending && (
+                            <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px] flex items-center justify-center">
+                                <i className="fas fa-circle-notch fa-spin text-primary text-xl"></i>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 🌟 PENCIL ICON BUTTON */}
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={updateImageMutation.isPending}
+                        className="absolute bottom-0 right-0 sm:bottom-1 sm:right-1 bg-surface border border-border shadow-md rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-muted hover:text-primary transition-colors disabled:opacity-50 z-10"
+                        title="Change Picture"
+                    >
+                        <i className="fas fa-pencil-alt text-[10px] sm:text-sm"></i>
+                    </button>
+
+                    {/* Hidden File Input */}
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/jpeg, image/png,"
+                        onChange={handleImageUpload}
+                    />
+                </div>
+                {/* 🌟 END WRAPPER */}
 
                 <div className="min-w-0 flex-1">
                     <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-foreground flex items-end gap-3">

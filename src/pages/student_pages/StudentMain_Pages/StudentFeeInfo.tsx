@@ -192,21 +192,7 @@ const StudentFeeInfo: React.FC<StudentFeeInfoProps> = ({
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
-                                {/* {orderedHeads.map((head) => (
-                                    <tr key={head} className="hover:bg-background/50 transition-colors">
-                                        <td className="px-4 py-3 font-medium text-foreground">{head}</td>
-                                        <td className="px-4 py-3 text-right text-foreground">
-                                            ₹{Number(fStruct?.[head] ?? 0).toLocaleString("en-IN")}
-                                        </td>
-                                        <td className="px-4 py-3 text-right text-success font-medium">
-                                            ₹{Number(fPaid?.[head] ?? 0).toLocaleString("en-IN")}
-                                        </td>
-                                        <td className="px-4 py-3 text-right text-danger font-medium">
-                                            ₹{Number(fDues?.[head] ?? 0).toLocaleString("en-IN")}
-                                        </td>
-                                    </tr>
-                                ))} */}
-
+                               
                                 {/* {orderedHeads.map((headObj, index) => {
                                     // Extract the actual string name from the object
                                     const headName = headObj.feeHead; */}
