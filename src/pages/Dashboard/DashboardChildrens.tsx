@@ -26,7 +26,7 @@ const DashboardChildrens: React.FC = () => {
 
     // const activeStudentId = studentId && studentId.length > 0 ? studentId[0] : null;
 
-    const { schoolName } = useSelector(
+    const { schoolName, schoollogoUrl } = useSelector(
         (state: RootState) => state.auth
     );
 
@@ -148,6 +148,7 @@ const DashboardChildrens: React.FC = () => {
             <div className="hidden md:flex h-full z-10 shrink-0">
                 <Sidebar
                     schoolName={schoolName || ""}
+                    schoollogoUrl={schoollogoUrl || ""}
                     schoolPath="/dashboard"
                     menuItems={menuItems}
                     onLogout={handleLogout}

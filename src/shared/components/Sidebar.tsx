@@ -24,12 +24,13 @@ export interface MenuItem {
 
 interface SidebarProps {
     schoolName: string;
+    schoollogoUrl: string;
     schoolPath: string;
     menuItems: MenuItem[];
     onLogout: () => void;
 }
 
-export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }: SidebarProps) {
+export default function Sidebar({ schoolName, schoollogoUrl, schoolPath, menuItems, onLogout }: SidebarProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -44,6 +45,9 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
     const isExpanded = isManuallyExpanded || isHovered;
 
     const [isSchoolDropdownOpen, setIsSchoolDropdownOpen] = useState(false);
+
+
+    const logoImgUrl = schoollogoUrl;
 
     // 🌟 3. Auto-close the school dropdown if the sidebar shrinks
     useEffect(() => {
@@ -72,9 +76,9 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
 
 
     // 🌟 2. Handle the school selection
-    const handleSchoolChange = ({ selectedSchoolId, selectedSchoolName }: { selectedSchoolId: string, selectedSchoolName: string }) => {
+    const handleSchoolChange = ({ selectedSchoolId, selectedSchoolName, selectedSchoolLogo }: { selectedSchoolId: string, selectedSchoolName: string, selectedSchoolLogo:any }) => {
         // Dispatch the ID into your authSlice exactly as you structured it
-        dispatch(setSchool({ schoolId: selectedSchoolId, schoolName: selectedSchoolName }));
+        dispatch(setSchool({ schoolId: selectedSchoolId, schoolName: selectedSchoolName, schoollogoUrl: selectedSchoolLogo }));
 
         // Close the dropdown and navigate to the dashboard root
         setIsSchoolDropdownOpen(false);
@@ -137,11 +141,23 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
                             className="flex outline-none items-center justify-between w-full hover:bg-mainBg p-1 md:p-2 rounded-xl transition-colors cursor-pointer"
                         >
                             <div className="flex items-center gap-4 overflow-hidden">
-                                <div className="w-7 h-7 md:w-10 md:h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20 overflow-hidden">
+                                {/* <div className="w-7 h-7 md:w-10 md:h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20 overflow-hidden">
                                     <span className="text-inverse font-bold text-md md:text-lg">
                                         {schoolName.charAt(0)}
                                     </span>
+                                </div> */}
+
+                                <div className="w-7 h-7 md:w-10 md:h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20 overflow-hidden">
+                                    {/* 🌟 Conditional rendering for Admin logo vs initial */}
+                                    {logoImgUrl ? (
+                                        <img src={logoImgUrl} alt={schoolName} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span className="text-inverse font-bold text-md md:text-lg">
+                                            {schoolName?.charAt(0)}
+                                        </span>
+                                    )}
                                 </div>
+
                                 <span className={`font-poppins font-semibold text-foreground text-[12px] md:text-lg truncate transition-all duration-300 overflow-hidden text-left
                                     ${isExpanded ? 'opacity-100 max-w-[120px]' : 'opacity-0 max-w-0'}`}>
                                     {schoolName}
@@ -168,7 +184,7 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
                                     schools?.map((school: any) => (
                                         <button
                                             key={school._id}
-                                            onClick={() => handleSchoolChange({ selectedSchoolId: school._id, selectedSchoolName: school.name })}
+                                            onClick={() => handleSchoolChange({ selectedSchoolId: school._id, selectedSchoolName: school.name, selectedSchoolLogo: school?.logo?.url || null})} 
                                             className="flex cursor-pointer items-center gap-3 w-full text-left px-2 py-2 text-sm font-medium text-foreground hover:bg-primary/10 hover:text-primary rounded-lg transition-colors group"
                                         >
                                             {school.logo?.url ? (
@@ -195,10 +211,21 @@ export default function Sidebar({ schoolName, schoolPath, menuItems, onLogout }:
                 ) : (
 
                     <Link to={schoolPath} className="flex outline-none items-center gap-4 overflow-hidden w-full p-1 md:p-2">
-                        <div className="w-7 h-7 md:w-10 md:h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
+                        {/* <div className="w-7 h-7 md:w-10 md:h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
                             <span className="text-inverse font-bold text-md md:text-lg">
                                 {schoolName.charAt(0)}
                             </span>
+                        </div> */}
+
+                        <div className="w-7 h-7 md:w-10 md:h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20 overflow-hidden">
+                            {/* 🌟 Conditional rendering for Standard User logo vs initial */}
+                            {logoImgUrl ? (
+                                <img src={logoImgUrl} alt={schoolName} className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="text-inverse font-bold text-md md:text-lg">
+                                    {schoolName?.charAt(0)}
+                                </span>
+                            )}
                         </div>
                         <span className={`font-poppins font-semibold text-foreground text-[12px] md:text-lg truncate transition-all duration-300 overflow-hidden
                             ${isExpanded ? 'opacity-100 max-w-[150px]' : 'opacity-0 max-w-0'}`}>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useLoginUser } from '../../api_services/auth_api/authApi';
 // import { setToken } from '../../lib/tokenManager';
-import { setCredentials } from '../../features/slices/authSlice';
+import { setCredentials, setSchool } from '../../features/slices/authSlice';
 // import { useToast } from '../../shared/ui/ToastContext';
 import { Input } from '../../shared/ui/Input';
 import { Button } from '../../shared/ui/Button';
@@ -180,6 +180,7 @@ const Login = () => {
           userName: response.user.userName,
           schoolId: schoolIdString || '',
           role: response.user.role,
+          profileImageUrl: response.user?.profileImage?.url || null,
           academicYear: response?.user?.academicYear || null,
           token: "",
           studentId: response?.user?.studentId || [],
@@ -187,6 +188,12 @@ const Login = () => {
           isPlatformAdmin: response?.user?.isPlatformAdmin || false,
           schoolName: response.user.schoolName || null
         }));
+
+        dispatch(setSchool({
+          schoolId: response.user?.schoolId?._id,
+          schoolName: response.user?.schoolId?.name,
+          schoollogoUrl: response.user.schoolId?.logo?.url
+        }))
         // showToast(`Welcome back, ${response.user.userName}!`, 'success');
         toast.success(`Welcome back, ${response.user.userName}!`)
 
@@ -211,177 +218,6 @@ const Login = () => {
       setErrors({ ...errors, password: error.message || 'Invalid credentials' });
     }
   };
-
-
-
-  //   return (
-
-
-  //     <div className="min-h-screen w-full flex bg-slate-50 font-sans overflow-y-auto selection:bg-teal-100">
-
-  //       {/* LEFT SIDE: Deep Teal Branding & LMS Illustration */}
-  //       <div className="hidden md:flex w-1/2 bg-teal-800 relative items-center justify-center p-4 overflow-hidden">
-
-  //         {/* Crisp, structural background pattern instead of blurry orbs */}
-  //         <div className="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
-
-  //         {/* Subtle lighting overlay */}
-  //         <div className="absolute top-[-20%] right-[-10%] w-3/4 h-3/4 bg-teal-600 opacity-20 rounded-full blur-[100px] pointer-events-none"></div>
-
-  //         <div className="relative z-10 text-white max-w-md">
-  //           <div className="mb-8 flex items-center gap-4">
-  //             <div className="w-14 h-14 bg-white/10 border border-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-  //               <i className="fa-solid fa-graduation-cap text-3xl text-white drop-shadow-md"></i>
-  //             </div>
-  //             <span className="text-2xl font-bold tracking-tight">{DOMAIN_NAME} LMS</span>
-  //           </div>
-  //           <h1 className="text-4xl font-bold mb-5 tracking-tight leading-tight text-white/95">
-  //             Smart Learning Management
-  //           </h1>
-  //           <p className="text-teal-50 text-lg leading-relaxed mb-10 opacity-90">
-  //             The all-in-one ecosystem for educators and students. Manage your academic growth with precision and clarity.
-  //           </p>
-
-  //           {/* Professional LMS Student Progress Card */}
-  //           <div className="bg-teal-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4">
-  //             {/* Student Header */}
-  //             <div className="flex items-center gap-4">
-  //               <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white border border-white/20 shadow-inner">
-  //                 <i className="fa-solid fa-user-graduate text-xl"></i>
-  //               </div>
-  //               <div>
-  //                 <div className="w-28 h-3.5 bg-white/40 rounded mb-2"></div>
-  //                 <div className="w-16 h-2 bg-white/20 rounded"></div>
-  //               </div>
-  //             </div>
-
-  //             {/* Academic Performance Rows */}
-  //             <div className="space-y-5">
-  //               {[
-  //                 { name: 'Mathematics', percent: '85%' },
-  //                 { name: 'Physics', percent: '72%' },
-  //                 { name: 'English', percent: '90%' }
-  //               ].map((subject, i) => (
-  //                 <div key={i}>
-  //                   <div className="flex justify-between text-[11px] text-teal-50 mb-1.5 font-bold uppercase tracking-wider">
-  //                     <span>{subject.name}</span>
-  //                     <span>{subject.percent}</span>
-  //                   </div>
-  //                   <div className="w-full h-1.5 bg-black/20 rounded-full overflow-hidden">
-  //                     <div className="h-full bg-teal-400 rounded-full shadow-[0_0_8px_rgba(45,212,191,0.5)]" style={{ width: subject.percent }}></div>
-  //                   </div>
-  //                 </div>
-  //               ))}
-  //             </div>
-
-  //             {/* Status Footer */}
-  //             <div className="flex items-center gap-3 bg-black/20 p-3 rounded-lg border border-white/5">
-  //               <i className="fa-solid fa-circle-check text-teal-400 text-sm drop-shadow-sm"></i>
-  //               <span className="text-[11px] font-semibold text-white/90 tracking-wide uppercase">All assignments submitted</span>
-  //             </div>
-  //           </div>
-  //         </div>
-  //       </div>
-
-  //       {/* RIGHT SIDE: Clean Login Form */}
-  //       {/* <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white">
-  //         <div className="w-full max-w-sm space-y-8"> */}
-
-  //       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-slate-50 lg:bg-white">
-  //         <div className="w-full max-w-md p-8 sm:p-10 bg-white rounded-3xl shadow-xl border border-slate-200 md:!shadow-none md:border-none space-y-6">
-
-  //           {/* Mobile Logo */}
-  //           <div className="lg:hidden w-12 h-12 bg-teal-700 rounded-xl flex items-center justify-center shadow-sm mb-6">
-  //             <i className="fa-solid fa-graduation-cap text-xl text-white"></i>
-  //           </div>
-
-  //           <div className="space-y-2">
-  //             <h2 className="text-3xl font-bold text-slate-900">Sign In</h2>
-  //             <p className="text-slate-500 font-medium">Enter your credentials to access your dashboard.</p>
-  //           </div>
-
-  //           <form onSubmit={handleLogin} className="space-y-4">
-
-  //             <Input
-  //               label="Email or Phone Number"
-  //               id="identifier"
-  //               type="text"
-  //               placeholder="Enter your email or phone"
-  //               leftIcon="fa-regular fa-user"
-  //               value={identifier}
-  //               onChange={(e) => {
-  //                 setIdentifier(e.target.value);
-  //                 if (errors.identifier) setErrors({ ...errors, identifier: '' });
-  //               }}
-  //               error={errors.identifier}
-  //               required
-  //             />
-
-  //             <div className="relative">
-  //               <Input
-  //                 label="Password"
-  //                 id="password"
-  //                 type={showPassword ? 'text' : 'password'}
-  //                 placeholder="••••••••"
-  //                 leftIcon="fa-solid fa-lock"
-  //                 value={password}
-  //                 onChange={(e) => {
-  //                   setPassword(e.target.value);
-  //                   if (errors.password) setErrors({ ...errors, password: '' });
-  //                 }}
-  //                 error={errors.password}
-  //                 required
-  //               />
-  //               <button
-  //                 type="button"
-  //                 onClick={() => setShowPassword(!showPassword)}
-  //                 className="absolute right-3 top-[34px] flex items-center text-slate-400 hover:text-teal-700 transition-colors cursor-pointer"
-  //                 tabIndex={-1}
-  //               >
-  //                 <i className={`fa-regular ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-  //               </button>
-  //             </div>
-
-  //             {/* Remember Me / Forgot Password */}
-  //             <div className="flex items-center justify-end mt-2">
-  //               {/* <div className="flex items-center gap-2">
-  //                  <input
-  //                   type="checkbox"
-  //                   id="remember"
-  //                   className="w-4 h-4 rounded border-slate-300 text-teal-700 focus:ring-teal-700 bg-white cursor-pointer"
-  //                 />
-  //                 <label htmlFor="remember" className="text-sm text-slate-600 font-medium select-none cursor-pointer">
-  //                   Remember me
-  //                 </label> 
-  //               </div> */}
-  //               <button type="button" onClick={()=> navigate(`/forgot-password`)} 
-  //               className="text-sm cursor-pointer font-semibold text-teal-700 hover:text-teal-800 transition-colors">
-  //                 Forgot password?
-  //               </button>
-  //             </div>
-
-  //             {/* Submit Button */}
-  //             <Button
-  //               type="submit"
-  //               size="lg"
-  //               fullWidth
-  //               isLoading={isPending}
-  //               rightIcon={!isPending ? "fa-solid fa-arrow-right" : undefined}
-  //               className="bg-teal-700 hover:bg-teal-800 text-white shadow-lg shadow-teal-700/20 border-none transition-all mt-3"
-  //             >
-  //               Sign in
-  //             </Button>
-  // {/* 
-  //             <div className="text-center text-sm text-slate-500 font-medium pt-4">
-  //               Need help? <a href="#" className="font-semibold text-teal-700 hover:text-teal-800 underline underline-offset-4 transition-colors">Contact Support</a>
-  //             </div> */}
-  //           </form>
-
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-
 
   return (
     <div className="min-h-screen w-full flex bg-slate-50 overflow-y-auto selection:bg-red-100">

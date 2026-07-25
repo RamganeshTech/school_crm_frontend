@@ -9,24 +9,27 @@ interface TeacherAssignment {
   _id?: string | null
 }
 
-interface AuthState {
+export interface AuthState {
   _id: string | null;
   userName: string | null; // Renamed for clarity
   schoolId: string | null;
   role: UserRole;
   token: string | null;
+  profileImageUrl: string | null
   isAuthenticated: boolean;
   academicYear: string | null,
   studentId: string[]
   assignments: TeacherAssignment[],
   isPlatformAdmin: boolean
   schoolName: string | null
+  schoollogoUrl: string | null
 }
 
 const initialState: AuthState = {
   _id: null,
   userName: null,
   schoolId: null,
+  profileImageUrl: null,
   role: null,
   token: null,
   isAuthenticated: false,
@@ -34,7 +37,8 @@ const initialState: AuthState = {
   studentId: [],
   assignments: [],
   isPlatformAdmin: false,
-  schoolName: null
+  schoolName: null,
+  schoollogoUrl: null
 };
 
 const authSlice = createSlice({
@@ -50,6 +54,7 @@ const authSlice = createSlice({
         role: UserRole;
         token: string,
         academicYear: string | null;
+        profileImageUrl: string | null;
         studentId: string[]
         assignments: TeacherAssignment[],
         isPlatformAdmin: boolean
@@ -60,6 +65,7 @@ const authSlice = createSlice({
       state.userName = action.payload.userName;
       state.schoolId = action.payload.schoolId;
       state.role = action.payload.role;
+      state.profileImageUrl = action.payload.profileImageUrl;
       state.token = action.payload.token;
       state.isAuthenticated = true;
       state.studentId = action.payload.studentId;
@@ -70,7 +76,11 @@ const authSlice = createSlice({
     setSchool: (state, action)=>{
       state.schoolId = action.payload.schoolId
       state.schoolName = action.payload.schoolName
+      state.schoollogoUrl = action.payload.schoollogoUrl
     },
+    updateProfileImage: (state, action: PayloadAction<string | null>) => {
+            state.profileImageUrl = action.payload;
+        },
     logout: (_state) => {
       // Direct reset to initial state
       return initialState;
@@ -78,5 +88,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout, setSchool } = authSlice.actions;
+export const { setCredentials, logout, setSchool , updateProfileImage} = authSlice.actions;
 export default authSlice.reducer;

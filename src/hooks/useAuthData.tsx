@@ -12,5 +12,6 @@ export const useAuthData = () => {
     userName: auth.userName,
     isAuthenticated: auth.isAuthenticated,
     isPlatformAdmin: auth.isPlatformAdmin,
+    profileImageUrl: auth.profileImageUrl
   };
 };

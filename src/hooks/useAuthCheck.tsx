@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { fetchAuthSession } from '../api_services/auth_api/authApi';
-import { logout, setCredentials } from '../features/slices/authSlice';
+import { logout, setCredentials, setSchool } from '../features/slices/authSlice';
 import { useAuthData } from './useAuthData';
 
 
@@ -70,12 +70,19 @@ export const useAuthCheck = () => {
                         schoolId: schoolIdString || '',
                         role: userData.role,
                         academicYear: userData?.academicYear || null,
+                        profileImageUrl: userData?.profileImage?.url || null,
                         token: '',
                         studentId: userData?.studentId || [],
                         assignments: userData?.assignments || [],
                         isPlatformAdmin: userData?.isPlatformAdmin || false,
                         schoolName: userData?.schoolName || null
                     }));
+
+                    dispatch(setSchool({
+                        schoolId: userData?.schoolId?._id,
+                        schoolName: userData?.schoolId?.name,
+                        schoollogoUrl: userData.schoolId?.logo?.url
+                    }))
 
                     // console.log("5. Redux state successfully dispatched!");
                 }

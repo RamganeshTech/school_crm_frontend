@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useGetSingleUser, useUpdateProfileImage, useUpdateUser } from '../../api_services/auth_api/authApi';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Input } from '../../shared/ui/Input';
 import { Button } from '../../shared/ui/Button';
 // import { useToast } from '../../shared/ui/ToastContext';
@@ -12,6 +12,7 @@ import { useGetEmployeeProfileByUserId } from '../../api_services/auth_api/emplo
 // import { DocumentsTab } from '../userList/user_components/DocumentsTab';
 import type { EmployeeProfileTabType } from '../userList/UserSingle';
 import { EMPLOYEE_PROFILE_TABS, UserProfileComponents } from '../userList/user_components/UserProfileComponentsGroup';
+import { setCredentials, updateProfileImage, type AuthState } from '../../features/slices/authSlice';
 
 // --- Types based on your Mongoose Population ---
 interface UploadedFile {
@@ -73,6 +74,9 @@ export default function UserProfile() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     // Add this near your other states (like isEditing, activeTab, etc.)
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
+    const dispatch = useDispatch();
+
 
     const updateUserMutation = useUpdateUser();
     const updateImageMutation = useUpdateProfileImage();
@@ -190,8 +194,18 @@ export default function UserProfile() {
         }
 
         try {
-            await updateImageMutation.mutateAsync({ userId: _id!, file });
+            let res = await updateImageMutation.mutateAsync({ userId: _id!, file });
             toast.success("Profile picture updated successfully!");
+
+            // dispatch(setCredentials((p:AuthState)=> ({...p, profileImageUrl: res?.data?.profileImage?.url})))
+
+            // Pass the actual object payload, spreading the current authData
+            // dispatch(setCredentials({
+            //     ...authData,
+            //     profileImageUrl: res?.data?.profileImage?.url
+            // }));
+
+            dispatch(updateProfileImage(res?.data?.profileImage?.url));
         } catch (error: any) {
             toast.error(error.message || "Failed to update profile picture");
         } finally {
