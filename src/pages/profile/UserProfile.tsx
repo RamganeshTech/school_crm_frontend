@@ -12,7 +12,7 @@ import { useGetEmployeeProfileByUserId } from '../../api_services/auth_api/emplo
 // import { DocumentsTab } from '../userList/user_components/DocumentsTab';
 import type { EmployeeProfileTabType } from '../userList/UserSingle';
 import { EMPLOYEE_PROFILE_TABS, UserProfileComponents } from '../userList/user_components/UserProfileComponentsGroup';
-import { setCredentials, updateProfileImage, type AuthState } from '../../features/slices/authSlice';
+import { updateProfileImage } from '../../features/slices/authSlice';
 
 // --- Types based on your Mongoose Population ---
 interface UploadedFile {
