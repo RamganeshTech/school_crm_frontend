@@ -20,7 +20,8 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
-const PremiseMain = lazy(() => import('./pages/premises_pages/PremiseMain'));
+const PremisesSingle = lazy(() => import( './pages/eb_pages/premises_pages/PremisesSingle'));
+const PremiseMain = lazy(() => import('./pages/eb_pages/premises_pages/PremiseMain'));
 const EbLogMain = lazy(() => import('./pages/eb_pages/EbLogMain'));
 const EbDashboardMain = lazy(() => import('./pages/eb_pages/dashboards/EbDashboardMain'));
 const TariffMain = lazy(() => import('./pages/eb_pages/tariff_pages/TariffMain'));
@@ -302,7 +303,9 @@ function App() {
                     <Route path="single/:studentId" element={<FeeCollectionSingle />} />
                   </Route>
 
-                  <Route path="premises" element={<PremiseMain />} />
+                  <Route path="premises" element={<PremiseMain />} >
+                    <Route path="single/:id" element={<PremisesSingle />} />
+                  </Route>
 
                   <Route path="eb-dashboard" element={<EbDashboardMain />} />
                   <Route path="eb-log" element={<EbLogMain />} />

@@ -312,26 +312,30 @@
 
 
 import React, { useState, useMemo } from "react";
-import { useAuthData } from "../../hooks/useAuthData";
-import { useRoleCheck } from "../../hooks/useRoleCheck";
+import { useAuthData } from "../../../hooks/useAuthData";
+import { useRoleCheck } from "../../../hooks/useRoleCheck";
 import {
     useGetPremises,
     useDeletePremises,
     type IPremises
-} from "../../api_services/eb_api/premisesApi";
-import { Input } from "../../shared/ui/Input";
-import { Button } from "../../shared/ui/Button";
-import { TableContainer, TBody, Td, Th, THead, Tr } from "../../shared/ui/TableLayout";
-import { toast } from "../../shared/ui/ToastContext";
+} from "../../../api_services/eb_api/premisesApi";
+import { Input } from "../../../shared/ui/Input";
+import { Button } from "../../../shared/ui/Button";
+import { TableContainer, TBody, Td, Th, THead, Tr } from "../../../shared/ui/TableLayout";
+import { toast } from "../../../shared/ui/ToastContext";
 import PremisesModal from "./PremisesModal";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 export const PremiseMain: React.FC = () => {
     // 1. Auth & Role Hooks
     const { schoolId } = useAuthData();
+    const location = useLocation()
+    const navigate = useNavigate()
+
     const { isAccountant, isParent, isVicePrincipal, isTeacher } = useRoleCheck();
 
     // Permissions check
-    const canModify =  !isAccountant && !isParent && !isVicePrincipal && !isTeacher;
+    const canModify = !isAccountant && !isParent && !isVicePrincipal && !isTeacher;
 
     // 2. React Query Hooks
     const { data: premisesList = [], isLoading, isError } = useGetPremises(schoolId!);
@@ -378,6 +382,15 @@ export const PremiseMain: React.FC = () => {
         }
     };
 
+
+
+
+    const isChild = location.pathname.includes("single")
+
+    if (isChild) {
+        return <Outlet />
+    }
+
     return (
         <div className="h-full bg-mainBg p-4 font-sans flex flex-col">
             <div className="max-w-7xl mx-auto space-y-6 w-full flex-1 flex flex-col">
@@ -423,6 +436,7 @@ export const PremiseMain: React.FC = () => {
                             <tr>
                                 <Th className="w-16 text-center font-bold">S.No</Th>
                                 <Th className="font-bold">Premises Details</Th>
+                                <Th className="font-bold">Tariff Category</Th>
                                 <Th className="font-bold">Meter & Consumer No</Th>
                                 <Th className="font-bold">Sanctioned Load</Th>
                                 <Th className="font-bold">Status</Th>
@@ -465,7 +479,7 @@ export const PremiseMain: React.FC = () => {
                                         <Td className="text-center font-medium text-muted">
                                             {index + 1}
                                         </Td>
-                                        
+
                                         {/* Premises Details */}
                                         <Td>
                                             <p className="font-medium text-foreground flex items-center gap-2">
@@ -475,6 +489,19 @@ export const PremiseMain: React.FC = () => {
                                             {item.premisesAddress && (
                                                 <p className="text-[12px] text-muted mt-0.5 truncate max-w-[200px]" title={item.premisesAddress}>
                                                     {item.premisesAddress}
+                                                </p>
+                                            )}
+                                        </Td>
+
+
+                                        <Td>
+                                            <p className="font-medium text-text-main flex items-center gap-2">
+                                                {/* <i className="fas fa-map-marker-alt text-action-primary text-sm"></i> */}
+                                                {item?.tariffId?.tariffName}
+                                            </p>
+                                            {item?.tariffId?.fixedChargePerKw && (
+                                                <p className="text-[12px] text-text-muted mt-0.5 truncate max-w-[200px]">
+                                                    ₹{item?.tariffId?.fixedChargePerKw || 0} /per KW
                                                 </p>
                                             )}
                                         </Td>
@@ -510,6 +537,16 @@ export const PremiseMain: React.FC = () => {
                                         {canModify && (
                                             <Td className="text-center">
                                                 <div className="flex items-center justify-center gap-1">
+
+                                                    <Button
+                                                        variant="secondary"
+                                                        className="h-8 w-8 p-0 text-main hover:text-primary hover:bg-primary-soft/20 rounded-md"
+                                                        onClick={() => navigate(`single/${item._id}`)}
+                                                        title="view Premises"
+                                                    >
+                                                        <i className="fas fa-eye text-sm"></i>
+                                                    </Button>
+
                                                     <Button
                                                         variant="ghost"
                                                         className="h-8 w-8 p-0 text-foreground hover:text-primary hover:bg-primary-soft/20 rounded-md"
@@ -519,7 +556,7 @@ export const PremiseMain: React.FC = () => {
                                                         <i className="fas fa-pen text-sm"></i>
                                                     </Button>
                                                     <Button
-                                                    size="icon"
+                                                        size="icon"
                                                         variant="danger"
                                                         // className="text-danger hover:bg-danger/10 rounded-md"
                                                         onClick={() => handleDelete(item._id)}

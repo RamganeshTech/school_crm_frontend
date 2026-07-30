@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Card } from '../../../../shared/ui/Card';
-import { useGetEBBillKpis, useGetPremisesEBConsumptionChart, type IEBLog, type IEBPremisesAnalytics } from '../../../../api_services/eb_api/ebLogApi';
+import { useGetEBBillKpis, useGetEbPremisesCharge, useGetPremisesEBConsumptionChart, type IEBLog, type IEBPremisesAnalytics } from '../../../../api_services/eb_api/ebLogApi';
 import { TableContainer, TBody, Td, Th, THead, Tr } from '../../../../shared/ui/TableLayout';
 import { formatTime12Hour } from '../../../../utils/utils';
 // import { TableContainer, TBody, Td, Th, THead, Tr } from '../../../../shared/ui/TableLayout';
@@ -96,12 +96,12 @@ export const EbAnalyticsCards: React.FC<EbAnalyticsCardsProps> = ({ data, isLoad
     }
 
     return (
-       
+
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {data?.map((item) => (
-                <Card 
-                    key={item.premisesId} 
+                <Card
+                    key={item.premisesId}
                     className="bg-surface border border-border-default shadow-sm hover:shadow-md hover:border-primary-soft hover:-translate-y-1 transition-all duration-300 flex flex-col group relative overflow-hidden rounded-xl"
                 >
                     {/* Top Accent Line */}
@@ -126,7 +126,7 @@ export const EbAnalyticsCards: React.FC<EbAnalyticsCardsProps> = ({ data, isLoad
 
                     {/* Stats Body */}
                     <div className="p-4 pt-0 flex-1 flex flex-col gap-3">
-                        
+
                         {/* Two Column Grid for Daily/Avg Stats */}
                         <div className="grid grid-cols-2 gap-3">
                             <div className="bg-background border border-border-soft rounded-lg p-3 flex flex-col justify-center group-hover:border-primary-soft/40 transition-colors">
@@ -143,7 +143,7 @@ export const EbAnalyticsCards: React.FC<EbAnalyticsCardsProps> = ({ data, isLoad
                                     )}
                                 </span>
                             </div>
-                            
+
                             <div className="bg-background border border-border-soft rounded-lg p-3 flex flex-col justify-center group-hover:border-primary-soft/40 transition-colors">
                                 <span className="text-[10px] font-bold text-muted uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                                     <i className="fas fa-chart-line text-primary-soft"></i> 30-Day Avg
@@ -204,7 +204,7 @@ export const EbRecentLogsList: React.FC<EbRecentLogsProps> = ({ logs, isLoading 
                 Latest 10 Records
             </span>
         </div>
-        
+
         <TableContainer className="max-h-[400px] overflow-y-auto custom-scrollbar">
             <THead className="sticky top-0 z-10 bg-mainBg after:absolute after:bottom-0 after:left-0 after:right-0 after:border-b after:border-border-default">
                 <tr>
@@ -256,14 +256,14 @@ export const EbRecentLogsList: React.FC<EbRecentLogsProps> = ({ logs, isLoading 
                             <Td>
                                 <div className="text-[12px] font-medium text-muted flex items-center gap-1.5">
                                     <i className="far fa-calendar-alt opacity-70"></i>
-                                    {new Date(log.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} 
+                                    {new Date(log.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                                     {/* <span className="opacity-50 mx-0.5">•</span> 
                                     <i className="far fa-clock opacity-70"></i>
                                     {formatTime12Hour(log.time)} */}
                                 </div>
                             </Td>
 
-                             <Td>
+                            <Td>
                                 <div className="text-[12px] font-medium text-muted flex items-center gap-1.5">
                                     {/* <i className="far fa-calendar-alt opacity-70"></i>
                                     {new Date(log.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} 
@@ -276,12 +276,12 @@ export const EbRecentLogsList: React.FC<EbRecentLogsProps> = ({ logs, isLoading 
                             {/* Meter Reading */}
                             <Td>
                                 <span className="font-mono text-[14px] font-bold text-foreground">
-                                    {Number(log.meterReading).toLocaleString()} 
+                                    {Number(log.meterReading).toLocaleString()}
                                     <span className="text-[11px] font-sans font-medium text-muted ml-1">kWh</span>
                                 </span>
                             </Td>
 
-                          
+
                         </Tr>
                     ))
                 )}
@@ -303,9 +303,11 @@ import {
     Title,
     Tooltip,
     Legend,
-    type ChartOptions
+    type ChartOptions,
+    type TooltipItem,
+    BarElement
 } from 'chart.js';
-import { Line } from 'react-chartjs-2';
+import { Bar, Line } from 'react-chartjs-2';
 import { useAuthData } from '../../../../hooks/useAuthData';
 
 // Register Chart.js components
@@ -333,7 +335,7 @@ export const EbConsumptionChart: React.FC = () => {
     const [period, setPeriod] = useState<string>("month");
     const [customDates, setCustomDates] = useState({
         // Default to last 7 days
-        fromDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0], 
+        fromDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0],
         toDate: new Date().toISOString().split('T')[0]
     });
 
@@ -342,14 +344,14 @@ export const EbConsumptionChart: React.FC = () => {
         period,
         ...(period === 'custom' ? customDates : {})
     });
-    
+
     // 4. Transform backend data format into Chart.js format
     const chartDataObj = useMemo(() => {
         if (!data || !data.premises || data.premises.length === 0) return null;
 
         // Extract buckets (labels on the X-axis) from the first premises
         const labels = data.premises[0].series.map(s => s.label);
-        
+
         // Map each premises to a Chart.js dataset
         const datasets = data.premises.map((p, index) => {
             const color = CHART_COLORS[index % CHART_COLORS.length];
@@ -385,14 +387,14 @@ export const EbConsumptionChart: React.FC = () => {
                     usePointStyle: true,
                     boxWidth: 8,
                     font: { size: 12, family: 'inherit' },
-                    color: '#6b6b6b' 
+                    color: '#6b6b6b'
                 }
             },
             tooltip: {
                 backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                titleColor: '#1a1a1a', 
-                bodyColor: '#6b6b6b', 
-                borderColor: '#dbdbdb', 
+                titleColor: '#1a1a1a',
+                bodyColor: '#6b6b6b',
+                borderColor: '#dbdbdb',
                 borderWidth: 1,
                 padding: 10,
                 boxPadding: 4,
@@ -441,11 +443,10 @@ export const EbConsumptionChart: React.FC = () => {
                             <button
                                 key={p}
                                 onClick={() => setPeriod(p)}
-                                className={`px-3 py-1.5 text-[12px] font-medium rounded-md capitalize whitespace-nowrap transition-colors ${
-                                    period === p 
-                                    ? 'bg-primary text-white shadow-sm' 
-                                    : 'text-muted hover:text-foreground hover:bg-sub-header'
-                                }`}
+                                className={`px-3 py-1.5 text-[12px] font-medium rounded-md capitalize whitespace-nowrap transition-colors ${period === p
+                                        ? 'bg-primary text-white shadow-sm'
+                                        : 'text-muted hover:text-foreground hover:bg-sub-header'
+                                    }`}
                             >
                                 {p}
                             </button>
@@ -506,7 +507,7 @@ export const EbCostChart: React.FC = () => {
     // Local State Management
     const [period, setPeriod] = useState<string>("month");
     const [customDates, setCustomDates] = useState({
-        fromDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0], 
+        fromDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0],
         toDate: new Date().toISOString().split('T')[0]
     });
 
@@ -515,26 +516,26 @@ export const EbCostChart: React.FC = () => {
         period,
         ...(period === 'custom' ? customDates : {})
     });
-    
+
     // Transform backend data for Cost (Billing)
     const chartDataObj = useMemo(() => {
         if (!data || !data.premises || data.premises.length === 0) return null;
 
         const labels = data.premises[0].series.map(s => s.label);
-        
+
         const datasets = data.premises.map((p, index) => {
             const color = CHART_COLORS[index % CHART_COLORS.length];
             return {
                 label: p.premisesName,
                 // Extracting the 'cost' field instead of 'kwUsed'
-                data: p.series.map(s => s.cost ?? null), 
+                data: p.series.map(s => s.cost ?? null),
                 borderColor: color,
                 backgroundColor: color,
                 borderWidth: 2,
                 pointRadius: 3,
                 pointHoverRadius: 5,
                 tension: 0.1,
-                spanGaps: true, 
+                spanGaps: true,
             };
         });
 
@@ -557,14 +558,14 @@ export const EbCostChart: React.FC = () => {
                     usePointStyle: true,
                     boxWidth: 8,
                     font: { size: 12, family: 'inherit' },
-                    color: '#6b6b6b' 
+                    color: '#6b6b6b'
                 }
             },
             tooltip: {
                 backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                titleColor: '#1a1a1a', 
-                bodyColor: '#6b6b6b', 
-                borderColor: '#dbdbdb', 
+                titleColor: '#1a1a1a',
+                bodyColor: '#6b6b6b',
+                borderColor: '#dbdbdb',
                 borderWidth: 1,
                 padding: 10,
                 boxPadding: 4,
@@ -593,9 +594,9 @@ export const EbCostChart: React.FC = () => {
             y: {
                 grid: { color: '#f3f4f6', tickLength: 0 },
                 border: { display: false, dash: [4, 4] },
-                ticks: { 
-                    font: { size: 11 }, 
-                    color: '#6b6b6b', 
+                ticks: {
+                    font: { size: 11 },
+                    color: '#6b6b6b',
                     padding: 8,
                     callback: (value) => `₹${value}` // Y-Axis currency formatting
                 }
@@ -618,11 +619,10 @@ export const EbCostChart: React.FC = () => {
                             <button
                                 key={p}
                                 onClick={() => setPeriod(p)}
-                                className={`px-3 py-1.5 text-[12px] font-medium rounded-md capitalize whitespace-nowrap transition-colors ${
-                                    period === p 
-                                    ? 'bg-primary text-white shadow-sm' 
-                                    : 'text-muted hover:text-foreground hover:bg-sub-header'
-                                }`}
+                                className={`px-3 py-1.5 text-[12px] font-medium rounded-md capitalize whitespace-nowrap transition-colors ${period === p
+                                        ? 'bg-primary text-white shadow-sm'
+                                        : 'text-muted hover:text-foreground hover:bg-sub-header'
+                                    }`}
                             >
                                 {p}
                             </button>
@@ -697,7 +697,7 @@ export const EbBillingKpis: React.FC = () => {
                 isLoading={isLoading}
                 valueColor="text-primary" // Red for expenses
             />
-            
+
             <EbStatCard
                 title="Estimated Daily Cost"
                 value={data ? `₹${data.estimatedDailyEBCost.toLocaleString('en-IN')}` : '₹0'}
@@ -750,7 +750,7 @@ export const EbConsumptionDoughnut: React.FC<EbConsumptionDoughnutProps> = ({ da
         // or keep them to show a 0 value. We will keep them here and default null to 0.
         const labels = data.map(p => p.premisesName);
         const consumptionValues = data.map(p => p.totalConsumption || 0);
-        
+
         // Generate a background color array matching the number of premises
         const backgroundColors = data.map((_, index) => DOUGH_CHART_COLORS[index % DOUGH_CHART_COLORS.length]);
 
@@ -785,9 +785,9 @@ export const EbConsumptionDoughnut: React.FC<EbConsumptionDoughnutProps> = ({ da
             },
             tooltip: {
                 backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                titleColor: '#1a1a1a', 
-                bodyColor: '#6b6b6b', 
-                borderColor: '#dbdbdb', 
+                titleColor: '#1a1a1a',
+                bodyColor: '#6b6b6b',
+                borderColor: '#dbdbdb',
                 borderWidth: 1,
                 padding: 10,
                 boxPadding: 4,
@@ -844,9 +844,9 @@ export const EbConsumptionDoughnut: React.FC<EbConsumptionDoughnutProps> = ({ da
                         <div className="w-full h-full max-w-[400px]">
                             <Doughnut data={chartDataObj} options={chartOptions} />
                         </div>
-                        
+
                         {/* Custom Center Text for the Doughnut */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pr-[120px]"> 
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pr-[120px]">
                             {/* pr-[120px] offsets the text slightly to account for the legend on the right */}
                             <span className="text-[10px] font-bold text-muted uppercase tracking-wider mb-0.5">Total Usage</span>
                             <span className="text-lg font-bold text-foreground">
@@ -854,6 +854,257 @@ export const EbConsumptionDoughnut: React.FC<EbConsumptionDoughnutProps> = ({ da
                             </span>
                         </div>
                     </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+
+
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
+
+interface EBPremisesCostBarChartProps {
+    schoolId: string;
+    premisesId: string;
+}
+
+export const EBPremisesCostBarChart: React.FC<EBPremisesCostBarChartProps> = ({
+    schoolId,
+    premisesId,
+}) => {
+    // --- Filter States ---
+    const currentYear = new Date().getFullYear().toString();
+    const [view, setView] = useState<'monthly' | 'yearly'>('monthly');
+    const [year, setYear] = useState<string>(currentYear);
+    const [fromYear, setFromYear] = useState<string>((parseInt(currentYear) - 4).toString());
+    const [toYear, setToYear] = useState<string>(currentYear);
+
+    // --- Data Fetching ---
+    const { data, isLoading, isError, error } = useGetEbPremisesCharge({
+        schoolId,
+        premisesId,
+        view,
+        year,
+        fromYear,
+        toYear,
+    });
+
+    // Generate Year Options for Dropdowns
+    const yearOptions = useMemo(() => {
+        const years = [];
+        const thisYear = new Date().getFullYear();
+        for (let i = thisYear; i >= thisYear - 10; i--) {
+            years.push(i.toString());
+        }
+        return years;
+    }, []);
+
+    const series = data?.series || [];
+
+    // --- Chart.js data/options ---
+    const chartData = useMemo(
+        () => ({
+            labels: series.map((point) => point.label),
+            datasets: [
+                {
+                    label: 'Cost',
+                    data: series.map((point) => point.cost),
+                    // backgroundColor: 'var(--status-danger)',
+                    // hoverBackgroundColor: 'var(--status-danger)',
+
+                    backgroundColor: '#ef4444',
+                    hoverBackgroundColor: '#dc2626',
+                    borderRadius: 4,
+                    maxBarThickness: 40,
+                },
+            ],
+        }),
+        [series]
+    );
+
+    const getCssVar = (name: string) =>
+        getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+    const chartOptions = useMemo(
+        () => ({
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    // backgroundColor: 'var(--bg-surface)',
+                    // titleColor: 'var(--text-muted)',
+                    // bodyColor: 'var(--text-foreground)',
+
+                    // borderColor: 'var(--border-border)',
+
+                    backgroundColor: getCssVar('--bg-surface'),
+                    titleColor: getCssVar('--text-muted'),
+                    bodyColor: getCssVar('--text-foreground'),
+                    borderColor: getCssVar('--border-default'), // fixed typo
+
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        label: (ctx: TooltipItem<'bar'>) => {
+                            const value = (ctx.raw as number | null) ?? 0;
+                            return `₹ ${value.toLocaleString()}`;
+                        },
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: getCssVar('--text-muted'), font: { size: 12, weight: 500 } },
+                },
+                y: {
+                    grid: { color:  getCssVar('--border-default') },
+                    border: { display: false },
+                    ticks: {
+                        color: getCssVar('--text-muted'),
+                        font: { size: 12, weight: 500 },
+                        callback: (value: number | string) => {
+                            const v = Number(value);
+                            return `₹${v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v}`;
+                        },
+                    },
+                },
+            },
+        }),
+        []
+    );
+
+    return (
+        <div
+            className="rounded-xl shadow-sm border border-border bg-surface  p-4 sm:p-6 flex flex-col w-full h-full"
+        >
+            {/* Header & Filters */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h3 className="text-base text-foreground font-semibold">
+                        Electricity Cost Summary
+                    </h3>
+                    <p style={{ color: 'var(--text-muted)' }} className="text-xs mt-0.5">
+                        Monitor premises billing history
+                    </p>
+
+                    {/* total for the selected year, monthly view only */}
+                    {view === 'monthly' && !isLoading && !isError && (
+                        <p style={{ color: 'var(--text-foreground)' }} className="text-sm font-semibold mt-2">
+                            Total for {year}: ₹{(data?.selectedRangeTotalCost ?? 0).toLocaleString()}
+                        </p>
+                    )}
+                </div>
+
+                {/* Controls Container */}
+                <div className="flex flex-col xs:flex-row items-start xs:items-center gap-3">
+
+                    {/* View Toggle */}
+                    <div
+                        className="flex p-0.5 rounded-lg border border-border bg-mainBg"
+                    // style={{ backgroundColor: 'var(--bg-ash)', borderColor: 'var(--border-border)' }}
+                    >
+                        <button
+                            onClick={() => setView('monthly')}
+                            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${view === 'monthly' ? 'shadow-sm' : ''
+                                }`}
+                            style={{
+                                backgroundColor: view === 'monthly' ? 'var(--bg-surface)' : 'transparent',
+                                color: view === 'monthly' ? 'var(--text-foreground)' : 'var(--text-muted)',
+                            }}
+                        >
+                            Monthly
+                        </button>
+                        <button
+                            onClick={() => setView('yearly')}
+                            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${view === 'yearly' ? 'shadow-sm' : ''
+                                }`}
+                            style={{
+                                backgroundColor: view === 'yearly' ? 'var(--bg-surface)' : 'transparent',
+                                color: view === 'yearly' ? 'var(--text-foreground)' : 'var(--text-muted)',
+                            }}
+                        >
+                            Yearly
+                        </button>
+                    </div>
+
+                    {/* Date Selectors based on View */}
+                    <div className="flex items-center gap-2">
+                        {view === 'monthly' ? (
+                            <select
+                                value={year}
+                                onChange={(e) => setYear(e.target.value)}
+                                className="text-xs px-2 py-1.5 rounded-lg border outline-none cursor-pointer"
+                                style={{
+                                    backgroundColor: 'var(--bg-surface)',
+                                    color: 'var(--text-main)',
+                                    borderColor: 'var(--border-border)'
+                                }}
+                            >
+                                {yearOptions.map((y) => (
+                                    <option key={y} value={y}>{y}</option>
+                                ))}
+                            </select>
+                        ) : (
+                            <div className="flex items-center gap-1">
+                                <select
+                                    value={fromYear}
+                                    onChange={(e) => setFromYear(e.target.value)}
+                                    className="text-xs px-2 py-1.5 rounded-lg border outline-none cursor-pointer"
+                                    style={{
+                                        backgroundColor: 'var(--bg-surface)',
+                                        color: 'var(--text-main)',
+                                        borderColor: 'var(--border-border)'
+                                    }}
+                                >
+                                    {yearOptions.map((y) => (
+                                        <option key={y} value={y}>{y}</option>
+                                    ))}
+                                </select>
+                                <span style={{ color: 'var(--text-muted)' }} className="text-xs">-</span>
+                                <select
+                                    value={toYear}
+                                    onChange={(e) => setToYear(e.target.value)}
+                                    className="text-xs px-2 py-1.5 rounded-lg border outline-none cursor-pointer"
+                                    style={{
+                                        backgroundColor: 'var(--bg-surface)',
+                                        color: 'var(--text-main)',
+                                        borderColor: 'var(--border-border)'
+                                    }}
+                                >
+                                    {yearOptions.map((y) => (
+                                        <option key={y} value={y}>{y}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Chart Area */}
+            <div className="w-full" style={{ height: '300px' }}>
+                {isLoading ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center">
+                        <i className="fa-solid fa-circle-notch fa-spin text-text-main text-2xl mb-3"></i>
+                        <p className="text-sm text-text-muted font-medium">Loading distribution...</p>
+                    </div>
+                ) : isError ? (
+                    <div className="w-full h-full flex items-center justify-center">
+                        <span style={{ color: 'var(--status-danger)' }} className="text-sm">
+                            {error?.message || 'Failed to load data.'}
+                        </span>
+                    </div>
+                ) : series.length === 0 ? (
+                    <div className="w-full h-full flex items-center justify-center border border-dashed rounded-lg" style={{ borderColor: 'var(--border-border)' }}>
+                        <span style={{ color: 'var(--text-muted)' }} className="text-sm">No data available for selected period.</span>
+                    </div>
+                ) : (
+                    <Bar data={chartData} options={chartOptions} />
                 )}
             </div>
         </div>

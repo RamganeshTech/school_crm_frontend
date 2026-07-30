@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Button } from '../../shared/ui/Button';
-import { Input } from '../../shared/ui/Input';
-import { SideModal } from '../../shared/ui/SideModal';
-import { toast } from '../../shared/ui/ToastContext';
+import { Button } from '../../../shared/ui/Button';
+import { Input } from '../../../shared/ui/Input';
+import { SideModal } from '../../../shared/ui/SideModal';
+import { toast } from '../../../shared/ui/ToastContext';
 
 // Adjust path based on your structure
 import {
     useCreatePremises,
     useUpdatePremises,
     type IPremises
-} from '../../api_services/eb_api/premisesApi';
-import { useGetTariffs } from '../../api_services/eb_api/tariffApi';
-import { SearchSelect } from '../../shared/ui/SearchSelect';
+} from '../../../api_services/eb_api/premisesApi';
+import { useGetTariffs } from '../../../api_services/eb_api/tariffApi';
+import { SearchSelect } from '../../../shared/ui/SearchSelect';
 
 interface PremisesModalProps {
     isOpen: boolean;
@@ -22,7 +22,7 @@ interface PremisesModalProps {
 }
 
 export default function PremisesModal({ isOpen, onClose, premisesData, schoolId, canEdit }: PremisesModalProps) {
-    
+
     // --- API Hooks ---
     const { mutateAsync: createPremises, isPending: isCreating } = useCreatePremises();
     const { mutateAsync: updatePremises, isPending: isUpdating } = useUpdatePremises();
@@ -57,8 +57,8 @@ export default function PremisesModal({ isOpen, onClose, premisesData, schoolId,
                     tariffId: premisesData.tariffId || '', // <-- Load existing tariffId
                     consumerNumber: premisesData.consumerNumber || '',
                     sanctionedLoad: premisesData.sanctionedLoad ? String(premisesData.sanctionedLoad) : '',
-                    billingCycleStartDate: premisesData.billingCycleStartDate 
-                        ? new Date(premisesData.billingCycleStartDate).toISOString().split('T')[0] 
+                    billingCycleStartDate: premisesData.billingCycleStartDate
+                        ? new Date(premisesData.billingCycleStartDate).toISOString().split('T')[0]
                         : '',
                     isActive: premisesData.isActive ?? true
                 });
@@ -110,8 +110,8 @@ export default function PremisesModal({ isOpen, onClose, premisesData, schoolId,
                 meterLocation: premisesData.meterLocation || '',
                 consumerNumber: premisesData.consumerNumber || '',
                 sanctionedLoad: premisesData.sanctionedLoad ? String(premisesData.sanctionedLoad) : '',
-                billingCycleStartDate: premisesData.billingCycleStartDate 
-                    ? new Date(premisesData.billingCycleStartDate).toISOString().split('T')[0] 
+                billingCycleStartDate: premisesData.billingCycleStartDate
+                    ? new Date(premisesData.billingCycleStartDate).toISOString().split('T')[0]
                     : '',
                 isActive: premisesData.isActive ?? true
             });
@@ -172,10 +172,10 @@ export default function PremisesModal({ isOpen, onClose, premisesData, schoolId,
             }
         >
             <form onSubmit={handleSubmit} className="flex flex-col h-full space-y-6">
-                
+
                 {/* Scrollable Content Area */}
                 <div className="space-y-6 overflow-y-auto custom-scrollbar pr-2 flex-1 pb-4 mt-2">
-                    
+
                     {/* --- Basic Information --- */}
                     <div className="bg-surface/50 p-5 rounded-xl border border-border/50 space-y-5">
                         <h4 className="text-sm font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
@@ -185,12 +185,12 @@ export default function PremisesModal({ isOpen, onClose, premisesData, schoolId,
                         <div className="grid grid-cols-1 gap-y-5">
                             <InfoField label="Premises Name *" isEdit={isEditMode}>
                                 {isEditMode ? (
-                                    <Input 
-                                        id="premisesName" 
-                                        placeholder="e.g. Main Block, Admin Wing" 
-                                        value={formData.premisesName} 
-                                        onChange={handleInputChange} 
-                                        required 
+                                    <Input
+                                        id="premisesName"
+                                        placeholder="e.g. Main Block, Admin Wing"
+                                        value={formData.premisesName}
+                                        onChange={handleInputChange}
+                                        required
                                     />
                                 ) : (
                                     <p className="font-medium text-foreground">{formData.premisesName || 'N/A'}</p>
@@ -282,8 +282,8 @@ export default function PremisesModal({ isOpen, onClose, premisesData, schoolId,
                                     <Input id="billingCycleStartDate" type="date" value={formData.billingCycleStartDate} onChange={handleInputChange} />
                                 ) : (
                                     <p className="text-sm text-foreground">
-                                        {formData.billingCycleStartDate 
-                                            ? new Date(formData.billingCycleStartDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) 
+                                        {formData.billingCycleStartDate
+                                            ? new Date(formData.billingCycleStartDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
                                             : 'N/A'}
                                     </p>
                                 )}

@@ -20,7 +20,7 @@ export interface IPremises {
     consumerNumber?: string;
     tariffId?: any;
     sanctionedLoad?: number;
-    billingCycleStartDate?: Date;
+    billingCycleStartDate?: string;
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
@@ -74,6 +74,34 @@ export const useGetPremises = (schoolId?: string) => {
         enabled: !!schoolId, // Only run the query if schoolId is provided
     });
 };
+
+
+
+
+export const useGetPremiseById = ({schoolId, premiseId}:{schoolId: string, premiseId: string}) => {
+    const { currentRole } = useAuthData();
+
+    return useQuery({
+        queryKey: ['premise', premiseId],
+        queryFn: async () => {
+            try {
+                checkPermission(currentRole, GET_ROLES);
+
+                
+                const { data } = await Api.get<BaseResponse<IPremises>>(`/api/premises/get-single/${schoolId}/${premiseId}`);
+
+                if (!data.ok) throw new Error(data.message || 'Failed to fetch premises');
+                return data.data as IPremises;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+                throw new Error(errorMessage);
+            }
+        },
+        enabled: !!premiseId, 
+    });
+};
+
+
 
 // ============================
 // CREATE PREMISES

@@ -4,6 +4,7 @@ import { toast } from '../../../shared/ui/ToastContext';
 import { SideModal } from '../../../shared/ui/SideModal';
 import { Button } from '../../../shared/ui/Button';
 import { Input } from '../../../shared/ui/Input';
+import { Toggle } from '../../../shared/ui/Toggle';
 
 
 interface TariffModalProps {
@@ -25,7 +26,8 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
     const initialFormState = {
         tariffName: '',
         fixedChargePerKw: '',
-        isActive: true
+        isActive: true,
+        isTelescopic: false
     };
 
     const [formData, setFormData] = useState(initialFormState);
@@ -40,7 +42,9 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
                 setFormData({
                     tariffName: tariffData.tariffName || '',
                     fixedChargePerKw: tariffData.fixedChargePerKw !== undefined ? String(tariffData.fixedChargePerKw) : '',
-                    isActive: tariffData.isActive ?? true
+                    isActive: tariffData.isActive ?? true,
+                    isTelescopic: tariffData.isTelescopic ?? false
+
                 });
                 // Deep copy slabs to avoid mutating cache directly before saving
                 setSlabs(tariffData.slabs ? JSON.parse(JSON.stringify(tariffData.slabs)) : []);
@@ -63,6 +67,11 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
             ...prev,
             [id]: type === 'checkbox' ? checked : value
         }));
+    };
+
+    // Handler specifically for custom toggle components
+    const handleToggleChange = (field: string, checked: boolean) => {
+        setFormData(prev => ({ ...prev, [field]: checked }));
     };
 
     // --- Handlers: Dynamic Slabs ---
@@ -98,7 +107,9 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
             setFormData({
                 tariffName: tariffData.tariffName || '',
                 fixedChargePerKw: tariffData.fixedChargePerKw !== undefined ? String(tariffData.fixedChargePerKw) : '',
-                isActive: tariffData.isActive ?? true
+                isActive: tariffData.isActive ?? true,
+                isTelescopic: tariffData.isTelescopic ?? false
+
             });
             setSlabs(tariffData.slabs ? JSON.parse(JSON.stringify(tariffData.slabs)) : []);
             setIsEditMode(false);
@@ -215,7 +226,7 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
                                 )}
                             </InfoField>
 
-                            {isEditMode ? (
+                            {/* {isEditMode ? (
                                 <div className="flex items-end pb-2">
                                     <label className="flex items-center gap-2 cursor-pointer text-sm text-foreground">
                                         <input
@@ -237,6 +248,42 @@ export default function TariffModal({ isOpen, onClose, tariffData, schoolId, can
                                         {formData.isActive ? "Active" : "Inactive"}
                                     </span>
                                 </InfoField>
+                            )} */}
+
+                            {isEditMode ? (
+                                <div className="sm:col-span-2 flex flex-col sm:flex-row gap-6 mt-2 pt-2 border-t border-ash-medium/40">
+                                    <Toggle
+                                        label="Telescopic Billing"
+                                        description="Calculate progressively"
+                                        checked={formData.isTelescopic}
+                                        onChange={(checked) => handleToggleChange('isTelescopic', checked)}
+                                    />
+
+                                    <Toggle
+                                        label="Plan Status"
+                                        description={formData.isActive ? "Active" : "Inactive"}
+                                        checked={formData.isActive}
+                                        onChange={(checked) => handleToggleChange('isActive', checked)}
+                                    // className="peer-checked:bg-action-success" // Uses success color for status
+                                    />
+                                </div>
+                            ) : (
+                                <div className="sm:col-span-2 flex gap-4">
+                                    <InfoField label="Billing Type" isEdit={false}>
+                                        <span className="font-medium text-sm text-text-strong">
+                                            {formData.isTelescopic ? "Telescopic" : "Non-Telescopic"}
+                                        </span>
+                                    </InfoField>
+
+                                    <InfoField label="Status" isEdit={false}>
+                                        <span className={`inline-flex w-fit items-center px-2 py-0.5 rounded text-[11px] font-medium ${formData.isActive
+                                            ? "bg-action-success/10 text-action-success border border-action-success/20"
+                                            : "bg-action-danger/10 text-action-danger border border-action-danger/20"
+                                            }`}>
+                                            {formData.isActive ? "Active" : "Inactive"}
+                                        </span>
+                                    </InfoField>
+                                </div>
                             )}
                         </div>
                     </div>

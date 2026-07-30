@@ -369,3 +369,71 @@ export const useGetEBBillKpis = (schoolId?: string) => {
         enabled: !!schoolId,
     });
 };
+
+
+
+
+
+export interface IEBPremiseCharge {
+    view: string,
+    rangeStart: string,
+    rangeEnd: string,
+    series: { label: string; value: number , cost:number}[]; // Typed the series based on standard Recharts expectations
+    selectedRangeTotalCost: number
+    currentYearTotalCost: number
+}
+
+interface UseGetEbPremisesChargeProps {
+    schoolId: string;
+    premisesId: string;
+    view: 'monthly' | 'yearly';
+    year?: string;
+    fromYear?: string;
+    toYear?: string;
+}
+
+export const useGetEbPremisesCharge = ({ 
+    schoolId, 
+    premisesId, 
+    view, 
+    year, 
+    fromYear, 
+    toYear 
+}: UseGetEbPremisesChargeProps) => {
+    // const { role } = useGetRole(); // Adjust based on your actual auth hooks
+    // const api = getApiForRole(role!);
+
+    const { currentRole } = useAuthData();
+
+    
+    
+    return useQuery({
+        // Add filters to queryKey so it refetches when they change
+        queryKey: ['ebBillKpis', schoolId, premisesId, view, year, fromYear, toYear],
+        queryFn: async () => {
+            try {
+                checkPermission(currentRole, READ_ROLES);
+               
+                // Construct query params
+                const params = new URLSearchParams();
+                params.append('view', view);
+                if (view === 'monthly' && year) params.append('year', year);
+                if (view === 'yearly' && fromYear && toYear) {
+                    params.append('fromYear', fromYear);
+                    params.append('toYear', toYear);
+                }
+
+                const { data } = await Api.get<BaseResponse<IEBPremiseCharge>>(
+                    `/api/eb/logs/analytics/${schoolId}/${premisesId}/charge?${params.toString()}`
+                );
+
+                if (!data.ok) throw new Error(data.message || 'Failed to fetch billing KPIs');
+                return data.data as IEBPremiseCharge;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+                throw new Error(errorMessage);
+            }
+        },
+        enabled: !!schoolId && !!premisesId,
+    });
+};

@@ -14,7 +14,7 @@ export const TariffMain: React.FC = () => {
     const { isParent, isVicePrincipal, isTeacher } = useRoleCheck();
 
     // Permissions check
-    const canModify =  !isParent && !isVicePrincipal && !isTeacher;
+    const canModify = !isParent && !isVicePrincipal && !isTeacher;
 
     // 2. React Query Hooks
     const { data: tariffsList = [], isLoading, isError } = useGetTariffs(schoolId!);
@@ -103,9 +103,10 @@ export const TariffMain: React.FC = () => {
                     <TableContainer className="h-full overflow-y-auto">
                         <THead className="sticky top-0 z-10 bg-sub-header after:absolute after:bottom-0 after:left-0 after:right-0 after:border-b after:border-border-default">
                             <tr>
-                                <Th className=" text-center font-bold">S.No</Th>
-                                <Th className="font-bold">Tariff Plan Name</Th>
-                                <Th className="font-bold text-right">Fixed Charge (₹/kW)</Th>
+                                <Th className="text-center font-bold">S.No</Th>
+                                <Th className="font-bold text-center">Tariff Plan Name</Th>
+                                <Th className="font-bold text-center">Telescopic/Non-Telescopic</Th>
+                                <Th className="font-bold text-center">Fixed Charge (₹/kW)</Th>
                                 <Th className="font-bold text-center">Configured Slabs</Th>
                                 {/* <Th className="font-bold">Status</Th> */}
                                 {canModify && <Th className="text-center font-bold w-28">Actions</Th>}
@@ -147,17 +148,27 @@ export const TariffMain: React.FC = () => {
                                         <Td className="text-center font-medium text-muted">
                                             {index + 1}
                                         </Td>
-                                        
+
                                         {/* Tariff Name */}
-                                        <Td>
-                                            <p className="font-medium text-foreground flex items-center gap-2 text-[14px]">
+                                        <Td className="text-center">
+                                            <p className="font-medium text-foreground flex items-center justify-center gap-2 text-[14px]">
                                                 <i className="fas fa-bolt text-primar text-sm"></i>
                                                 {item.tariffName}
                                             </p>
                                         </Td>
 
+                                        <Td className="text-center">
+                                            <p className="font-medium text-foreground flex items-center justify-center gap-2 text-[14px]">
+                                                <i className={`text-sm ${item.isTelescopic === true
+                                                        ? "fas fa-plug text-primary"
+                                                        : "fas fa-power-off text-muted-foreground"
+                                                    }`}></i>
+                                                {item.isTelescopic === true ? "Telescopic" : "Non-Telescopic"}
+                                            </p>
+                                        </Td>
+
                                         {/* Fixed Charge */}
-                                        <Td className="text-right">
+                                        <Td className="text-center">
                                             <span className="font-mono font-medium text-[14px] text-foreground">
                                                 ₹{item.fixedChargePerKw?.toFixed(2)}
                                             </span>
