@@ -4,6 +4,7 @@ import { toast } from '../../../shared/ui/ToastContext';
 import { SideModal } from '../../../shared/ui/SideModal';
 import { Button } from '../../../shared/ui/Button';
 import { useGetClubVideoById } from '../../../api_services/clubs_api/clubVideoApi';
+import { useAuthData } from '../../../hooks/useAuthData';
 // import { toast } from 'react-hot-toast';
 // import { useCreateAIClubQuiz } from '../../../hooks/useClubQuizHooks'; // Adjust path
 // // import { useGetAllClubVideos } from '../../../hooks/useClubVideoHooks'; // ⚠️ Import your actual video fetch hook here
@@ -19,6 +20,7 @@ interface Props {
 
 const AIQuizModal: React.FC<Props> = ({ onClose, clubId, videoId, academicYear }) => {
     const createAIQuizMutation = useCreateAIClubQuiz();
+    const {schoolId} = useAuthData();
 
     // ⚠️ Replace this with your actual video fetching logic so users can pick which PDF to analyze
     const { data: videoData } = useGetClubVideoById(videoId);
@@ -45,7 +47,8 @@ const AIQuizModal: React.FC<Props> = ({ onClose, clubId, videoId, academicYear }
                 academicYear,
                 clubVideoId: videoId,
                 numberOfQuestions,
-                pdfId: selectedPdfId
+                pdfId: selectedPdfId,
+                schoolId: schoolId!
             });
             toast.success("AI Quiz successfully generated!");
             onClose();

@@ -36,6 +36,7 @@ export interface UpdateQuizPayload extends Partial<CreateQuizPayload> {
 export interface CreateAIQuizPayload {
     clubId: string;
     clubVideoId: string;
+    schoolId?: string;
     classId?: string;
     sectionId?: string;
     academicYear?: string;
