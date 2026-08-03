@@ -4,6 +4,7 @@ import { toast } from '../../../shared/ui/ToastContext'; // Adjust path
 import { SideModal } from '../../../shared/ui/SideModal';
 import { Button } from '../../../shared/ui/Button';
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
+import { useAuthData } from '../../../hooks/useAuthData';
 
 interface Props {
     onClose: () => void;
@@ -13,6 +14,8 @@ interface Props {
 const UpdateQuizModal: React.FC<Props> = ({ onClose, quiz }) => {
     const updateQuizMutation = useUpdateClubQuiz();
 
+
+    const {schoolId} = useAuthData();
 
     const { isAdmin, isCorrespondent, isTeacher } = useRoleCheck()
 
@@ -92,7 +95,8 @@ const UpdateQuizModal: React.FC<Props> = ({ onClose, quiz }) => {
         const payload: UpdateQuizPayload = {
             title,
             description,
-            questions
+            questions,
+            schoolId: schoolId!,
         };
 
         try {

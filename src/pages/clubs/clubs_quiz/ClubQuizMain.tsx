@@ -43,7 +43,7 @@ const ClubQuizMain: React.FC = () => {
     const [quizToUpdate, setQuizToUpdate] = useState<any>(null);
 
     // Fetch Quizzes using our React Query Hook
-    const { data: response, isLoading, isError } = useGetAllClubQuizzes({ clubId: id , clubVideoId: videoId});
+    const { data: response, isLoading, isError } = useGetAllClubQuizzes({ clubId: id , clubVideoId: videoId, schoolId: schoolId!});
     const quizzes = response?.data || [];
     const deleteQuizMutation = useDeleteClubQuiz(); // 🌟 Initialize the delete hook
 

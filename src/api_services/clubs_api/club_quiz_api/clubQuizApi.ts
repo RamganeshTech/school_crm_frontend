@@ -48,6 +48,7 @@ export interface QuizQueryParams {
     clubVideoId? :string
     classId?: string;
     sectionId?: string;
+    schoolId?:string
     page?: number;
     limit?: number;
 }
