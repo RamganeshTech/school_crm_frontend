@@ -27,9 +27,9 @@ export default function HomeworkMain() {
     const { schoolId } = useAuthData();
     const { data: schoolData } = useGetSchoolById(schoolId!);
     const fetchedAcademicYear = schoolData?.currentAcademicYear || "";
-    const { isCorrespondent, isTeacher } = useRoleCheck()
+    const { isCorrespondent, isTeacher, isAdmin } = useRoleCheck()
 
-    const canModify = isCorrespondent || isTeacher
+    const canModify = isCorrespondent || isTeacher || isAdmin
     // --- State: Selections ---
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('');
     const [selectedClassId, setSelectedClassId] = useState<string>('');

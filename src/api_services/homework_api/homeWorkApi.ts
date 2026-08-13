@@ -163,7 +163,7 @@ export const useCreateHomework = () => {
     return useMutation({
         mutationFn: async (formData: FormData) => {
             try {
-                checkPermission(currentRole, ["correspondent", "teacher"]);
+                checkPermission(currentRole, ["correspondent", "teacher", "administrator"]);
                 
                 const { data } = await Api.post<BaseResponse>('/api/homework/create', formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
@@ -189,7 +189,7 @@ export const useUpdateHomeworkText = () => {
     return useMutation({
         mutationFn: async (payload: UpdateHomeworkTextParams) => {
             try {
-                checkPermission(currentRole, ["correspondent", "teacher"]);
+                checkPermission(currentRole, ["correspondent", "teacher", "administrator"]);
                 
                 const { data } = await Api.put<BaseResponse>('/api/homework/updatetext', payload);
                 
@@ -214,7 +214,7 @@ export const useAddHomeworkAttachments = () => {
     return useMutation({
         mutationFn: async (formData: FormData) => {
             try {
-                checkPermission(currentRole, ["correspondent", "teacher"]);
+                checkPermission(currentRole, ["correspondent", "teacher", "administrator"]);
                 
                 const { data } = await Api.put<BaseResponse>('/api/homework/addattachments', formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
@@ -242,7 +242,7 @@ export const useDeleteSubjectFromHomework = () => {
     return useMutation({
         mutationFn: async (payload: DeleteSubjectParams) => {
             try {
-                checkPermission(currentRole, ["correspondent", "teacher"]);
+                checkPermission(currentRole, ["correspondent", "teacher", "administrator"]);
                 
                 const { data } = await Api.delete<BaseResponse>('/api/homework/deletesubject', { data: payload });
                 
@@ -267,7 +267,7 @@ export const useDeleteHomeworkAttachment = () => {
     return useMutation({
         mutationFn: async (payload: DeleteAttachmentParams) => {
             try {
-                checkPermission(currentRole, ["correspondent", "teacher"]);
+                checkPermission(currentRole, ["correspondent", "teacher", "administrator"]);
                 
                 const { data } = await Api.delete<BaseResponse>('/api/homework/deleteattachment', { data: payload });
                 
@@ -292,7 +292,7 @@ export const useDeleteDailyHomework = () => {
     return useMutation({
         mutationFn: async (payload: DeleteDailyHomeworkParams) => {
             try {
-                checkPermission(currentRole, ["correspondent", "teacher"]);
+                checkPermission(currentRole, ["correspondent", "teacher", "administrator"]);
                 
                 const { data } = await Api.delete<BaseResponse>('/api/homework/deleteentireday', { data: payload });
                 

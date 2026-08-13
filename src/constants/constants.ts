@@ -629,7 +629,7 @@ export const getParentInitialMenu = (): MenuItem[] => [
 //         { name: 'Profile Selection', path: "/dashboard/profile-selection", icon: 'fas fa-user-group' },
 //         { name: 'Student Profile', path: `/dashboard/profile-selection/student/record-profile/${studentId}`, icon: 'fas fa-user-group' },
 //         { name: 'Student Main', path: `/dashboard/profile-selection/student/main-profile/${studentId}`, icon: 'fas fa-user-group' },
-//         { name: 'Attedance', path: `/dashboard/profile-selection/student/attendace/${studentId}`, icon: 'fas fa-clipboard' },
+//         { name: 'Attedance', path: `/dashboard/profile-selection/student/attendance/${studentId}`, icon: 'fas fa-clipboard' },
 //         { name: 'Mark report', path: `/dashboard/profile-selection/student/markreport/${studentId}`, icon: 'fas fa-file-invoice' },
 //         { name: 'Annoucement', path: "/dashboard/profile-selection/student/announcement", icon: 'fas fa-bullhorn' },
 //         { name: 'Clubs', path: "/dashboard/profile-selection/student/club", icon: 'fas fa-layer-group' },
@@ -665,7 +665,7 @@ export const getParentMenu = ({ studentId, classId, sectionId, academicYear }: P
             subMenu: [
                 // { name: 'Announcements', path: "/dashboard/student/announcement", icon: 'fas fa-bullhorn' },
                 { name: 'Homework Submissions', path: `/dashboard/student/homework-submission${queryStr}`, icon: 'fas fa-check-circle' },
-                { name: 'Attendance', path: `/dashboard/student/attendace/${studentId}`, icon: 'fas fa-clipboard' },
+                { name: 'Attendance', path: `/dashboard/student/attendance/${studentId}`, icon: 'fas fa-clipboard' },
                 { name: 'Mark Report', path: `/dashboard/student/markreport/${studentId}${markReportQuery}`, icon: 'fas fa-file-invoice' },
             ]
         },
@@ -677,7 +677,7 @@ export const getParentMenu = ({ studentId, classId, sectionId, academicYear }: P
         // --- Grouped Academics Menu ---
         // { name: 'Annoucement', path: "/dashboard/student/announcement", icon: 'fas fa-bullhorn' },
         // { name: 'My Homework Submissions', path: `/dashboard/student/homework-submission${queryStr}`, icon: 'fas fa-check-circle' },
-        // { name: 'Attedance', path: `/dashboard/student/attendace/${studentId}`, icon: 'fas fa-clipboard' },
+        // { name: 'Attedance', path: `/dashboard/student/attendance/${studentId}`, icon: 'fas fa-clipboard' },
         // { name: 'Mark report', path: `/dashboard/student/markreport/${studentId}${markReportQuery}`, icon: 'fas fa-file-invoice' },
     ];
 };

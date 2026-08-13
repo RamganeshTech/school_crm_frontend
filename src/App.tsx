@@ -20,6 +20,7 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
+import NotificationMain from './pages/notification/NotficationMain';
 const PremisesSingle = lazy(() => import('./pages/eb_pages/premises_pages/PremisesSingle'));
 const PremiseMain = lazy(() => import('./pages/eb_pages/premises_pages/PremiseMain'));
 const EbLogMain = lazy(() => import('./pages/eb_pages/EbLogMain'));
@@ -200,6 +201,7 @@ function App() {
 
               <Route path='/dashboard' element={<DashboardChildrens />}>
                 <Route index element={<DashboardHomeRedirect />} />
+                <Route path="notifications" element={<NotificationMain />} />
 
                 <Route path="dashboard-main" element={<ProtectedRoute allowedRoles={STAFF_ALL} ><FinanceDashboardMain /></ProtectedRoute>} />
                 <Route path="academic-calendar" element={
@@ -218,12 +220,13 @@ function App() {
                     <Route path="fee-transaction" element={<FeeTransactionMain />} />
                   </Route>
                   <Route path="student/record-profile/:studentId" element={<StudentRecordSingle />} />
-                  <Route path="student/attendace/:studentId" element={<AttendanceSingleStudent />} />
+                  <Route path="student/attendance/:studentId" element={<AttendanceSingleStudent />} />
 
                   <Route path="student/homework-submission" element={<HomeworkSubmissionMain />} />
 
                   <Route path="student/announcement" element={<AnnouncementParentMain />} />
                   <Route path="student/pending-task" element={<PendingTaskListMain />} />
+                  <Route path="student/notifications" element={<NotificationMain />} />
 
                   <Route path="student/club" element={<ClubMain />} >
                     <Route path="single/:id" element={<ClubSingle />} >
