@@ -276,3 +276,50 @@ export const useDeleteAnnouncement = () => {
         },
     });
 };
+
+
+
+
+
+
+export interface GetAnnouncementNotificationsParams {
+    schoolId: string;
+    limit?: number;
+}
+
+// --- Hook: Announcements for Notification Bell (all-in-one-go, works for any role/org) ---
+export const useGetAnnouncementsForNotificationsInfinite = (params: GetAnnouncementNotificationsParams) => {
+    const { currentRole } = useAuthData();
+
+    return useInfiniteQuery({
+        queryKey: ['announcements-notifications-infinite', params.schoolId, params.limit],
+        initialPageParam: 1,
+        queryFn: async ({ pageParam = 1 }) => {
+            try {
+                checkPermission(currentRole, ["correspondent", "principal", "viceprincipal", "teacher", "parent", "administrator"]);
+
+                const { data } = await Api.get<BaseResponse<IAnnouncement[]>>('/api/announcement/getall', {
+                    params: { schoolId: params.schoolId, page: pageParam, limit: params.limit ?? 10000 }
+                });
+
+                if (data.ok) {
+                    return data;
+                } else {
+                    throw new Error(data.message || 'Failed to fetch announcements');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
+        },
+        getNextPageParam: (lastPage) => {
+            const currentPage = Number(lastPage?.pagination?.page) || 1;
+            const totalPages = Number(lastPage?.pagination?.totalPages) || 1;
+            if (currentPage < totalPages) return currentPage + 1;
+            return undefined;
+        },
+        enabled: !!params.schoolId,
+        refetchInterval: 60000, // poll every 60s
+        staleTime: 30000,
+    });
+};

@@ -2,6 +2,7 @@
 import { UserAvatar } from '../../pages/profile/UserAvatar';
 import { GlobalSearch } from './GlobalSearch';
 import GlobalSetupProgress from './GlobalSetupProgress';
+import { NotificationIcon } from './NotificationIcon';
 // import { UserAvatar } from './UserAvatar';
 
 export const GlobalHeader = ({onMenuClick}: {onMenuClick:any}) => {
@@ -29,6 +30,10 @@ export const GlobalHeader = ({onMenuClick}: {onMenuClick:any}) => {
           <i className="fa-regular fa-bell text-lg"></i>
         </button> */}
 
+
+
+                <NotificationIcon />
+                
                 <GlobalSetupProgress />
 
 

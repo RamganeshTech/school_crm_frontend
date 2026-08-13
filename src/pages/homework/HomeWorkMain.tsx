@@ -540,7 +540,6 @@ export default function HomeworkMain() {
 
                                                                 {!isPastActiveDate && (
                                                                     <div className="flex items-center gap-1">
-
                                                                         {/* 🌟 1. ADD FILE BUTTON (Hidden Input trigger) */}
                                                                         {canModify && <div className="relative" title="Add Attachments">
                                                                             <input

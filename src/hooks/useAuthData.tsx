@@ -4,7 +4,7 @@ import { type RootState } from '../features/store/store';
 
 export const useAuthData = () => {
   const auth = useSelector((state: RootState) => state.auth);
-  
+
   return {
     currentRole: auth.role as UserRole,
     schoolId: auth.schoolId,

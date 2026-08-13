@@ -81,7 +81,9 @@ export default function HomeworkSubmissionMain() {
 
     // --- Helpers ---
     const getHomeworkForDate = (date: Date) => {
-        const dStr = date.toISOString().split('T')[0];
+        // const dStr = date.toISOString().split('T')[0];
+            const dStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
         return allHomework.find(hw => hw.homeworkDate.split('T')[0] === dStr);
     };
 
@@ -167,14 +169,14 @@ export default function HomeworkSubmissionMain() {
             </header>
 
             {/* CALENDAR VIEW */}
-            <main className="flex-1 overflow-y-auto p-6 bg-background custom-scrollbar">
+            <main className="flex-1 overflow-y-auto p-2 sm:p-6 bg-background custom-scrollbar">
                 <div className="max-w-5xl mx-auto flex flex-col bg-surface border border-border rounded-2xl shadow-sm overflow-hidden animate-in fade-in">
 
-                    <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-header">
-                        <h2 className="text-xl font-bold text-foreground">
+                    <div className="flex items-center justify-between px-2 sm:px-6 py-4 border-b border-border bg-header">
+                        <h2 className="text-md sm:text-xl font-bold text-foreground">
                             {viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
                         </h2>
-                        <div className="flex gap-2">
+                        <div className="flex gap-1  sm:gap-2">
                             <Button variant="outline" size="sm" className="bg-surface border-border text-foreground hover:bg-header/20" onClick={() => setViewDate(new Date(viewDate.setMonth(viewDate.getMonth() - 1)))}>
                                 <i className="fas fa-chevron-left text-xs"></i>
                             </Button>
@@ -213,8 +215,8 @@ export default function HomeworkSubmissionMain() {
 
                                             {hw && hw.subjects?.length > 0 && (
                                                 <div className="mt-auto flex flex-col gap-1 items-start w-full">
-                                                    <span className="text-[9px] font-bold text-primary bg-primary-soft px-1.5 py-0.5 rounded uppercase w-full truncate text-left">
-                                                        {hw.subjects.length} Tasks
+                                                    <span className="text-[9px] font-bold text-primary bg-primary-soft px-1.5 py-0.5 rounded w-full truncate text-left">
+                                                        {hw.subjects.length} Homework
                                                     </span>
                                                 </div>
                                             )}

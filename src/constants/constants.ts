@@ -320,7 +320,7 @@ export const baseManagementMenu: MenuItem[] = [
     {
         name: 'EB Management', path: "#", icon: 'fas fa-bolt',
         subMenu: [
-             {
+            {
                 name: "EB Dashboard",
                 path: "/dashboard/eb-dashboard",
                 icon: "fas fa-chart-pie"
@@ -335,13 +335,13 @@ export const baseManagementMenu: MenuItem[] = [
                 path: "/dashboard/eb-log",
                 icon: "fas fa-bolt"
             },
-             {
+            {
                 name: "Tariff",
                 path: "/dashboard/tariff",
                 icon: "fas fa-file-invoice"
             },
 
-           
+
         ]
     }
 
@@ -515,6 +515,9 @@ export const teacherMenu: MenuItem[] = [
         ]
     },
 
+    { name: 'Announcement', path: "/dashboard/announcement", icon: 'fas fa-bullhorn' },
+
+
     {
         name: "Student Management",
         path: "#",
@@ -660,7 +663,7 @@ export const getParentMenu = ({ studentId, classId, sectionId, academicYear }: P
             path: '#', // Acts as a toggle/wrapper, not a direct link
             icon: 'fas fa-book-open',
             subMenu: [
-                { name: 'Announcements', path: "/dashboard/student/announcement", icon: 'fas fa-bullhorn' },
+                // { name: 'Announcements', path: "/dashboard/student/announcement", icon: 'fas fa-bullhorn' },
                 { name: 'Homework Submissions', path: `/dashboard/student/homework-submission${queryStr}`, icon: 'fas fa-check-circle' },
                 { name: 'Attendance', path: `/dashboard/student/attendace/${studentId}`, icon: 'fas fa-clipboard' },
                 { name: 'Mark Report', path: `/dashboard/student/markreport/${studentId}${markReportQuery}`, icon: 'fas fa-file-invoice' },
@@ -669,6 +672,8 @@ export const getParentMenu = ({ studentId, classId, sectionId, academicYear }: P
 
         // { name: 'Student Profile', path: `/dashboard/student/record-profile/${studentId}`, icon: 'fas fa-user-group' },
         { name: 'Student Profile', path: `/dashboard/student/main-profile/${studentId}`, icon: 'fas fa-user-group' },
+        { name: 'Announcements', path: "/dashboard/student/announcement", icon: 'fas fa-bullhorn' },
+
         // --- Grouped Academics Menu ---
         // { name: 'Annoucement', path: "/dashboard/student/announcement", icon: 'fas fa-bullhorn' },
         // { name: 'My Homework Submissions', path: `/dashboard/student/homework-submission${queryStr}`, icon: 'fas fa-check-circle' },

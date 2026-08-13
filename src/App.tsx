@@ -20,7 +20,7 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
-const PremisesSingle = lazy(() => import( './pages/eb_pages/premises_pages/PremisesSingle'));
+const PremisesSingle = lazy(() => import('./pages/eb_pages/premises_pages/PremisesSingle'));
 const PremiseMain = lazy(() => import('./pages/eb_pages/premises_pages/PremiseMain'));
 const EbLogMain = lazy(() => import('./pages/eb_pages/EbLogMain'));
 const EbDashboardMain = lazy(() => import('./pages/eb_pages/dashboards/EbDashboardMain'));
@@ -363,6 +363,11 @@ function App() {
                     <Route path="single/:id" element={<MarkReportConfig />} />
                     <Route path="create" element={<MarkReportConfig />} />
                   </Route>
+
+                  <Route path="announcement" element={<AnnouncementMain />}>
+                    <Route path="single/:id" element={<AnnouncementConfig />} />
+                    <Route path="create" element={<AnnouncementConfig />} />
+                  </Route>
                 </Route>
 
 
@@ -382,11 +387,11 @@ function App() {
                   <Route path="audit" element={<AuditMain />} />
                   <Route path="delete-archive" element={<DeleteArchiveMain />} />
 
-
+{/* 
                   <Route path="announcement" element={<AnnouncementMain />}>
                     <Route path="single/:id" element={<AnnouncementConfig />} />
                     <Route path="create" element={<AnnouncementConfig />} />
-                  </Route>
+                  </Route> */}
 
                   <Route path="driver" element={<DriverMain />}>
                     <Route path="single/:id" element={<DriverSingle />} />
