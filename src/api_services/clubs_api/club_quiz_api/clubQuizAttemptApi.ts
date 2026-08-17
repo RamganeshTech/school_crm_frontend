@@ -15,6 +15,7 @@ export interface StudentAnswerPayload {
 export interface CreateQuizAttemptPayload {
     quizId: string;
     classId?: string;
+    studentId: string
     sectionId?: string;
     academicYear?: string;
     studentAnswers: StudentAnswerPayload[];

@@ -5,6 +5,7 @@ import { useCreateQuizAttempt } from '../../../api_services/clubs_api/club_quiz_
 import { toast } from '../../../shared/ui/ToastContext';
 import { Button } from '../../../shared/ui/Button';
 import { useRoleCheck } from '../../../hooks/useRoleCheck';
+import { useCurrentStudent } from '../../../hooks/useCurrentStudent';
 
 const ClubQuizAttempt: React.FC = () => {
     const { id: clubId, quizId } = useParams<{ id: string; quizId: string }>();
@@ -13,6 +14,8 @@ const ClubQuizAttempt: React.FC = () => {
 
 
     const { isCorrespondent, isAdmin, isTeacher , isParent} = useRoleCheck()
+
+    const { studentId} = useCurrentStudent()
 
     // const canDelete = isAdmin || isCorrespondent
     const canCreate = isAdmin || isCorrespondent || isTeacher || isParent
@@ -38,6 +41,12 @@ const ClubQuizAttempt: React.FC = () => {
     const handleSubmit = async () => {
         if (!quiz || !quiz.questions) return;
 
+
+        if(!studentId){
+            toast.warning("please login as parent and select a particular student and try submitting the quiz")
+            return;
+        }
+
         const totalQuestions = quiz.questions.length;
         const answeredCount = Object.keys(answers).length;
 
@@ -57,6 +66,7 @@ const ClubQuizAttempt: React.FC = () => {
 
             const res = await submitAttemptMutation.mutateAsync({
                 quizId: quizId!,
+                studentId: studentId!,
                 studentAnswers
             });
 
