@@ -100,7 +100,7 @@ export const useGetSingleAdmissionForm = ({ formId, studentId = undefined }: { f
         queryKey: ['singleAdmissionForm', formId, studentId],
         queryFn: async () => {
             try {
-                checkPermission(currentRole, ["correspondent", "administrator", "principal"]);
+                checkPermission(currentRole, ["correspondent", "administrator", "principal", "parent"]);
 
 
                 // const params = new URLSearchParams({
