@@ -12,6 +12,7 @@ import { Input, Label } from '../../../shared/ui/Input';
 import { TableContainer, THead, Th, TBody, Tr, Td } from '../../../shared/ui/TableLayout';
 import { SearchSelect, type SelectOption } from '../../../shared/ui/SearchSelect';
 import {
+    useExportStudentRecords,
     // useGetAllStudentRecords,
     // useDeleteStudentRecord,
     useGetAllStudentRecordsV1
@@ -20,6 +21,8 @@ import { useGetSchoolById } from '../../../api_services/schoolConfig_api/schoola
 import { getAcademicYears } from '../../../utils/utils';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthData } from '../../../hooks/useAuthData';
+import { toast } from '../../../shared/ui/ToastContext';
+import { useRoleCheck } from '../../../hooks/useRoleCheck';
 // import { useRoleCheck } from '../../../hooks/useRoleCheck';
 // import { toast } from '../../../shared/ui/ToastContext';
 // import { useGetAllStudents } from '../../../api_services/student_api/studentMainApi';
@@ -42,6 +45,10 @@ export default function StudentRecordMain() {
     // --- Search & Filters State ---
     const [searchInput, setSearchInput] = useState('');
     const debouncedSearch = useDebounce(searchInput, 500);
+
+        const {  isPrincipal, isVicePrincipal, isCorrespondent, isAdmin, isAccountant } = useRoleCheck()
+    
+    const canExport = isPrincipal || isVicePrincipal || isCorrespondent || isAdmin || isAccountant
 
     // const canDeleteStudentRecord = isCorrespondent;
 
@@ -70,6 +77,9 @@ export default function StudentRecordMain() {
         schoolId: schoolId!,
         classId: filters.classId
     });
+
+    const exportRecordsMutation = useExportStudentRecords();
+
 
     // Strip out empty string filters before sending to API to avoid backend type errors
     const activeFilters = Object.fromEntries(
@@ -176,6 +186,27 @@ export default function StudentRecordMain() {
     const classOptions: SelectOption[] = classesData?.map((cls: any) => ({ label: cls.name, value: cls._id })) || [];
     const sectionOptions: SelectOption[] = sectionsData?.map((sec: any) => ({ label: sec.name, value: sec._id })) || [];
 
+
+
+    const handleExport = async () => {
+        try {
+            await exportRecordsMutation.mutateAsync({
+                schoolId,
+                academicYear: filters.academicYear,
+                classId: filters.classId,
+                sectionId: filters.sectionId,
+                search: searchInput,
+                feeStatus: filters.feeStatus,
+                hasConcession: filters.hasConcession,
+            });
+
+            toast.success("Exported Successfully!");
+
+        } catch (error: any) {
+            toast.error(error.message || "Failed to export student records");
+        }
+    };
+
     // ADD THESE NEW ARRAYS:
     // const statusOptions: SelectOption[] = [
     //     { label: 'All Statuses', value: '' },
@@ -207,19 +238,6 @@ export default function StudentRecordMain() {
 
     return (
         <div className="w-full h-full flex flex-col p-2 space-y-4 overflow-hidden">
-
-
-
-            {/* <div>
-                    <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-                        <i className="fas fa-file-invoice text-primary"></i>
-                        Student Academic & Financial Records
-                    </h1>
-                    <p className="text-sm text-muted mt-1">Manage academic years, fees, and active status.</p>
-                </div>
-            </div> */}
-
-
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 px-2">
                 <div>
                     <h1 className="text-xl lg:text-2xl font-bold text-foreground flex items-center gap-3">
@@ -230,15 +248,45 @@ export default function StudentRecordMain() {
                 </div>
 
                 {/* NEW: Mobile Filter Toggle Button */}
-                <div className="w-full sm:w-auto lg:hidden">
-                    <Button
-                        variant="outline"
-                        className="w-full justify-center"
-                        leftIcon="fas fa-filter"
-                        onClick={() => setIsMobileFilterOpen(true)}
-                    >
-                        Filters
-                    </Button>
+                <div className='flex gap-2 justify-between items-center w-full sm:w-auto'>
+
+                    {/* <div className="w-full sm:w-auto lg:hidden">
+                        <Button
+                            variant="outline"
+                            className="w-full justify-center"
+                            leftIcon="fas fa-filter"
+                            onClick={() => setIsMobileFilterOpen(true)}
+                        >
+                            Filters
+                        </Button>
+                    </div> */}
+
+                    <div className="w-full sm:w-auto  hidden">
+                       {canExport && <Button
+                            onClick={handleExport}
+                            leftIcon={exportRecordsMutation.isPending ? "fas fa-spinner fa-spin" : "fas fa-file-excel"}
+                            variant="outline"
+                            className="w-full justify-center"
+                            disabled={exportRecordsMutation.isPending}
+                        >
+                            <span className='hidden md:block'>
+                                {exportRecordsMutation.isPending ? "Exporting..." : "Export Excel"}
+                            </span>
+                            <span className='block md:hidden'>Export</span>
+                        </Button>}
+                    </div>
+
+                    {/* Mobile Filter Toggle */}
+                    <div className="w-full sm:w-auto lg:hidden">
+                        <Button
+                            variant="outline"
+                            className="w-full justify-center"
+                            leftIcon="fas fa-filter"
+                            onClick={() => setIsMobileFilterOpen(true)}
+                        >
+                            Filters
+                        </Button>
+                    </div>
                 </div>
             </div>
 
@@ -306,8 +354,8 @@ export default function StudentRecordMain() {
                                             type="button"
                                             onClick={() => handleFilterChange('feeStatus', String(option.value))}
                                             className={`cursor-pointer px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 border ${isSelected
-                                                    ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm' // Active State
-                                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' // Inactive State
+                                                ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm' // Active State
+                                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' // Inactive State
                                                 }`}
                                         >
                                             {option.label}

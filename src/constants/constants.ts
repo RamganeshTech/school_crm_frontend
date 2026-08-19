@@ -550,6 +550,13 @@ export const teacherMenu: MenuItem[] = [
     },
 
 
+    {
+        name: "TimeTable",
+        path: "/dashboard/timetable",
+        icon: "fas fa-table"
+    },
+
+
 
     {
         name: "Classroom Management",
@@ -673,6 +680,7 @@ export const getParentMenu = ({ studentId, classId, sectionId, academicYear }: P
         // { name: 'Student Profile', path: `/dashboard/student/record-profile/${studentId}`, icon: 'fas fa-user-group' },
         { name: 'Student Profile', path: `/dashboard/student/main-profile/${studentId}`, icon: 'fas fa-user-group' },
         { name: 'Announcements', path: "/dashboard/student/announcement", icon: 'fas fa-bullhorn' },
+        { name: 'Time Table', path: "/dashboard/student/timetable", icon: 'fas fa-table' },
 
         // --- Grouped Academics Menu ---
         // { name: 'Annoucement', path: "/dashboard/student/announcement", icon: 'fas fa-bullhorn' },

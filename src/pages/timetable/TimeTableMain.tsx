@@ -9,6 +9,8 @@ import { SideModal } from '../../shared/ui/SideModal';
 import { Input, Label } from '../../shared/ui/Input';
 import { toast } from '../../shared/ui/ToastContext';
 import { useRoleCheck } from '../../hooks/useRoleCheck';
+import { useCurrentStudent } from '../../hooks/useCurrentStudent';
+import InfoTooltip from '../../shared/ui/InfoToolTip';
 
 const DAYS_OF_WEEK = [
     { label: 'Monday', value: 'monday' },
@@ -22,13 +24,15 @@ const DAYS_OF_WEEK = [
 export default function TimeTableMain() {
     const { schoolId } = useAuthData();
 
-    const {isCorrespondent, isAdmin} = useRoleCheck()
+    const { isCorrespondent, isAdmin, isParent, isTeacher } = useRoleCheck()
+
+    const { classId, sectionId } = useCurrentStudent()
 
     const canModify = isCorrespondent || isAdmin
-    
+
     // --- State: Selections ---
-    const [selectedClassId, setSelectedClassId] = useState<string>('');
-    const [selectedSectionId, setSelectedSectionId] = useState<string>('');
+    const [selectedClassId, setSelectedClassId] = useState<string>(classId || '');
+    const [selectedSectionId, setSelectedSectionId] = useState<string>(sectionId || '');
     const [dayToAdd, setDayToAdd] = useState<string>('');
 
     // --- State: Modals ---
@@ -220,13 +224,19 @@ export default function TimeTableMain() {
                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                         <i className="fas fa-calendar-alt text-primary"></i>
                         Class Timetable
+
+                        {(!canModify && !isParent) && 
+                        <div className='block md:hidden'>
+                            <InfoTooltip  description='only admin can modify the time table data' /> 
+                            </div>}
+
                     </h1>
                     <p className="text-sm text-muted mt-1">Select a class to view and manage its weekly schedule.</p>
                 </div>
 
                 {/* Selectors */}
                 <div className="flex flex-col sm:flex-row items-center gap-4">
-                    <div className="w-full sm:w-64">
+                    {!isParent && <div className="w-full sm:w-64">
                         <SearchSelect
                             label="Select Class"
                             placeholder="Choose Class..."
@@ -234,9 +244,9 @@ export default function TimeTableMain() {
                             value={selectedClassId}
                             onChange={handleClassChange}
                         />
-                    </div>
+                    </div>}
 
-                    {selectedClass?.hasSections && (
+                    {(!isParent && selectedClass?.hasSections) && (
                         <div className="w-full sm:w-64 animate-in fade-in">
                             <SearchSelect
                                 label="Select Section"
@@ -277,6 +287,8 @@ export default function TimeTableMain() {
                             </div>
                         </>
                     )}
+
+                    {(!canModify && !isParent) && <div className='hidden md:block'><InfoTooltip className='mt-6' description='only admin can modify the time table' /> </div>}
 
                 </div>
             </header>
@@ -328,9 +340,9 @@ export default function TimeTableMain() {
                                         })}
 
                                         {/* Actions Header */}
-                                        <th className="px-4 py-3 bg-primary-soft border-b border-border text-center w-24">
+                                        {(!isParent && !isTeacher) && <th className="px-4 py-3 bg-primary-soft border-b border-border text-center w-24">
                                             <span className="font-bold text-foreground uppercase tracking-wider text-xs">Actions</span>
-                                        </th>
+                                        </th>}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -338,10 +350,10 @@ export default function TimeTableMain() {
                                         <tr key={daySchedule._id} className="group">
 
                                             {/* Row Header: Day Name (Sticky Left) */}
-                                           <td className="px-4 py-4 bg-border-soft text-foreground border-r border-b border-border font-bold  capitalize sticky left-0 z-10 shadow-[1px_0_0_0_#e2e8f0]">
+                                            <td className="px-4 py-4 bg-border-soft text-foreground border-r border-b border-border font-bold  capitalize sticky left-0 z-10 shadow-[1px_0_0_0_#e2e8f0]">
                                                 <div className="flex items-center justify-between gap-2">
                                                     <span>{daySchedule.day}</span>
-                                                     {canModify && <button
+                                                    {canModify && <button
                                                         onClick={() => handleDeleteDay(daySchedule._id!)}
                                                         className="text-danger cursor-pointer hover:text-danger hover:bg-danger/10 p-1.5 rounded-full transition-colors shrink-0"
                                                         title="Delete Day"
@@ -355,8 +367,8 @@ export default function TimeTableMain() {
                                             {daySchedule.periods.map((period: any) => (
                                                 <td
                                                     key={period._id}
-                                                    onClick={() => openEditPeriodModal(daySchedule.day, daySchedule._id!, period)}
-                                                    className={`px-4 py-3 border-r border-b border-border align-top transition-colors cursor-pointer group/cell ${period.isBreak ? 'bg-background hover:bg-surface' : 'bg-surface hover:bg-primary/5'
+                                                    onClick={() => (!isParent && !isTeacher) ? openEditPeriodModal(daySchedule.day, daySchedule._id!, period) : null}
+                                                    className={`px-4 py-3 border-r border-b border-border align-top transition-colors ${!isParent ? "cursor-pointer" : "cursor-default"} group/cell ${period.isBreak ? 'bg-background hover:bg-surface' : 'bg-surface hover:bg-primary/5'
                                                         }`}
                                                 >
                                                     <div className="flex flex-col h-full justify-center">
@@ -369,9 +381,9 @@ export default function TimeTableMain() {
                                                                 <div className="font-bold text-foreground truncate text-sm flex items-center justify-between">
                                                                     {period.subjectName || 'No Subject'}
                                                                     {/* <i className="fas fa-pen text-[10px] text-muted opacity-0 group-hover/cell:opacity-100 transition-opacity"></i> */}
-                                                                    <i className="fas fa-pen text-[10px] text-muted"></i>
+                                                                    {(!isParent && !isTeacher) && <i className="fas fa-pen text-[10px] text-muted"></i>}
                                                                 </div>
-                                                                {period.teacherId && (
+                                                                {(!isParent && period.teacherId) && (
                                                                     <div className="text-xs text-muted mt-1 truncate">
                                                                         {teachersData?.find((t: any) => t._id === period.teacherId)?.userName || 'Teacher Assigned'}
                                                                     </div>
@@ -395,7 +407,7 @@ export default function TimeTableMain() {
                                             ))}
 
                                             {/* Add Period Action Cell */}
-                                            <td className="px-4 py-3 border-b border-border text-center align-middle bg-surface">
+                                            {(!isParent && !isTeacher) && <td className="px-4 py-3 border-b border-border text-center align-middle bg-surface">
                                                 <button
                                                     onClick={() => openAddPeriodModal(daySchedule.day, daySchedule._id!, daySchedule.periods.length + 1)}
                                                     className="w-8 h-8 cursor-pointer rounded-full border border-dashed border-primary text-primary hover:bg-primary hover:text-surface transition-colors mx-auto flex items-center justify-center"
@@ -403,7 +415,7 @@ export default function TimeTableMain() {
                                                 >
                                                     <i className="fas fa-plus text-sm"></i>
                                                 </button>
-                                            </td>
+                                            </td>}
                                         </tr>
                                     ))}
                                 </tbody>
@@ -492,7 +504,7 @@ export default function TimeTableMain() {
                                 </Button>
                             ) : <div></div>}
 
-                           {canModify && <div className="flex gap-2">
+                            {canModify && <div className="flex gap-2">
                                 <Button variant="outline" onClick={() => setIsPeriodModalOpen(false)}>Cancel</Button>
                                 <Button variant="primary" onClick={handleSavePeriod} isLoading={upsertPeriodMutation.isPending} leftIcon="fas fa-save">
                                     Save

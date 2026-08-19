@@ -223,6 +223,7 @@ function App() {
                   <Route path="student/attendance/:studentId" element={<AttendanceSingleStudent />} />
 
                   <Route path="student/homework-submission" element={<HomeworkSubmissionMain />} />
+                  <Route path="student/timetable" element={<TimeTableMain />} />
 
                   <Route path="student/announcement" element={<AnnouncementParentMain />} />
                   <Route path="student/pending-task" element={<PendingTaskListMain />} />
@@ -357,6 +358,9 @@ function App() {
                   <Route path="homework" element={<HomeworkMain />} />
                   <Route path="homework-submission" element={<HomeworkSubmissionMain />} />
 
+                  <Route path="timetable" element={<TimeTableMain />} />
+
+
                   <Route path="teacher-assignment" element={<TeacherAssignmentMain />}>
                     <Route path="single/:id" element={<TeacherAssignmentSingle />} />
                   </Route>
@@ -386,11 +390,10 @@ function App() {
 
                   </Route> {/* Current school settings */}
 
-                  <Route path="timetable" element={<TimeTableMain />} />
                   <Route path="audit" element={<AuditMain />} />
                   <Route path="delete-archive" element={<DeleteArchiveMain />} />
 
-{/* 
+                  {/* 
                   <Route path="announcement" element={<AnnouncementMain />}>
                     <Route path="single/:id" element={<AnnouncementConfig />} />
                     <Route path="create" element={<AnnouncementConfig />} />

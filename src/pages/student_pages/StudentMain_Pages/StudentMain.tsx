@@ -14,7 +14,8 @@ import {
     useGetAllStudents,
     useDeleteStudent,
     useCreateStudent,
-    useUpdateStudent
+    useUpdateStudent,
+    useExportStudents
 } from '../../../api_services/student_api/studentMainApi';
 import { useGetClasses } from '../../../api_services/schoolConfig_api/classApi';
 import { useGetSections } from '../../../api_services/schoolConfig_api/sectionApi'; // Adjust path as needed
@@ -76,10 +77,11 @@ export default function StudentMain() {
         classId: filters.classId
     });
 
-    const { isParent, isPrincipal, isVicePrincipal, isCorrespondent, isAdmin, isTeacher } = useRoleCheck()
+    const { isParent, isPrincipal, isVicePrincipal, isCorrespondent, isAdmin, isTeacher, isAccountant } = useRoleCheck()
     const canCreate = !isParent && !isVicePrincipal
     const canDelete = isCorrespondent || isAdmin || isTeacher || isPrincipal
     const canEdit = !isVicePrincipal
+    const canExport = isPrincipal || isVicePrincipal || isCorrespondent || isAdmin || isAccountant
 
     // const { data, isLoading, isError, refetch } = useGetAllStudents({
     //     schoolId: schoolId!,
@@ -105,6 +107,8 @@ export default function StudentMain() {
     const createStudentMutation = useCreateStudent();
     const updateStudentMutation = useUpdateStudent();
     const deleteStudentMutation = useDeleteStudent();
+    const exportStudentsMutation = useExportStudents();
+
 
     // --- Data Processing ---
     // const students = Array.isArray(data) ? data : data?.data || [];
@@ -139,7 +143,7 @@ export default function StudentMain() {
         }
     };
 
-    
+
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchInput(e.target.value);
     };
@@ -296,6 +300,32 @@ export default function StudentMain() {
     };
 
 
+
+    const handleExport = async () => {
+        try {
+            await exportStudentsMutation.mutateAsync({
+                schoolId,
+                classId: filters.classId,
+                sectionId: filters.sectionId,
+                search: searchInput,
+                // isActive: filters.isActive,
+                newOld: filters.newOld,
+                gender: filters.gender,
+                bloodGroup: filters.bloodGroup,
+                admissionNumber: filters.admissionNumber,
+                admissionDate: filters.admissionDate,
+                rollNumber: filters.rollNumber,
+                mobileNumber: filters.mobileNumber,
+            });
+
+            toast.success("Exported Successfully!");
+
+        } catch (error: any) {
+            toast.error(error.message || "Failed to export students");
+        }
+    };
+
+
     const isChild = location.pathname.includes("profile")
     if (isChild) {
         return <Outlet />
@@ -358,6 +388,20 @@ export default function StudentMain() {
                             <span className='block md:hidden'> Create</span>
                         </Button>
                     </div>}
+
+                    <div className="block hidden">
+                       {canExport && <Button
+                            onClick={handleExport}
+                            leftIcon={"fas fa-file-excel"}
+                            variant="outline"
+                            isLoading={exportStudentsMutation.isPending}
+                        >
+                            <span className='hidden md:block'>
+                                {exportStudentsMutation.isPending ? "Exporting..." : "Export Excel"}
+                            </span>
+                            <span className='block md:hidden'>Export</span>
+                        </Button>}
+                    </div>
                 </div>
             </div>
 

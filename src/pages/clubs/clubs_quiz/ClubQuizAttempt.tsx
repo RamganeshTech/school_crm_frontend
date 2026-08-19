@@ -134,7 +134,7 @@ const ClubQuizAttempt: React.FC = () => {
                         </div>
                     </div>
 
-                    <Button variant="primary" className="w-full" onClick={() => navigate(`/club/single/${clubId}/quiz`)}>
+                    <Button variant="primary" className="w-full" onClick={() => navigate(-1)}>
                         Return to Quizzes
                     </Button>
                 </div>

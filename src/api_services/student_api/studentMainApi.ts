@@ -406,3 +406,65 @@ export const useRemoveStudentFromParent = () => {
     },
   });
 };
+
+
+// ==========================================
+// EXPORT STUDENTS (Student Master List)
+// ==========================================
+export const useExportStudents = () => {
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async (filters: Record<string, any>) => {
+      try {
+        checkPermission(currentRole, ["correspondent", "administrator", "accountant"]);
+
+        const params = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            params.append(key, String(value));
+          }
+        });
+
+        const response = await Api.get(`/api/student/v1/export?${params.toString()}`, {
+          responseType: "blob",
+        });
+
+        // Pull filename from Content-Disposition header, fallback if missing
+        const disposition = response.headers["content-disposition"];
+        const match = disposition?.match(/filename="?([^"]+)"?/);
+        const fileName = match?.[1] || `students_${Date.now()}.xlsx`;
+
+        const blob = new Blob([response.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        return { ok: true, fileName };
+      } catch (error: any) {
+        // Blob error responses need to be read as text before you can parse them
+        let errorMessage = "Failed to export students";
+        if (error.response?.data instanceof Blob) {
+          try {
+            const text = await error.response.data.text();
+            const parsed = JSON.parse(text);
+            errorMessage = parsed.message || errorMessage;
+          } catch {
+            // fall through to default message
+          }
+        } else {
+          errorMessage = error.response?.data?.message || error.message || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+    },
+  });
+};
+
