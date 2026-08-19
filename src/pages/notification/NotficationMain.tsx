@@ -25,6 +25,10 @@ export default function NotificationMain() {
    // ADD THIS: Filter notifications based on active student context
     // --- UNIFIED FILTERING: Announcements, Homework, and Attendance ---
     const filteredNotifications = notifications.filter((notif: any) => {
+
+            // if (notif.isRead) return false;
+ 
+
         // 1. STAFF BYPASS: Let the backend handle staff visibility
         if (currentRole !== 'parent') return true;
 

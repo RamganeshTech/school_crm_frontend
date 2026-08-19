@@ -611,7 +611,7 @@ export const cashierMenu: MenuItem[] = [
 export const getParentInitialMenu = (): MenuItem[] => [
     {
         name: "Parent Profile",
-        path: "/dashboard/parent/profile",
+        path: "/dashboard/profile",
         icon: "fas fa-user",
     },
     {
@@ -662,7 +662,7 @@ export const getParentMenu = ({ studentId, classId, sectionId, academicYear }: P
 
     return [
         { name: 'Profile Selection', path: "/dashboard/profile-selection", icon: 'fas fa-user-group' },
-        { name: 'Parent Profile', path: `/dashboard/parent/profile`, icon: 'fas fa-user' },
+        { name: 'Parent Profile', path: `/dashboard/profile`, icon: 'fas fa-user' },
         { name: 'Clubs', path: "/dashboard/student/club", icon: 'fas fa-layer-group' },
 
         {

@@ -27,12 +27,13 @@ export default function MarkReportConfig() {
     // --- Queries & Mutations ---
     const { data: schoolData } = useGetSchoolById(schoolId!);
     const currentAcademicYear = schoolData?.currentAcademicYear || "";
-    const { isCorrespondent, isAdmin, isTeacher } = useRoleCheck();
+    const { isCorrespondent, isAdmin, isTeacher , isParent } = useRoleCheck();
 
     const canModify = isCorrespondent || isAdmin || isTeacher
 
+    
     // 1. Security & Permissions
-    const isRestrictedRole = ['parent'].includes(currentRole || '');
+    const isRestrictedRole = [''].includes(currentRole || '');
     const isEditable = canModify; // Admins, Correspondents, Principals, Teachers can edit
 
     // 2. Local Mode State 
@@ -49,24 +50,6 @@ export default function MarkReportConfig() {
 
     const markReport = reportPayload?.data || null;
     const isNewReport = reportPayload?.isNew || false;
-
-    //  useEffect(() => {
-    //     // if (isNewReport) {
-    //     if (isNewReport && isRestrictedRole) {
-    //         setMode('create');
-    //     } else if (!isNewReport && markReport) {
-    //         setMode('view');
-    //     }
-    // }, [isNewReport, markReport]);
-
-    //  useEffect(() => {
-    //     if (!isNewReport && isRestrictedRole) {
-    //         // Redirect back to the main list if they try to manually enter the creation URL
-    //         navigate('/dashboard/markreport', { replace: true });
-    //     }
-    // }, [isNewReport, isRestrictedRole, navigate]);
-
-
     // --- UNIFIED MODE & PERMISSION HANDLER ---
     useEffect(() => {
         // 1. DO NOTHING if the API is still loading. This prevents the instant-redirect bug!
@@ -88,7 +71,12 @@ export default function MarkReportConfig() {
             // STAFF LOGIC
             if (isNewReport) {
                 // Staff viewing an empty record should be put into create mode
-                setMode('create');
+                if(isParent){
+                    setMode("view")
+                }
+                else {
+                    setMode('create');
+                }
             } else if (markReport) {
                 // Staff viewing an existing record
                 setMode('view');

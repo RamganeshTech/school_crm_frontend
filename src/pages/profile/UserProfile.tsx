@@ -147,6 +147,8 @@ export default function UserProfile() {
             ? [user?.studentId]
             : [];
 
+
+    console.log("student.currentClassId", students)
     // --- Handlers ---
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, id, value } = e.target;

@@ -215,7 +215,7 @@ function App() {
                   {/* before student selection */}
                   <Route path="profile-selection" element={<ParentProfileSelection />} />
 
-                  <Route path="parent/profile" element={<UserProfile />} />
+                  <Route path="profile" element={<UserProfile />} />
                   <Route path="student/main-profile/:id" element={<StudentSingle />} >
                     <Route path="fee-transaction" element={<FeeTransactionMain />} />
                   </Route>

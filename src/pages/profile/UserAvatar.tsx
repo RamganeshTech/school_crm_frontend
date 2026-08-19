@@ -12,7 +12,7 @@ export const UserAvatar = () => {
   const handleClick = () => {
 
     if(currentRole === "parent"){
-      return navigate('/dashboard/profile-selection/parent/profile')
+      return navigate('/dashboard/profile')
     }
     else {
       return navigate('/dashboard/profile')
