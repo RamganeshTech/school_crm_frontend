@@ -245,14 +245,14 @@ export default function ExpenseMain() {
                 {/* MOBILE OVERLAY: Darkens background when drawer is open */}
                 {isMobileFilterOpen && (
                     <div
-                        className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+                        className="fixed inset-0 bg-black/40 z-30 lg:hidden backdrop-blur-sm transition-opacity"
                         onClick={() => setIsMobileFilterOpen(false)}
                     />
                 )}
 
                 {/* 30% LEFT: FILTERS PANE (Drawer on Mobile, Static on Desktop) */}
                 <aside className={`
-                    fixed inset-y-0 left-0 z-50 w-[280px] bg-surface p-4 flex flex-col gap-6 shadow-2xl transition-transform duration-300 ease-in-out
+                    fixed inset-y-0 left-0 z-31 w-[280px] bg-surface p-4 flex flex-col gap-6 shadow-2xl transition-transform duration-300 ease-in-out
                     lg:static lg:w-[20%] lg:shrink-0 lg:border-r lg:border-border lg:bg-surface/50 lg:p-3 lg:shadow-none lg:translate-x-0
                     ${isMobileFilterOpen ? 'translate-x-0' : '-translate-x-full'}
                     overflow-y-auto custom-scrollbar

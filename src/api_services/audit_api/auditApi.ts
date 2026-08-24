@@ -41,6 +41,7 @@ export interface GetAllAuditLogsParams {
     module?: string;
     action?: string;
     role?: string;
+    search?: string;
     userId?: string;
     fromDate?: string;
     toDate?: string;

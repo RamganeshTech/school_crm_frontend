@@ -9,6 +9,7 @@ import { Button } from '../../shared/ui/Button';
 import { SearchSelect } from '../../shared/ui/SearchSelect';
 import { TableContainer, THead, Th, TBody, Tr, Td } from '../../shared/ui/TableLayout';
 import { SideModal } from '../../shared/ui/SideModal';
+import useDebounce from '../../hooks/useDebounce';
 
 // --- Filter Options ---
 const MODULE_OPTIONS = [
@@ -47,9 +48,13 @@ export default function AuditMain() {
         module: '',
         action: '',
         role: '',
+        status: '',
+        search: '',
         fromDate: '',
         toDate: '',
     });
+
+    const debouncedSearch = useDebounce(filters.search, 500);
 
     // --- State: Modal & Selected ID ---
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -69,6 +74,8 @@ export default function AuditMain() {
         module: filters.module || undefined,
         action: filters.action || undefined,
         role: filters.role || undefined,
+        // status: filters.status || undefined,
+        search: debouncedSearch || undefined,
         fromDate: filters.fromDate || undefined,
         toDate: filters.toDate || undefined,
     });
@@ -176,6 +183,18 @@ export default function AuditMain() {
                     </div>
 
                     <div className="space-y-3">
+
+                        <div className="flex flex-col gap-1.5">
+                            <Label>Search</Label>
+                            <Input
+                                id="search"
+                                type="text"
+                                placeholder="Search description or user..."
+                                value={filters.search}
+                                onChange={(e) => handleFilterChange('search', e.target.value)}
+                            />
+                        </div>
+
                         <div className="flex flex-col gap-1.5">
                             <Label>Module</Label>
                             <SearchSelect
@@ -224,7 +243,8 @@ export default function AuditMain() {
                         <Button
                             variant="outline"
                             className="w-full mt-2"
-                            onClick={() => setFilters({ module: '', action: '', role: '', fromDate: '', toDate: '' })}
+                            // onClick={() => setFilters({ module: '', action: '', role: '', fromDate: '', toDate: '' })}
+                            onClick={() => setFilters({ module: '', action: '', role: '', status: '', search: '', fromDate: '', toDate: '' })}
                         >
                             Reset Filters
                         </Button>
@@ -339,16 +359,16 @@ export default function AuditMain() {
 
                             {/* Meta Banner */}
                             <div className={`p-4 rounded-xl border flex items-center justify-between ${singleLogData.status === 'success'
-                                    ? 'bg-success/5 border-success/20'
-                                    : 'bg-danger/5 border-danger/20'
+                                ? 'bg-success/5 border-success/20'
+                                : 'bg-danger/5 border-danger/20'
                                 }`}>
                                 <div>
                                     <h3 className="text-sm font-bold text-foreground capitalize">{singleLogData.module?.replace(/_/g, ' ')} Module</h3>
                                     <p className="text-xs text-muted mt-1 uppercase tracking-wider">{singleLogData.action} Action</p>
                                 </div>
                                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border ${singleLogData.status === 'success'
-                                        ? 'bg-success/10 text-success border-success/20'
-                                        : 'bg-danger/10 text-danger border-danger/20'
+                                    ? 'bg-success/10 text-success border-success/20'
+                                    : 'bg-danger/10 text-danger border-danger/20'
                                     }`}>
                                     {singleLogData.status}
                                 </span>
@@ -369,20 +389,20 @@ export default function AuditMain() {
                                             {singleLogData.ipAddress || 'Unknown'}
                                         </p>
                                     </div>
-                                    <div className="p-4 col-span-2">
+                                    {/* <div className="p-4 col-span-2">
                                         <p className="text-[10px] font-bold text-muted uppercase tracking-wider mb-1">System Record ID (Log)</p>
                                         <p className="text-xs font-mono text-primary bg-primary-soft px-2 py-1 rounded w-fit border border-primary/10 select-all break-all">
                                             {singleLogData._id}
                                         </p>
-                                    </div>
-                                    {singleLogData.targetId && (
+                                    </div> */}
+                                    {/* {singleLogData.targetId && (
                                         <div className="p-4 col-span-2 bg-primary-soft/30">
                                             <p className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Target Document ID</p>
                                             <p className="text-xs font-mono text-foreground select-all break-all">
                                                 {singleLogData.targetId}
                                             </p>
                                         </div>
-                                    )}
+                                    )} */}
                                 </div>
                             </div>
 
@@ -398,12 +418,12 @@ export default function AuditMain() {
                                         <span className="text-[10px] text-muted uppercase tracking-wider block mb-1">Role</span>
                                         <span className="text-sm font-bold text-foreground capitalize">{singleLogData.role || 'N/A'}</span>
                                     </div>
-                                    {(singleLogData.userId as any)?._id && (
+                                    {/* {(singleLogData.userId as any)?._id && (
                                         <div className="col-span-2 pt-3 border-t border-border">
                                             <span className="text-[10px] text-muted uppercase tracking-wider block mb-1">User ID</span>
                                             <span className="text-xs font-mono text-muted select-all break-all">{(singleLogData.userId as any)._id}</span>
                                         </div>
-                                    )}
+                                    )} */}
                                 </div>
                             </div>
 

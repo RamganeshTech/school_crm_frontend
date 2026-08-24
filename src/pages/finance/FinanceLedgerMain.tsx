@@ -46,7 +46,7 @@ export default function FinanceLedgerMain() {
         transactionType: '',
         accountType: '',
         search: '',
-        academicYear: "",
+        academicYear: currentAcademicYear,
         status: 'active', // Default to active
         fromDate: '',
         toDate: '',
@@ -82,7 +82,7 @@ export default function FinanceLedgerMain() {
         isLoading: isListLoading
     } = useGetAllTransactionsInfinite({
         schoolId: schoolId!,
-        academicYear: currentAcademicYear || undefined,
+        academicYear: filters.academicYear || undefined,
         search: debouncedSearch || undefined, // 👈 NEW
         transactionType: filters.transactionType as any || undefined,
         accountType: filters.accountType as any || undefined,

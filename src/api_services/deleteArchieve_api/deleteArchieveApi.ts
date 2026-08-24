@@ -40,6 +40,9 @@ export interface IDeletedArchive {
 export interface GetAllArchiveParams {
     schoolId: string;
     category?: string;
+    search?: string;
+    fromDate?: string;
+    toDate?: string;
     page?: number;
     limit?: number;
 }
