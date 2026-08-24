@@ -1,18 +1,3 @@
-// import './App.css'
-// import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-
-
-// import LoginSelection from './Pages/LoginGroup/LoginSelection'
-// import React, { Suspense } from 'react';
-
-// import AdminLogin from './Pages/Admin/AdminLogin/AdminLogin';
-// import MainLoading from './components/MainLoading/MainLoading';
-// import SingleStudentProfile from './components/StudentProfile/SingleStudentProfile';
-// import AccountDeletion from './Pages/AccountDeletion/AccountDeletion';
-// import PrivacyPolicy from './Pages/PrivacyPolicy/PrivacyPolicy';
-// import Login from './pages/auth/Login';
-// import { ToastProvider } from './shared/ui/ToastContext';
-
 import { lazy, Suspense } from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { ToastContainer } from './shared/ui/ToastContext';
@@ -20,7 +5,7 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
-import NotificationMain from './pages/notification/NotficationMain';
+const NotificationMain  = lazy(() => import( './pages/notification/NotficationMain'));
 const PremisesSingle = lazy(() => import('./pages/eb_pages/premises_pages/PremisesSingle'));
 const PremiseMain = lazy(() => import('./pages/eb_pages/premises_pages/PremiseMain'));
 const EbLogMain = lazy(() => import('./pages/eb_pages/EbLogMain'));
@@ -99,22 +84,6 @@ const ResetPasswordMain = lazy(() => import('./pages/auth/ResetPasswordMain'));
 const StudentProfileUpdateMain = lazy(() => import('./pages/student_pages/StudentMain_Pages/StudentProfileUpdateMain'));
 const ClubQuizMain = lazy(() => import('./pages/clubs/clubs_quiz/ClubQuizMain'));
 const ClubQuizAttempt = lazy(() => import('./pages/clubs/clubs_quiz/ClubQuizAttempt'));
-// import PendingTasksList from './pages/pendingTask/PendingTasksList';
-
-// const AccountantPermission = React.lazy(() => import('./Pages/Admin/Reports/AccountantPermission/AccountantPermission'));
-// const Accountant = React.lazy(() => import('./Pages/Accountant/Accountant'));
-// const NotFound = React.lazy(() => import('./Pages/Not Found/NotFound'));
-// const AddDetail = React.lazy(() => import('./Pages/Accountant/AddDetails/AddDetail'));
-// const AdminHome = React.lazy(() => import('./Pages/Admin/AdminHome/AdminHome'));
-// const AdminStudent = React.lazy(() => import('./Pages/Admin/AdminStudent/AdminStudent'));
-// const AccountantLoginCreation = React.lazy(() => import('./Pages/Admin/AccountantLoginCreation/AccountantLoginCreation'));
-// const DeletedCredential = React.lazy(() => import('./Pages/Admin/DeletedLoginCredentials/DeletedCredential'));
-
-// const AdminNotification = React.lazy(() => import('./Pages/Admin/AdminNotification/AdminNotification'));
-
-// const ProtectedRoute = React.lazy(() => import('./components/ProtectedRoute/ProtectedRoute'));
-
-// const Reports = React.lazy(() => import('./Pages/Admin/Reports/Reports'))
 
 
 

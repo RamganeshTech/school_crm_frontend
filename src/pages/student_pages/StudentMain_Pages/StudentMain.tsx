@@ -390,7 +390,7 @@ export default function StudentMain() {
                     </div>}
 
                     <div className="block hidden">
-                       {canExport && <Button
+                        {canExport && <Button
                             onClick={handleExport}
                             leftIcon={"fas fa-file-excel"}
                             variant="outline"
@@ -410,12 +410,12 @@ export default function StudentMain() {
             <div className="flex-1 flex flex-col lg:flex-row gap-2 h-[calc(100%-80px)] relative">
                 {/* MOBILE OVERLAY */}
                 {isMobileFilterOpen && (
-                    <div className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity" onClick={() => setIsMobileFilterOpen(false)} />
+                    <div className="fixed inset-0 bg-black/40 z-30 lg:hidden backdrop-blur-sm transition-opacity" onClick={() => setIsMobileFilterOpen(false)} />
                 )}
 
 
                 <div className={`
-    fixed inset-y-0 left-0 z-30 w-[280px] bg-surface border border-border rounded-xl p-5 flex flex-col gap-5 shadow-2xl transition-transform duration-300 ease-in-out
+    fixed inset-y-0 left-0 z-31 w-[280px] bg-surface border border-border rounded-xl p-5 flex flex-col gap-5 shadow-2xl transition-transform duration-300 ease-in-out
     lg:static lg:w-[25%] lg:min-w-[250px] lg:shrink-0 lg:rounded-xl lg:shadow-sm lg:translate-x-0 lg:border
     ${isMobileFilterOpen ? 'translate-x-0' : '-translate-x-full'}
     overflow-y-auto custom-scrollbar

@@ -7,17 +7,6 @@ import { Button } from '../../../../shared/ui/Button';
 import { SideModal } from '../../../../shared/ui/SideModal';
 import type { RootState } from '../../../../features/store/store';
 
-// API Hooks (Adjust paths to match your project structure)
-// import { 
-//     useGetInfiniteAdmissionForms, 
-//     useGetSingleAdmissionForm 
-// } from '../../../api_services/schoolConfig_api/admission_api'; // Update path
-
-// // UI Components
-// import { Card, CardHeader, CardContent } from '../../../shared/ui/Card';
-// import { Button } from '../../../shared/ui/Button';
-// import { SideModal } from '../../../shared/ui/SideModal';
-
 interface AdmissionRecordMainProps {
     admissionBook: any;
     onBack: () => void;

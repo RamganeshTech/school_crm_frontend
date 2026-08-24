@@ -19,10 +19,55 @@ export interface BaseResponse<T = any> {
     };
 }
 
+// export interface ITransaction {
+//     _id: string;
+//     schoolId: string;
+//     academicYear: string;
+//     referenceNo: string
+//     transactionType: "CREDIT" | "DEBIT";
+//     accountType: "CASH_IN_HAND" | "BANK_ACCOUNT";
+//     amount: number;
+//     date: string;
+//     paymentMode: string;
+//     status: "active" | "cancelled";
+//     section?: string;
+//     referenceId?: any;
+//     feeReceiptId?: any;
+//     studentRecordId?: any;
+//     createdBy?: any;
+//     cancelledBy?: any;
+//     createdAt: string;
+//     updatedAt: string;
+// }
+
+
+export interface IUnifiedSourceDetails {
+    documentType: string | null;
+    documentNumber: string | null;
+    billNo: string | null;
+    date: string | null;
+    amount: number | null;
+    paymentMode: string | null;
+    remarks: string | null;
+    bankDetails: {
+        referenceNumber: string | null;
+        bankName: string | null;
+        date: string | null;
+    } | null;
+    attachments: Array<{
+        type: string;
+        key: string;
+        url: string;
+        originalName: string;
+        uploadedAt: string;
+    }>;
+}
+
 export interface ITransaction {
     _id: string;
     schoolId: string;
     academicYear: string;
+    referenceNo: string; // 👈 Kept as referenceNo to match your schema exactly
     transactionType: "CREDIT" | "DEBIT";
     accountType: "CASH_IN_HAND" | "BANK_ACCOUNT";
     amount: number;
@@ -33,6 +78,7 @@ export interface ITransaction {
     referenceId?: any;
     feeReceiptId?: any;
     studentRecordId?: any;
+    unifiedSourceDetails?: IUnifiedSourceDetails; // 👈 Added unified data structure
     createdBy?: any;
     cancelledBy?: any;
     createdAt: string;
@@ -45,6 +91,7 @@ export interface GetAllTransactionsParams {
     academicYear?: string;
     transactionType?: "CREDIT" | "DEBIT";
     accountType?: "CASH_IN_HAND" | "BANK_ACCOUNT";
+    search?: string;
     status?: "active" | "cancelled";
     paymentMode?: string;
     section?: string;
@@ -93,7 +140,7 @@ export const useGetAllTransactionsInfinite = (params: Omit<GetAllTransactionsPar
             try {
                 checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal"]);
 
-                const { data } = await Api.get<BaseResponse<ITransaction[]>>('/api/financeledger/getall', {
+                const { data } = await Api.get<BaseResponse<ITransaction[]>>('/api/financeledger/v1/getall', {
                     params: { ...params, page: pageParam }
                 });
 
@@ -130,7 +177,7 @@ export const useGetTransactionById = (transactionId: string | undefined) => {
             try {
                 checkPermission(currentRole, ["correspondent", "accountant", "principal", "viceprincipal"]);
 
-                const { data } = await Api.get<BaseResponse<ITransaction>>(`/api/financeledger/get/${transactionId}`);
+                const { data } = await Api.get<BaseResponse<ITransaction>>(`/api/financeledger/v1/get/${transactionId}`);
 
                 if (data.ok) {
                     return data.data;
