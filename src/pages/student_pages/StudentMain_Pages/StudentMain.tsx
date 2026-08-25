@@ -389,7 +389,7 @@ export default function StudentMain() {
                         </Button>
                     </div>}
 
-                    <div className="block hidden">
+                    <div className="block">
                         {canExport && <Button
                             onClick={handleExport}
                             leftIcon={"fas fa-file-excel"}

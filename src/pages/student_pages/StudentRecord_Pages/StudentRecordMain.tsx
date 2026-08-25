@@ -261,7 +261,7 @@ export default function StudentRecordMain() {
                         </Button>
                     </div> */}
 
-                    <div className="w-full sm:w-auto  hidden">
+                    <div className="w-full sm:w-auto">
                        {canExport && <Button
                             onClick={handleExport}
                             leftIcon={exportRecordsMutation.isPending ? "fas fa-spinner fa-spin" : "fas fa-file-excel"}
