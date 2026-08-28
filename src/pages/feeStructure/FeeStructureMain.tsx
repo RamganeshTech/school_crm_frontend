@@ -17,13 +17,6 @@ export default function FeeStructureMain() {
 
     const { data: classesData, isLoading: isClassesLoading } = useGetClasses(schoolId!);
 
-    // Only fetch fee structures if a class is actually selected
-    // const {
-    //     data: feeStructures,
-    //     isLoading: isFeesLoading
-    // } = useGetFeeStructureByClass(schoolId!, selectedClassId || undefined);
-
-
     // 🌟 2. Call the Global Config Hook to get the master list of feeHeads
     const { data: configData } = useGetFeeConfig(schoolId!);
     const globalFeeHeads = configData?.feeHeads || [];
@@ -208,57 +201,6 @@ export default function FeeStructureMain() {
 
 
 }
-
-// // --- Helper Component for the 80% Right Side ---
-// function FeeCard({ type, data, icon, colorClass, bgClass }: { type: string, data: any, icon: string, colorClass: string, bgClass: string }) {
-//     const hasData = !!data && data.totalAmount > 0;
-
-//     return (
-//         <div className="border border-border rounded-xl overflow-hidden flex flex-col shadow-sm bg-surface">
-//             <div className={`p-4 border-b border-border flex items-center gap-3 ${bgClass}`}>
-//                 <div className={`w-8 h-8 rounded-full bg-surface flex items-center justify-center shadow-sm ${colorClass}`}>
-//                     <i className={icon}></i>
-//                 </div>
-//                 <div>
-//                     <h3 className={`font-bold uppercase tracking-wider ${colorClass}`}>{type} Students</h3>
-//                     <p className="text-[10px] text-muted font-semibold mt-0.5">Fee Breakdown</p>
-//                 </div>
-//             </div>
-
-//             <div className="p-5 flex-1 flex flex-col gap-3">
-//                 {!hasData ? (
-//                     <div className="flex-1 flex flex-col items-center justify-center text-muted/70 py-6">
-//                         <i className="fas fa-exclamation-circle text-2xl mb-2 opacity-50"></i>
-//                         <p className="text-sm font-medium">Not Configured Yet</p>
-//                     </div>
-//                 ) : (
-//                     <>
-//                         <FeeRow label="Admission Fee" amount={data.feeHead?.admissionFee} />
-//                         <FeeRow label="First Term Amount" amount={data.feeHead?.firstTermAmt} />
-//                         <FeeRow label="Second Term Amount" amount={data.feeHead?.secondTermAmt} />
-//                         <FeeRow label="Bus First Term" amount={data.feeHead?.busFirstTermAmt} />
-//                         <FeeRow label="Bus Second Term" amount={data.feeHead?.busSecondTermAmt} />
-
-//                         <div className="mt-auto pt-4 border-t border-dashed border-border flex justify-between items-center">
-//                             <span className="font-bold text-muted uppercase text-xs tracking-widest">Total Master Fee</span>
-//                             <span className="text-xl font-black text-foreground">₹{data.totalAmount?.toLocaleString('en-IN') || 0}</span>
-//                         </div>
-//                     </>
-//                 )}
-//             </div>
-//         </div>
-//     );
-// }
-
-// function FeeRow({ label, amount }: { label: string, amount: number }) {
-//     return (
-//         <div className="flex justify-between items-center py-1.5">
-//             <span className="text-sm text-muted font-medium">{label}</span>
-//             <span className="text-sm font-bold text-foreground">₹{(amount || 0).toLocaleString('en-IN')}</span>
-//         </div>
-//     );
-// }
-
 
 
 // --- Helper Component: Compact & Scrollable FeeCard ---

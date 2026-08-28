@@ -17,27 +17,6 @@ export default function FeeStructureSingle() {
 
     const canModify = isAdmin || isCorrespondent || isAccountant;
 
-    // --- Queries ---
-    // const { data: classesData } = useGetClasses(schoolId!);
-    // const { data: feeStructures, isLoading } = useGetFeeStructureByClass(schoolId!, classId);
-    // const setFeeMutation = useSetFeeStructure();
-
-    // // --- Class Name Helper ---
-    // const className = useMemo(() => {
-    //     return classesData?.find((c: any) => c._id === classId)?.name || 'Unknown Class';
-    // }, [classesData, classId]);
-
-    // // --- UI State ---
-    // // Toggle between editing New Student vs Old Student fees
-    // const [activeTab, setActiveTab] = useState<'new' | 'old'>('new');
-
-    // const [feeData, setFeeData] = useState({
-    //     admissionFee: '',
-    //     firstTermAmt: '',
-    //     secondTermAmt: '',
-    //     busFirstTermAmt: '',
-    //     busSecondTermAmt: ''
-    // });
 
     // --- Queries ---
     const { data: classesData } = useGetClasses(schoolId!);
@@ -60,62 +39,7 @@ export default function FeeStructureSingle() {
     // 🌟 Dynamic state to hold all fee amounts based on config
     const [feeData, setFeeData] = useState<Record<string, string>>({});
 
-    // // --- Sync Data when switching tabs or loading ---
-    // useEffect(() => {
-    //     if (feeStructures) {
-    //         const targetData = feeStructures.find((f: any) => f.type === activeTab);
-    //         if (targetData && targetData.feeHead) {
-    //             setFeeData({
-    //                 admissionFee: targetData.feeHead.admissionFee?.toString() || '',
-    //                 firstTermAmt: targetData.feeHead.firstTermAmt?.toString() || '',
-    //                 secondTermAmt: targetData.feeHead.secondTermAmt?.toString() || '',
-    //                 busFirstTermAmt: targetData.feeHead.busFirstTermAmt?.toString() || '',
-    //                 busSecondTermAmt: targetData.feeHead.busSecondTermAmt?.toString() || ''
-    //             });
-    //         } else {
-    //             // Reset if no data exists for this type yet
-    //             setFeeData({ admissionFee: '', firstTermAmt: '', secondTermAmt: '', busFirstTermAmt: '', busSecondTermAmt: '' });
-    //         }
-    //     }
-    // }, [feeStructures, activeTab]);
-
-    // // --- Handlers ---
-    // const handleInputChange = (field: string, value: string) => {
-    //     // Only allow numbers
-    //     if (value === '' || /^\d+$/.test(value)) {
-    //         setFeeData(prev => ({ ...prev, [field]: value }));
-    //     }
-    // };
-
-    // const handleSubmit = async (e: React.FormEvent) => {
-    //     e.preventDefault();
-    //     try {
-    //         await setFeeMutation.mutateAsync({
-    //             schoolId: schoolId!,
-    //             classId: classId!,
-    //             type: activeTab,
-    //             feeHead: {
-    //                 admissionFee: Number(feeData.admissionFee) || 0,
-    //                 firstTermAmt: Number(feeData.firstTermAmt) || 0,
-    //                 secondTermAmt: Number(feeData.secondTermAmt) || 0,
-    //                 busFirstTermAmt: Number(feeData.busFirstTermAmt) || 0,
-    //                 busSecondTermAmt: Number(feeData.busSecondTermAmt) || 0
-    //             }
-    //         });
-    //         toast.success(`Fee structure for ${activeTab.toUpperCase()} students saved!`);
-    //     } catch (error: any) {
-    //         toast.error(error.message || "Failed to save fee structure");
-    //     }
-    // };
-
-    // // Auto-calculate preview total
-    // const previewTotal =
-    //     (Number(feeData.admissionFee) || 0) +
-    //     (Number(feeData.firstTermAmt) || 0) +
-    //     (Number(feeData.secondTermAmt) || 0) +
-    //     (Number(feeData.busFirstTermAmt) || 0) +
-    //     (Number(feeData.busSecondTermAmt) || 0);
-
+    
     // --- Sync Data when switching tabs or loading ---
     useEffect(() => {
         if (globalFeeHeads.length > 0) {

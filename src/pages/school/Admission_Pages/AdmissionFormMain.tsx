@@ -173,7 +173,7 @@ export default function AdmissionFormMain() {
                 {/* MOBILE OVERLAY */}
                 {isMobileFilterOpen && (
                     <div
-                        className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+                        className="fixed inset-0 bg-black/40 z-30 lg:hidden backdrop-blur-sm transition-opacity"
                         onClick={() => setIsMobileFilterOpen(false)}
                     />
                 )}

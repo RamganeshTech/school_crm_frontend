@@ -35,6 +35,10 @@ const PrivacyPolicy: React.FC = () => {
                     <p className="mt-4">
                         This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and website. By using our service, you agree to the terms of this policy.
                     </p>
+
+                    <p className="mt-4">
+                        Published by <strong>RAMS TECH CIRCLE OPC PRIVATE LIMITED</strong>, operating as <strong>Build My Business</strong>
+                    </p>
                 </section>
 
                 <section className={style.section}>

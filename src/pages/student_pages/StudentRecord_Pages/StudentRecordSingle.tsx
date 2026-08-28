@@ -929,8 +929,6 @@ export default function StudentRecordSingle() {
             />
 
             {/* 3. CONCESSION MODAL */}
-
-
             <SideModal isOpen={isConcessionModalOpen} onClose={() => setIsConcessionModalOpen(false)} title="Manage Concession">
                 <form onSubmit={handleConcessionSubmit} className="flex flex-col h-full space-y-6 pr-2">
 
