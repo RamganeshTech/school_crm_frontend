@@ -5,7 +5,8 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
-const NotificationMain  = lazy(() => import( './pages/notification/NotficationMain'));
+import TermsAndConditions from './pages/confidentials/termsAndConditons/TermsAndConditions';
+const NotificationMain = lazy(() => import('./pages/notification/NotficationMain'));
 const PremisesSingle = lazy(() => import('./pages/eb_pages/premises_pages/PremisesSingle'));
 const PremiseMain = lazy(() => import('./pages/eb_pages/premises_pages/PremiseMain'));
 const EbLogMain = lazy(() => import('./pages/eb_pages/EbLogMain'));
@@ -464,6 +465,7 @@ function App() {
  */}
 
 
+              <Route path="/terms-and-conditions" element={<TermsAndConditions />} />              
               <Route path='/privacy-policy' element={<PrivacyPolicy />} />
               <Route path='/account-deletion' element={<AccountDeletion />} />
               <Route path='/public/apply/admission-form/single/:id' element={<AdmissionFormSingle isAdmin={false} />} />

@@ -182,13 +182,13 @@ const PrivacyPolicy: React.FC = () => {
                         <div style={{ display: 'flex', marginTop: '0.2rem', alignItems: 'center' }}>
                             <strong style={{ width: '80px', flexShrink: 0 }}>Website:</strong>
                             <a
-                                href="https://www.dailygrades.com"
+                                href="https://dailygrades.com"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={style.emailHighlight}
                                 style={{ textDecoration: 'underline', flex: 1 }}
                             >
-                                https://www.dailygrades.com
+                                https://dailygrades.com
                             </a>
                         </div>
                     </div>
