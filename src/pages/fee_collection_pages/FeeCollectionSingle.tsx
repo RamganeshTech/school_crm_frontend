@@ -70,7 +70,7 @@ export default function FeeCollectionSingle() {
 
 
     // --- API Hooks ---
-    const { data: record, isLoading: isRecordLoading, isFetching: isRecordFetching, refetch } = useGetStudentRecordByIdV1(schoolId!, studentId, academicYear);
+    const { data: record, isLoading: isRecordLoading, isFetching: isRecordFetching, refetch } = useGetStudentRecordByIdV1(schoolId!, studentId!, academicYear);
     const { data: feeConfig,  } = useGetFeeConfig(schoolId!);
     const collectFeeMutation = useCollectFeev1();
 
