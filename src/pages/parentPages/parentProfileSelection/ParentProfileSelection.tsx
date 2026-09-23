@@ -1,40 +1,70 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { Outlet, useNavigate } from 'react-router-dom';
-import type { RootState } from '../../../features/store/store';
+import type { RootState , AppDispatch} from '../../../features/store/store';
 import { useGetParentStudents } from '../../../api_services/auth_api/authApi';
 import { useGetStudentById } from '../../../api_services/student_api/studentMainApi';
-import { clearCurrentstudent, setClassId, setSectionId, setStudentId } from '../../../features/slices/activeStudentSlice';
-import { useEffect } from 'react';
+import {  selectStudentAndSync } from '../../../features/slices/activeStudentSlice';
+import {  useState } from 'react';
 import { useAuthData } from '../../../hooks/useAuthData';
 import { useGetSchoolById } from '../../../api_services/schoolConfig_api/schoolapi';
+// import { useSyncModuleAccess } from '../../../hooks/useSyncModuleAccess';
 
 export default function ParentProfileSelection() {
     const navigate = useNavigate();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     const { userName: parentName, _id } = useSelector((state: RootState) => state.auth);
 
+    const [loadingStudentId, setLoadingStudentId] = useState<string | null>(null);
+
     // Get the schoolId from your auth/redux state
-    const { schoolId } = useAuthData();
+    const { schoolId , currentRole} = useAuthData();
 
     // Fetch the school details
     const { data: schoolData, isLoading: isSchoolLoading } = useGetSchoolById(schoolId!);
-
+    const currentAcademicYear = schoolData?.currentAcademicYear;
     // Dynamic Fetch: Pull student array directly from specialized
     const { data: studentIds, isLoading: isListLoading, isError } = useGetParentStudents({ userId: _id! });
 
-    const handleProfileSelect = (student: any) => {
-        dispatch(setStudentId(student._id));
-        dispatch(setClassId(student.currentClassId?._id || student?.currentClassId || null));
-        dispatch(setSectionId(student.currentSectionId?._id || student?.currentSectionId || null));
-        // navigate(`/dashboard/student/record-profile/${student._id}`);
-        navigate(`/dashboard/student/club`);
-    };
+    // const handleProfileSelect = (student: any) => {
+    //     dispatch(setStudentId(student._id));
+    //     dispatch(setClassId(student.currentClassId?._id || student?.currentClassId || null));
+    //     dispatch(setSectionId(student.currentSectionId?._id || student?.currentSectionId || null));
+    //     // navigate(`/dashboard/student/record-profile/${student._id}`);
+    //     navigate(`/dashboard/student/club`);
+    // };
 
 
-    useEffect(() => {
-        dispatch(clearCurrentstudent());
-    }, [dispatch]);
+    // useEffect(() => {
+    //     dispatch(clearCurrentstudent());
+    // }, [dispatch]);
+
+    // useSyncModuleAccess();
+
+    const handleProfileSelect = async (student: any) => {
+    if (!schoolId || !currentRole) return;
+
+    try {
+      setLoadingStudentId(student._id);
+
+      // ⏳ Wait for student record and module access to sync into Redux
+      await dispatch(
+        selectStudentAndSync({
+          student,
+          schoolId,
+          currentRole,
+          academicYear: currentAcademicYear,
+        })
+      ).unwrap();
+
+      // ✅ Safe to navigate! Modules and student IDs are fully set in Redux
+      navigate(`/dashboard/student/club`);
+    } catch (error) {
+      console.error("Failed to select student and sync records:", error);
+    } finally {
+      setLoadingStudentId(null);
+    }
+  };
 
     const isChild = location.pathname.includes("student") || location.pathname.includes("parent")
 
@@ -122,6 +152,8 @@ export default function ParentProfileSelection() {
                             <StudentProfileCard
                                 key={targetId}
                                 studentId={targetId}
+                                isLoading={loadingStudentId === targetId}
+                                disabled={Boolean(loadingStudentId)}
                                 onSelect={handleProfileSelect}
                             />
                         );
@@ -138,12 +170,16 @@ export default function ParentProfileSelection() {
 interface CardProps {
     studentId: string;
     onSelect: (student: any) => void;
+    isLoading?: boolean;
+    disabled?: boolean;
 }
 
-function StudentProfileCard({ studentId, onSelect }: CardProps) {
-    const { data: student, isLoading, isError } = useGetStudentById(studentId);
+// function StudentProfileCard({ studentId, onSelect }: CardProps) {
+function StudentProfileCard({ studentId, onSelect, isLoading = false, }: CardProps) {
+    // const { data: student, isLoading, isError } = useGetStudentById(studentId);
+    const { data: student, isLoading: isCardDataLoading, isError } = useGetStudentById(studentId);
 
-    if (isLoading) {
+    if (isCardDataLoading) {
         return (
             <div className="w-full flex flex-col items-center space-y-4">
                 <div className="w-full aspect-[1/1] rounded-3xl bg-surface border border-border flex items-center justify-center shadow-sm">
@@ -187,6 +223,17 @@ function StudentProfileCard({ studentId, onSelect }: CardProps) {
                         {fallbackInitial}
                     </div>
                 )}
+
+                {/* 🌟 Selection Loading Overlay */}
+                {isLoading && (
+                    <div className="absolute inset-0 bg-background/70 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2 z-20 animate-in fade-in duration-200">
+                        <i className="fas fa-circle-notch fa-spin text-2xl text-primary"></i>
+                        <span className="text-[11px] font-semibold text-foreground tracking-wide">
+                            Setting up...
+                        </span>
+                    </div>
+                )}
+
             </div>
 
             {/* Profile Meta Info Block (High Contrast Fields) */}

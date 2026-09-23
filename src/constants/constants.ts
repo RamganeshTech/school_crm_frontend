@@ -55,6 +55,16 @@ export const STAFF_ALL: UserRole[] = [
     "viceprincipal"
 ]
 
+
+export const AVAILABLE_MODULES = [
+    { label: 'Marks', value: 'marks' },
+    { label: 'Homework', value: 'homework' },
+    { label: 'Club', value: 'club' },
+    { label: 'Announcement', value: 'announcement' },
+    { label: 'Timetable', value: 'timetable' },
+    { label: 'Attendance', value: 'attendance' }
+];
+
 // Only the Correspondent
 export const SUPER_ADMIN_ONLY: UserRole[] = ["correspondent"];
 
@@ -342,9 +352,14 @@ export const baseManagementMenu: MenuItem[] = [
             },
 
 
-        ]
-    }
-
+        ],
+         
+    },
+    {
+        name: "App Download",
+        path: "/dashboard/download-app-section",
+        icon: "fa-solid fa-display"
+    },
 
     // { name: 'Fee Collection', path: "/dashboard/fee-collection", icon: 'fas fa-cash-register' },
 
@@ -655,7 +670,9 @@ export const getParentMenu = ({ studentId, classId, sectionId, academicYear }: P
     // Base path. If studentId exists, append it as a query parameter.
     const queryStr = studentId ? `?studentId=${studentId}` : '';
 
-    // 🌟 Specific query string just for the Mark Report route
+    console.log("acadmic year from the parent menu", academicYear)
+    // 🌟 Specific query s
+    // tring just for the Mark Report route
     const markReportQuery = studentId
         ? `?classId=${classId || ''}&sectionId=${sectionId || ''}&academicYear=${academicYear || ''}`
         : '';

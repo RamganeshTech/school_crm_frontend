@@ -40,6 +40,7 @@ export default function MarkReportSingle({
 
     const { isCorrespondent, isAdmin, isTeacher } = useRoleCheck();
 
+
     const canModify = isCorrespondent || isAdmin || isTeacher
 
 
@@ -131,7 +132,9 @@ export default function MarkReportSingle({
     // DATA HYDRATION (Unpacking)
     // ==========================================
     useEffect(() => {
+        console.log("initial data", initialData)
         if (initialData) {
+
             setFormData({
                 academicYear: initialData.academicYear || '',
                 classId: initialData.classId?._id || initialData.classId || '',

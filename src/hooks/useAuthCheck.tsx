@@ -16,36 +16,6 @@ export const useAuthCheck = () => {
         if (hasChecked.current) return;
         hasChecked.current = true;
 
-        // const verify = async () => {
-        //     try {
-        //         // The currentRole is passed for the local check inside fetchAuthSession
-        //         // If it's a refresh, currentRole is empty, so fetchAuthSession proceeds to API
-        //         const response = await fetchAuthSession(currentRole);
-
-        //         if (response.ok && response.data) {
-        //             const userData = response.data;
-
-        //             const schoolIdString = typeof userData.schoolId === 'object'
-        //                 ? userData.schoolId?._id
-        //                 : userData.schoolId;
-
-        //             dispatch(setCredentials({
-        //                 _id: userData._id,
-        //                 userName: userData.userName,
-        //                 schoolId: schoolIdString || '',
-        //                 role: userData.role,
-        //                 token: '', // Handled by HttpOnly cookies or separate logic
-        //             }));
-        //         }
-        //     } catch (error) {
-        //         console.error("Auth verification failed:", error);
-        //         dispatch(logout());
-        //     } finally {
-        //         setIsLoading(false);
-        //     }
-        // };
-
-
         const verify = async () => {
             try {
                 // console.log("1. Starting API call...");

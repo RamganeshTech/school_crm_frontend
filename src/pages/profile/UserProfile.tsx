@@ -592,25 +592,6 @@ export default function UserProfile() {
             )
             }
 
-            {/* {activeTab === 'details' && !isParent && (
-                <HrDetailsTab
-                    userId={_id!}
-                    schoolId={user?.schoolId?._id!}
-                    validProfile={validProfile}
-                    hasProfile={hasProfile}
-                    isLoading={isProfileLoading}
-                    refetch={refetchProfile}
-                />
-            )}
-
-            {activeTab === 'documents' && !isParent && (
-                <DocumentsTab
-                    userId={_id!}
-                    hasProfile={hasProfile}
-                    documents={validProfile?.documents || []}
-                    refetch={refetchProfile}
-                />
-            )} */}
 
             <UserProfileComponents
                 activeTab={activeTab}

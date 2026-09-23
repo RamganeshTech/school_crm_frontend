@@ -13,6 +13,7 @@ export const useAuthorizedMenu = () => {
     const academicYear = data?.currentAcademicYear
 
 
+
     // console.log("academicYear in auth menu", academicYear)
     // const { studentId: activeStudentId } = useCurrentStudent();
     const {
@@ -22,7 +23,7 @@ export const useAuthorizedMenu = () => {
     } = useCurrentStudent();
 
 
-
+// console.log("1122222222222", academicYear)
 
     // 2. Wrap the logic in useMemo so it only recalculates when role/id changes
     const authorizedMenu = useMemo(() => {
@@ -86,7 +87,7 @@ export const useAuthorizedMenu = () => {
 
         // return menu;
         return menu.sort((a, b) => a.name.localeCompare(b.name));
-    }, [currentRole, schoolId, activeStudentId]); // Recalculates if any of these 3 change
+    }, [currentRole, schoolId, activeStudentId, academicYear]); // Recalculates if any of these 3 change
 
     return authorizedMenu;
 };

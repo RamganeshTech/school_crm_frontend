@@ -32,6 +32,7 @@ export interface FeeHeadItem {
     feeHead: string;
     associatedTerm: "firstTerm" | "secondTerm" | "thirdTerm" | null;
     isTerm: boolean;
+    modules: string[]
     _id?: string
 }
 

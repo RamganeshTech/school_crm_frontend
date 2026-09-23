@@ -283,182 +283,7 @@ const Login = () => {
 
 
 
-          {/* Progress Card */}
-
-          {/* <div className="
-          bg-white
-          rounded-3xl
-          border
-          border-slate-200
-          shadow-xl
-          p-6
-          max-w-md
-        ">
-
-
-          <div className="flex items-center justify-between mb-6">
-
-            <div className="flex items-center gap-3">
-
-              <div className="
-                w-12
-                h-12
-                rounded-xl
-                border
-                border-slate-200
-                flex
-                items-center
-                justify-center
-              ">
-
-                <img
-                  src={DOMAIN_IMG}
-                  alt="Logo"
-                  className="w-7 h-7"
-                />
-
-              </div>
-
-
-              <div>
-
-                <h3 className="font-bold text-[#0f172a]">
-                  Academic Progress
-                </h3>
-
-                <p className="text-sm text-slate-500">
-                  This Term
-                </p>
-
-              </div>
-
-            </div>
-
-
-            <div className="
-              w-10
-              h-10
-              rounded-lg
-              border
-              border-slate-200
-              flex
-              items-center
-              justify-center
-            ">
-              <i className="fa-solid fa-chart-column text-slate-500" />
-            </div>
-
-
-          </div>
-
-
-
-          <div className="space-y-5">
-
-            {
-              [
-                {
-                  name:"MATHEMATICS",
-                  percent:"85%"
-                },
-                {
-                  name:"PHYSICS",
-                  percent:"72%"
-                },
-                {
-                  name:"ENGLISH",
-                  percent:"90%"
-                }
-
-              ].map((item,index)=>(
-
-                <div key={index}>
-
-                  <div className="
-                    flex
-                    justify-between
-                    text-sm
-                    font-bold
-                    text-[#0f172a]
-                    mb-2
-                  ">
-                    <span>
-                      {item.name}
-                    </span>
-
-                    <span>
-                      {item.percent}
-                    </span>
-
-                  </div>
-
-
-                  <div className="
-                    h-2
-                    rounded-full
-                    bg-slate-200
-                    overflow-hidden
-                  ">
-
-                    <div
-                      className="
-                        h-full
-                        rounded-full
-                        bg-gradient-to-r
-                        from-[#e1061b]
-                        to-[#c8102e]
-                      "
-                      style={{
-                        width:item.percent
-                      }}
-                    />
-
-                  </div>
-
-
-                </div>
-
-
-              ))
-            }
-
-          </div>
-
-
-
-          <div className="
-            mt-6
-            flex
-            items-center
-            gap-3
-            rounded-xl
-            bg-red-50
-            border
-            border-red-100
-            p-3
-          ">
-
-            <i className="
-              fa-solid
-              fa-circle-check
-              text-[#e1061b]
-            "/>
-
-
-            <span className="
-              text-sm
-              font-semibold
-              text-[#0f172a]
-            ">
-              All assignments submitted
-            </span>
-
-          </div>
-
-
-
-        </div> */}
-
+      
           {/* Animated Feature Slider */}
 
           <style>
@@ -978,22 +803,12 @@ background:#e1061b;
               className=" mt-3 text-white border-none bg-gradient-to-r from-[#e1061b] to-[#c8102e] hover:opacity-90 shadow-lg
             "
             >
-
               Sign in
-
             </Button>
-
-
-
+            
           </form>
-
-
         </div>
-
-
       </div>
-
-
     </div>
   );
 

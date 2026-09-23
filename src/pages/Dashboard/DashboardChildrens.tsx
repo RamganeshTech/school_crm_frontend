@@ -17,50 +17,50 @@ import { useAuthorizedMenu } from '../../hooks/useAuthorizedMenu';
 import { toast } from '../../shared/ui/ToastContext';
 import MobileSidebar from '../../shared/components/MobileSidebar';
 
-const DashboardChildrens: React.FC = () => {
-    const navigate = useNavigate();
-    // Get data from your auth hook or Redux store
-    const dispatch = useDispatch();
-    // const { schoolId } = useAuthData();
-    // const { role, schoolName } = useSelector((state: RootState) => state.auth)
+    const DashboardChildrens: React.FC = () => {
+        const navigate = useNavigate();
+        // Get data from your auth hook or Redux store
+        const dispatch = useDispatch();
+        // const { schoolId } = useAuthData();
+        // const { role, schoolName } = useSelector((state: RootState) => state.auth)
 
-    // const activeStudentId = studentId && studentId.length > 0 ? studentId[0] : null;
+        // const activeStudentId = studentId && studentId.length > 0 ? studentId[0] : null;
 
-    const { schoolName, schoollogoUrl } = useSelector(
-        (state: RootState) => state.auth
-    );
+        const { schoolName, schoollogoUrl } = useSelector(
+            (state: RootState) => state.auth
+        );
 
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+        const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    // const { studentId } = useCurrentStudent();
+        // const { studentId } = useCurrentStudent();
 
-    // const searchParam = useSearchParams()
+        // const searchParam = useSearchParams()
 
-    // const activeStudentId = searchParam.get("studentId")
+        // const activeStudentId = searchParam.get("studentId")
 
-    const logoutMutation = useLogoutUser();
+        const logoutMutation = useLogoutUser();
 
-    const handleLogout = async () => {
-        try {
-            // 1. Call Backend API using mutateAsync
-            const response = await logoutMutation.mutateAsync();
+        const handleLogout = async () => {
+            try {
+                // 1. Call Backend API using mutateAsync
+                const response = await logoutMutation.mutateAsync();
 
-            if (response.ok) {
-                // showToast(response.message || 'Logged out successfully', 'success');
+                if (response.ok) {
+                    // showToast(response.message || 'Logged out successfully', 'success');
+                }
+            } catch (error: any) {
+                toast.error(error.message || "failed to logout");
+            } finally {
+                // 2. Clear Redux State (Resets to initialState)
+                dispatch(logout());
+
+                // 3. Clear TanStack Query Cache
+                queryClient.clear();
+
+                // 4. Navigate to Login
+                navigate('/login');
             }
-        } catch (error: any) {
-            toast.error(error.message || "failed to logout");
-        } finally {
-            // 2. Clear Redux State (Resets to initialState)
-            dispatch(logout());
-
-            // 3. Clear TanStack Query Cache
-            queryClient.clear();
-
-            // 4. Navigate to Login
-            navigate('/login');
-        }
-    };
+        };
 
 
 

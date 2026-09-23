@@ -5,6 +5,7 @@ import { useGetFeeConfig, useUpsertFeeConfigV1, type FeeHeadItem } from '../../a
 import { toast } from '../../shared/ui/ToastContext';
 import { Button } from '../../shared/ui/Button';
 import { SearchSelect } from '../../shared/ui/SearchSelect';
+import { AVAILABLE_MODULES } from '../../constants/constants';
 
 // Common suggestions for a better UX
 const SUGGESTED_HEADS = [
@@ -39,6 +40,7 @@ export default function FeeStructureConfig() {
     // Example of how your state array looks now
     const [feeHeads, setFeeHeads] = useState<FeeHeadItem[]>([]);
     const [newFeeHead, setNewFeeHead] = useState('');
+    const [editingModulesFor, setEditingModulesFor] = useState<number | null>(null);
 
     // Sync fetched data to local state
     useEffect(() => {
@@ -60,8 +62,8 @@ export default function FeeStructureConfig() {
             return;
         }
 
-        // setFeeHeads(prev => [...prev, trimmed]);
-        setFeeHeads(prev => [...prev, { feeHead: trimmed, isTerm: false, associatedTerm: null }]);
+        // setFeeHeads(prev => [...prev, { feeHead: trimmed, isTerm: false, associatedTerm: null }]);
+        setFeeHeads(prev => [...prev, { feeHead: trimmed, isTerm: false, associatedTerm: null, modules: [] }]);
         setNewFeeHead('');
     };
 
@@ -72,6 +74,28 @@ export default function FeeStructureConfig() {
 
     const handleRemoveFeeHead = (indexToRemove: number) => {
         setFeeHeads(prev => prev.filter((_, idx) => idx !== indexToRemove));
+    };
+
+    const handleToggleModule = (headIndex: number, moduleValue: string) => {
+        setFeeHeads(prev => {
+            const updated = [...prev];
+
+            // 🌟 FIX: Create a fresh copy of the specific fee head object
+            const currentHead = { ...updated[headIndex] };
+            const currentModules = currentHead.modules || [];
+
+            // Toggle the module logic
+            if (currentModules.includes(moduleValue)) {
+                currentHead.modules = currentModules.filter(m => m !== moduleValue);
+            } else {
+                currentHead.modules = [...currentModules, moduleValue];
+            }
+
+            // 🌟 FIX: Replace the old object with the new one in the array
+            updated[headIndex] = currentHead;
+
+            return updated;
+        });
     };
 
     const handleSaveConfig = async () => {
@@ -328,6 +352,68 @@ export default function FeeStructureConfig() {
                                                         />
                                                     </div>
                                                 )}
+
+                                                {/* --- THIRD ROW: Module Selection (Chips) --- */}
+                                                {/* --- MODULES — Atlassian/Jira-style labels --- */}
+                                                <div className="flex flex-col gap-2 mt-1 pt-3 border-t border-border-soft">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted uppercase tracking-wider">
+                                                            <i className="fas fa-shield-alt text-primary"></i>
+                                                            Unlocked Modules
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setEditingModulesFor(editingModulesFor === index ? null : index)}
+                                                            className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted hover:text-primary transition-colors cursor-pointer"
+                                                        >
+                                                            {editingModulesFor === index ? (
+                                                                <>Done <i className="fas fa-check text-[11px]"></i></>
+                                                            ) : (
+                                                                <>Edit <i className="fas fa-pen text-[11px]"></i></>
+                                                            )}
+                                                        </button>
+                                                    </div>
+
+                                                    {editingModulesFor === index ? (
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {AVAILABLE_MODULES.map((mod) => {
+                                                                const isSelected = (head.modules || []).includes(mod.value);
+                                                                return (
+                                                                    <button
+                                                                        key={mod.value}
+                                                                        type="button"
+                                                                        onClick={() => handleToggleModule(index, mod.value)}
+                                                                        className={`flex items-center gap-1 px-2 py-1 rounded-sm text-[10px] font-bold tracking-wide uppercase border transition-colors cursor-pointer ${isSelected
+                                                                            ? 'bg-primary text-inverse border-primary'
+                                                                            : 'bg-surface border-border text-muted hover:border-primary/50 hover:text-primary'
+                                                                            }`}
+                                                                    >
+                                                                        {isSelected && <i className="fas fa-check text-[10px]"></i>}
+                                                                        {mod.label}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {(!head.modules || head.modules.length === 0) ? (
+                                                                <span className="text-[10px] text-muted font-medium">No modules selected</span>
+                                                            ) : (
+                                                                head.modules.map(modValue => {
+                                                                    const modLabel = AVAILABLE_MODULES.find(m => m.value === modValue)?.label || modValue;
+                                                                    return (
+                                                                        <span
+                                                                            key={modValue}
+                                                                            className="px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wide bg-primary-soft text-primary border border-primary/20"
+                                                                        >
+                                                                            {modLabel}
+                                                                        </span>
+                                                                    );
+                                                                })
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     ))}

@@ -25,6 +25,7 @@ export interface AcademicTermDates {
 export interface SchoolData {
   _id: string;
   name: string;
+  schoolCode?:string
   email: string;
   phoneNo: string;
   address: string;

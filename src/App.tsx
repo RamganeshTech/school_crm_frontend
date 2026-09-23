@@ -5,7 +5,9 @@ import { useAuthCheck } from './hooks/useAuthCheck';
 import { ACADEMIC_ACCESS, AUTH_CHECK_ROLES, FINANCE_ACCESS, HIGHER_OFFICIALS, MANAGEMENT_ONLY, STAFF_ALL, SUPER_ADMIN_ONLY } from './constants/constants';
 import { SocketProvider } from './lib/SocketContext';
 import { DashboardHomeRedirect } from './pages/Dashboard/DashboardRedirect';
-import TermsAndConditions from './pages/confidentials/termsAndConditons/TermsAndConditions';
+import DownloadSection from './pages/download_app/DownloadSection';
+import StudentModuleGuard from './shared/components/StudentModuleGuard';
+const TermsAndConditions = lazy(() => import('./pages/confidentials/termsAndConditons/TermsAndConditions'));
 const NotificationMain = lazy(() => import('./pages/notification/NotficationMain'));
 const PremisesSingle = lazy(() => import('./pages/eb_pages/premises_pages/PremisesSingle'));
 const PremiseMain = lazy(() => import('./pages/eb_pages/premises_pages/PremiseMain'));
@@ -179,6 +181,13 @@ function App() {
                     <AcademicCalendar />
                   </ProtectedRoute>} />
 
+                <Route path="download-app-section" element={
+                  <ProtectedRoute allowedRoles={AUTH_CHECK_ROLES} >
+                    <DownloadSection />
+                  </ProtectedRoute>} />
+
+
+
                 <Route element={<ProtectedRoute allowedRoles={PARENT_ROLE} />}>
                   {/* <Route path="profile-selection" element={<ParentProfileSelection />} > */}
 
@@ -190,16 +199,32 @@ function App() {
                     <Route path="fee-transaction" element={<FeeTransactionMain />} />
                   </Route>
                   <Route path="student/record-profile/:studentId" element={<StudentRecordSingle />} />
-                  <Route path="student/attendance/:studentId" element={<AttendanceSingleStudent />} />
 
+                  {/* <Route path="student/attendance/:studentId" element={<AttendanceSingleStudent />} />
                   <Route path="student/homework-submission" element={<HomeworkSubmissionMain />} />
                   <Route path="student/timetable" element={<TimeTableMain />} />
+                  <Route path="student/announcement" element={<AnnouncementParentMain />} /> */}
 
-                  <Route path="student/announcement" element={<AnnouncementParentMain />} />
+                  <Route path="student/homework-submission" element={
+                    <StudentModuleGuard moduleKey="homework"><HomeworkSubmissionMain /></StudentModuleGuard>
+                  } />
+                  <Route path="student/timetable" element={
+                    <StudentModuleGuard moduleKey="timetable"><TimeTableMain /></StudentModuleGuard>
+                  } />
+                  <Route path="student/announcement" element={
+                    <StudentModuleGuard moduleKey="announcement"><AnnouncementParentMain /></StudentModuleGuard>
+                  } />
+                  <Route path="student/attendance/:studentId" element={
+                    <StudentModuleGuard moduleKey="attendance"><AttendanceSingleStudent /></StudentModuleGuard>
+                  } />
+
                   <Route path="student/pending-task" element={<PendingTaskListMain />} />
                   <Route path="student/notifications" element={<NotificationMain />} />
 
-                  <Route path="student/club" element={<ClubMain />} >
+                  {/* <Route path="student/club" element={<ClubMain />} > */}
+                  <Route path="student/club" element={
+                    <StudentModuleGuard moduleKey="club"><ClubMain /></StudentModuleGuard>
+                  }>
                     <Route path="single/:id" element={<ClubSingle />} >
                       <Route path="quiz/:videoId" element={<ClubQuizMain />} >
                         <Route path="attempt/:quizId" element={<ClubQuizAttempt />} />
@@ -465,7 +490,7 @@ function App() {
  */}
 
 
-              <Route path="/terms-and-conditions" element={<TermsAndConditions />} />              
+              <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
               <Route path='/privacy-policy' element={<PrivacyPolicy />} />
               <Route path='/account-deletion' element={<AccountDeletion />} />
               <Route path='/public/apply/admission-form/single/:id' element={<AdmissionFormSingle isAdmin={false} />} />

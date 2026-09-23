@@ -215,6 +215,6 @@ export const useGetMarkReportByIdV1 = (
             }
         },
         // CRITICAL: Only run this query if a student has been selected!
-        enabled: !!studentId && !!academicYear,
+        enabled: !!studentId,
     });
 };

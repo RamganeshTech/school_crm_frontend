@@ -65,14 +65,7 @@ export function UserProfileComponents({
             );
         case 'id':
             return (
-                // <UserIdTab
-                //     userId={userId} hasProfile={hasProfile}
-
-                //     userDetails={validProfile}
-                //     isLoading={isLoading}
-                //     // formatRole={formatRole}
-                // />
-
+              
                 <UserIdTab
                     userId={userId} schoolId={schoolId} validProfile={validProfile}
                     hasProfile={hasProfile} isLoading={isLoading} refetch={refetch} canEdit={canEdit}

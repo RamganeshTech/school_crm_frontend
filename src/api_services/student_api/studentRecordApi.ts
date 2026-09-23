@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tansta
 import { useAuthData } from '../../hooks/useAuthData';
 import { checkPermission } from '../../utils/utils';
 import { Api } from '../../lib/api';
+import type { UserRole } from '../../features/slices/authSlice';
 
 // ==========================================
 // TYPES & INTERFACES
@@ -194,13 +195,9 @@ export const useGetAllStudentRecordsV1 = (params: GetAllStudentRecordsParams) =>
 // };
 
 
-export const useGetStudentRecordByIdV1 = (schoolId: string | undefined, studentId: string | undefined, academicYear?: string) => {
-  const { currentRole } = useAuthData();
 
-  return useQuery({
-    queryKey: ['studentRecords', 'detail', schoolId, studentId, academicYear],
-    queryFn: async () => {
-      try {
+export const getStudentRecordByIdV1 = async ({currentRole, schoolId, studentId, academicYear}: {currentRole:UserRole,  schoolId:string, studentId:string, academicYear?:string})=>{
+  try {
         checkPermission(currentRole, [
           "administrator", "correspondent", "principal", "viceprincipal", "accountant", "teacher", "parent"
         ]);
@@ -224,6 +221,15 @@ export const useGetStudentRecordByIdV1 = (schoolId: string | undefined, studentI
         const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
         throw new Error(errorMessage);
       }
+}
+export const useGetStudentRecordByIdV1 = (schoolId: string, studentId: string, academicYear?: string) => {
+  const { currentRole } = useAuthData();
+
+  
+  return useQuery({
+    queryKey: ['studentRecords', 'detail', schoolId, studentId, academicYear],
+    queryFn: async () => {
+      return await getStudentRecordByIdV1({currentRole, schoolId, studentId, academicYear})
     },
     enabled: !!schoolId && !!studentId,
   });
@@ -793,4 +799,42 @@ export const useExportStudentRecords = () => {
       }
     },
   });
+};
+
+
+interface ActivateCodeParams {
+    code: string;
+    studentId: string; // Used strictly for query invalidation/refresh
+}
+
+export const useActivateUnlockCode = () => {
+    const { currentRole } = useAuthData();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (payload: ActivateCodeParams) => {
+            try {
+                // Ensure the user has permission to activate codes
+                checkPermission(currentRole, ["correspondent", "administrator", "accountant", "principal", "viceprincipal", "parent"]);
+
+                const { data } = await Api.post(`/api/studentrecord/v1/activate-modules`, {
+                    code: payload.code,
+                    studentId: payload.studentId
+                });
+
+                if (data.ok) {
+                    return data;
+                } else {
+                    throw new Error(data.message || 'Failed to activate code.');
+                }
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage);
+            }
+        },
+        onSuccess: (_, _variables) => {
+            // Instantly refresh the specific student's record to show the newly unlocked modules
+            queryClient.invalidateQueries({ queryKey: ["studentRecords", 'detail'] });
+        },
+    });
 };

@@ -25,13 +25,6 @@ export const GlobalHeader = ({onMenuClick}: {onMenuClick:any}) => {
             {/* <div className="flex items-center gap-4"> */}
             <div className="flex items-center gap-1 sm:gap-4 sm:pl-6 sm:ml-4 border-l border-border">
 
-                {/* Optional: Add a notification bell here later */}
-                {/* <button className="w-10 h-10 rounded-full flex items-center justify-center text-muted hover:bg-mainBg hover:text-primary transition-colors">
-          <i className="fa-regular fa-bell text-lg"></i>
-        </button> */}
-
-
-
                 <NotificationIcon />
                 
                 <GlobalSetupProgress />

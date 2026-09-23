@@ -34,6 +34,7 @@ import { useRoleCheck } from '../../../hooks/useRoleCheck';
 import { useGetFeeConfig, type FeeHeadItem } from './../../../api_services/feeStructure_api/feeStructureConfigApi';
 import { useGetSchoolById } from '../../../api_services/schoolConfig_api/schoolapi';
 import InfoTooltip from '../../../shared/ui/InfoToolTip';
+import OfflineKeyActivationCard from './OfflineKeyActivationCard';
 
 export default function StudentRecordSingle() {
     const { studentId } = useParams() as { studentId: string }
@@ -102,6 +103,7 @@ export default function StudentRecordSingle() {
         busPoint: ''
     });
 
+    const [isActivationModalOpen, setIsActivationModalOpen] = useState(false);
     const [isEditingType, setIsEditingType] = useState(false);
     const [pendingNewOld, setPendingNewOld] = useState<'new' | 'old'>(record?.newOld ?? 'new');
 
@@ -551,7 +553,7 @@ export default function StudentRecordSingle() {
                             <div>
                                 <p className="text-muted text-xs font-semibold">Bus Point</p>
                                 <p className="font-medium text-foreground text-sm mt-0.5">
-                                     {record?.busPoint?.routeName || "No bus point mentioned"}
+                                    {record?.busPoint?.routeName || "No bus point mentioned"}
                                 </p>
                             </div>
                         </div>
@@ -721,6 +723,16 @@ export default function StudentRecordSingle() {
                         <i className="fas fa-wallet text-primary"></i>
                         <h3 className="font-semibold text-foreground">Financial Summary</h3>
                     </div>
+
+
+                    <Button
+                        variant="outline"
+                        leftIcon="fas fa-key"
+                        onClick={() => setIsActivationModalOpen(true)}
+                        className="h-[38px] border-border text-foreground hover:border-primary hover:text-primary shadow-sm"
+                    >
+                        Activate Modules
+                    </Button>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -926,6 +938,20 @@ export default function StudentRecordSingle() {
                 schoolId={schoolId!}
                 refetch={refetch} // Pass the refetch function so the table updates
                 selectedAcademicYear={selectedAcademicYear}
+            />
+
+            <OfflineKeyActivationCard
+                isOpen={isActivationModalOpen}
+                onClose={() => setIsActivationModalOpen(false)}
+                studentId={studentId}
+                unlockedModules={record?.unlockedModules || []}
+                // --- Audit Props passed down from the record ---
+                lastActivationCode={record?.lastActivationCode}
+                lastActivationCodeGeneratedAt={record?.lastActivationCodeGeneratedAt}
+
+                // Assuming your backend populates this. If it's an object, map to .userName
+                // If your backend isn't populating it yet, it will just fallback to 'System / Admin'
+                lastActivatedBy={(record?.lastActivationCodeGeneratedBy as any)?.userName || (record?.lastActivationCodeGeneratedBy as any)?.name}
             />
 
             {/* 3. CONCESSION MODAL */}
