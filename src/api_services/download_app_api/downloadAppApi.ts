@@ -33,6 +33,7 @@ export const useGetLatestRelease = () => {
             // }
 
             return {
+                // windowsUrl: "https://bmb-jaihind-images.s3.ap-south-1.amazonaws.com/installers/daily-grades-offline-1.0.0-setup.exe",
                 windowsUrl: "https://bmb-jaihind-images.s3.ap-south-1.amazonaws.com/installers/daily-grades-offline-1.0.0-setup.exe",
                 version: "1.0.0",
                 releasedAt: "2026-09-23",

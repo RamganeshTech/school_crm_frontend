@@ -232,7 +232,10 @@ function App() {
                     </Route>
                   </Route>
 
-                  <Route path="student/markreport/:id" element={<MarkReportConfig />} />
+                  <Route path="student/markreport/:id" element={
+                    // <MarkReportConfig />
+                    <StudentModuleGuard moduleKey="marks"><MarkReportConfig /></StudentModuleGuard>
+                    } />
 
 
                   {/* </Route> */}

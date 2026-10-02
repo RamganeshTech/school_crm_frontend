@@ -2,6 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import { useRoleCheck } from "../../hooks/useRoleCheck";
 import { useCurrentStudent } from "../../hooks/useCurrentStudent";
+import { Button } from "../ui/Button";
 
 const MODULE_LABELS: Record<string, string> = {
   marks: "Marks",
@@ -36,15 +37,16 @@ export default function StudentModuleGuard({ moduleKey, children }: StudentModul
           </h2>
           <p className="text-sm text-muted mb-6">
             This section hasn't been enabled for your ward this academic year.
-            Please reach out to the school office if you'd like access to it.
+            Please reach out to the school staff's if you'd like access to it.
           </p>
-          <button
-            className="px-4 py-2 bg-primary text-white rounded-lg w-full flex items-center justify-center gap-2"
+          <Button
+            variant="primary"
+            // className="px-4 py-2 bg-primary text-white rounded-lg w-full flex items-center justify-center gap-2"
             onClick={() => navigate(-1)}
           >
             <i className="fas fa-arrow-left"></i>
             Go Back
-          </button>
+          </Button>
         </div>
       </div>
     );
