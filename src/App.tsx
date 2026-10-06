@@ -217,7 +217,7 @@ function App() {
                   <Route path="student/attendance/:studentId" element={
                     <StudentModuleGuard moduleKey="attendance"><AttendanceSingleStudent /></StudentModuleGuard>
                     // <AttendanceSingleStudent />
-                  } />
+                  } />]
 
                   <Route path="student/pending-task" element={<PendingTaskListMain />} />
                   <Route path="student/notifications" element={<NotificationMain />} />

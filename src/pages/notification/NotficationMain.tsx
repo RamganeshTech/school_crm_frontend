@@ -37,19 +37,20 @@ export default function NotificationMain() {
         // 2. STUDENT-SPECIFIC (e.g., Attendance)
         // If it explicitly targets students, the active child MUST be in the list.
         if (notif.targetStudents && notif.targetStudents.length > 0) {
-            return notif.targetStudents.includes(studentId);
+            // return notif.targetStudents.includes(studentId);
+            return true
         }
 
         // 3. CLASS/SECTION-SPECIFIC (e.g., Homework, Targeted Announcements)
         // If it targets classes, the active child's class/section MUST match.
-        if (notif.targetClasses && notif.targetClasses.length > 0) {
-            const matchesClass = notif.targetClasses.includes(classId);
-            const matchesSection = notif.targetSections && notif.targetSections.length > 0
-                ? notif.targetSections.includes(sectionId)
-                : true;
+        // if (notif.targetClasses && notif.targetClasses.length > 0) {
+        //     const matchesClass = notif.targetClasses.includes(classId);
+        //     const matchesSection = notif.targetSections && notif.targetSections.length > 0
+        //         ? notif.targetSections.includes(sectionId)
+        //         : true;
 
-            return matchesClass && matchesSection;
-        }
+        //     return matchesClass && matchesSection;
+        // }
 
         // 4. GLOBAL / ALL PARENTS (e.g., General Announcements)
         // If it has no specific students or classes, it's a general blast. Show it.

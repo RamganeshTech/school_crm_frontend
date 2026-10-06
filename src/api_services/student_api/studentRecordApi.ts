@@ -838,3 +838,62 @@ export const useActivateUnlockCode = () => {
         },
     });
 };
+
+
+
+
+
+export interface SyncUnlockedModulesParams {
+  schoolId: string;
+  _id: string;
+  academicYear: string;
+}
+
+
+export const useSyncUnlockedModulesOnline = () => {
+  const { currentRole } = useAuthData();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: SyncUnlockedModulesParams) => {
+      try {
+        // Enforce the same roles configured in multiRoleAuth
+        checkPermission(currentRole, [
+          "correspondent",
+          "administrator",
+          "accountant",
+          "principal",
+          "viceprincipal",
+        ]);
+
+        const { data } = await Api.put(
+          `/api/studentrecord/v1/activate-modules/online`,
+          {
+            schoolId: payload.schoolId,
+            recordId: payload._id,
+            academicYear: payload.academicYear,
+          }
+        );
+
+        if (data.ok) {
+          return data;
+        } else {
+          throw new Error(data.message || "Failed to sync unlocked modules.");
+        }
+      } catch (error: any) {
+        const errorMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "An unexpected error occurred while syncing modules.";
+        throw new Error(errorMessage);
+      }
+    },
+    onSuccess: () => {
+      // Invalidate both the generic detail query and specific student record if indexed by studentId
+      queryClient.invalidateQueries({ queryKey: ["studentRecords", "detail"] });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["studentRecords", "detail"],
+      // });
+    },
+  });
+};
