@@ -15,7 +15,9 @@ export default function NotificationMain() {
 
     // --- Hooks ---
     const { data: notifications = [], isLoading } = useGetAllNotifications();
-    const { studentId, classId, sectionId } = useCurrentStudent();
+    const { studentId, 
+        // classId, sectionId
+     } = useCurrentStudent();
     const deleteMutation = useDeleteNotification();
     const markReadMutation = useMarkNotificationAsRead();
 
