@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Api } from "../../lib/api";
 // import { Api } from "../../lib/api";
 
 // --- Types ---
@@ -14,6 +15,8 @@ export interface BaseResponse<T> {
     data: T;
 }
 
+
+//  old version
 // --- Hook: Get Latest Desktop App Release Info ---
 export const useGetLatestRelease = () => {
     return useQuery({
@@ -38,6 +41,31 @@ export const useGetLatestRelease = () => {
                 version: "1.0.0",
                 releasedAt: "2026-09-23",
             };
+        },
+    });
+};
+
+
+//  new version 
+// --- Hook: Start Desktop App Download (gets a short-lived token, then triggers the download) ---
+export const useDownloadDesktopApp = () => {
+    return useMutation({
+        mutationFn: async () => {
+            try {
+                const { data } = await Api.get<BaseResponse<{ downloadUrl: string }>>(`/api/downloads/token`);
+
+                if (!data.ok) {
+                    throw new Error(data.message || 'Failed to start download');
+                }
+
+                const baseUrl = Api.defaults.baseURL?.replace(/\/$/, '') || '';
+                window.location.href = `${baseUrl}${data.data.downloadUrl}`;
+
+                return data.data;
+            } catch (error: any) {
+                const errorMessage = error.response?.data?.message || error.message || 'An unexpected error occurred';
+                throw new Error(errorMessage, { cause: error });
+            }
         },
     });
 };
