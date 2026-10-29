@@ -6,6 +6,7 @@ import {
     type ClassData,
     useCreateClass,
     useDeleteClass,
+    useExportClassesAndSections,
     useGetClasses,
     useUpdateClass
 } from '../../api_services/schoolConfig_api/classApi';
@@ -29,6 +30,7 @@ export default function ClassConfiguration() {
     const createClassMutation = useCreateClass();
     const updateClassMutation = useUpdateClass();
     const deleteClassMutation = useDeleteClass();
+    const exportMutation = useExportClassesAndSections();
 
     // --- Local State ---
     const [searchQuery, setSearchQuery] = useState(''); // 🛑 ADDED: Search state
@@ -117,6 +119,19 @@ export default function ClassConfiguration() {
         }
     };
 
+    const handleExport = async () => {
+        if (!schoolId) {
+            toast.error("School ID is missing");
+            return;
+        }
+        try {
+            await exportMutation.mutateAsync(schoolId);
+            toast.success("Excel exported successfully");
+        } catch (error: any) {
+            toast.error(error.message || "Export failed");
+        }
+    };
+
 
     const canModify = !isAccountant && !isParent && !isVicePrincipal
 
@@ -162,6 +177,18 @@ export default function ClassConfiguration() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         wrapperClassName="w-full sm:w-64" // Keeps the input at a nice width
                     />
+
+                    {/* 🛑 Export Button */}
+                    <Button
+                        onClick={handleExport}
+                        disabled={exportMutation.isPending}
+                        leftIcon={exportMutation.isPending ? "fas fa-spinner fa-spin" : "fas fa-file-excel"}
+                        variant="outline" // or secondary depending on your button variants
+                        className="w-full sm:w-auto whitespace-nowrap shrink-0"
+                    >
+                        {exportMutation.isPending ? "Exporting..." : "Export Excel"}
+                    </Button>
+
                     {canModify && <Button onClick={openCreateForm} leftIcon="fas fa-plus" variant="primary" className="w-full sm:w-auto whitespace-nowrap shrink-0">
                         Add New Class
                     </Button>}

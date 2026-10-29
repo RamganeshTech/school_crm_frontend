@@ -156,3 +156,51 @@ export const useDeleteClass = () => {
     },
   });
 };
+
+
+// --- Hook: Export Classes & Sections ---
+export const useExportClassesAndSections = () => {
+  const { currentRole } = useAuthData();
+
+  return useMutation({
+    mutationFn: async (schoolId: string) => {
+      try {
+        checkPermission(currentRole, [
+          "correspondent",
+          "administrator",
+          "teacher",
+          "principal",
+          "accountant",
+        ]);
+
+        // Request blob binary data for the Excel file
+        const response = await Api.put(
+          `/api/class/export/${schoolId}`,
+          {},
+          { responseType: "blob" }
+        );
+
+        // Trigger browser download
+        const blob = new Blob([response.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = `Classes_and_Sections_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+
+        return true;
+      } catch (error: any) {
+        const errorMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to export classes";
+        throw new Error(errorMessage);
+      }
+    },
+  });
+};
